@@ -29,7 +29,8 @@ hisi\_linux-4.19\_hos\_l2.patch: 在Hi3516DV300芯片上支持arm架构的内核
 ## 目录<a name="section21571344112"></a>
 
 ```
-├── linux/patches/linux-4.19          # 内核patch及编译脚本
+├── kernel.mk          # 支持Hi3516DV300等平台内核编译Makefile
+├── kernel_module_build.sh          # 支持Hi3516DV300等平台内核及KO模块编译脚本
 ├── device/hisilicon/hi3516dv300/sdk_linux/open_source/linux/hisi_linux-4.19_hos_l2.patch   # 厂商Hisilicon对应的开源开发板Hi3516dv300相关标准系统的patch
 ```
 
@@ -47,8 +48,9 @@ hisi\_linux-4.19\_hos\_l2.patch: 在Hi3516DV300芯片上支持arm架构的内核
     patch -p1 < device/hisilicon/hi3516dv300/sdk_linux/open_source/linux/hisi_linux-4.19_hos_l2.patch
     ```
 
-    >![](public_sys-resources/icon-notice.gif) **须知：** 
-    >由于OpenHarmony工程的编译构建流程中会拷贝kernel/linux-4.19的代码环境后进行打补丁动作，在使用OpenHarmony的版本级编译命令前，需要kernel/linux-4.19保持原代码环境。
+    >![](public_sys-resources/icon-notice.gif) **须知：**   
+    >* 由于OpenHarmony工程的编译构建流程中会拷贝kernel/linux-4.19的代码环境后进行打补丁动作，在使用如下场景1的OpenHarmony的版本级编译命令前，需要kernel/linux-4.19保持原代码环境。  
+    >* 对应拷贝后的目录位于: out/KERNEL_OBJ/kernel/src_tmp/linux-4.19，需要在该目录下进行如下场景2的单独编译等开发操作。
 
 
 ## 以hi3516dv300开源开发板+ubuntu x86主机开发环境为例<a name="section19369206113115"></a>
@@ -70,12 +72,13 @@ hisi\_linux-4.19\_hos\_l2.patch: 在Hi3516DV300芯片上支持arm架构的内核
     进入工程主目录配置环境变量：
 
     ```
+    export TARGET_PRODUCT=Hi3516DV300 # HDF驱动需要
     export PATH=`pwd`/prebuilts/clang/host/linux-x86/clang-r353983c/bin:`pwd`/prebuilts/gcc/linux-x86/arm/gcc-linaro-7.5.0-arm-linux-gnueabi/bin/:$PATH # 配置编译环境
     MAKE_OPTIONES="ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- CC=clang HOSTCC=clang" # 使用工程项目自带的clang环境
     ```
 
-2.  修改内核代码或内核config （OpenHarmony提供对应平台的defconfig供参考）。
-3.  创建编译目录及生成内核.config。
+2.  直接进入整编过的内核目录out/KERNEL_OBJ/kernel/src_tmp/linux-4.19下修改内核代码或config （OpenHarmony提供对应平台的defconfig供参考）。
+3.  生成内核.config。
 
     ```
     make ${MAKE_OPTIONES} hi3516dv300_emmc_smp_hos_l2_defconfig # 使用自带的默认config 构建内核
