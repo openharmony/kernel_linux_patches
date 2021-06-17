@@ -1,0 +1,75 @@
+diff --git a/arch/arm/kernel/vmlinux.lds.S b/arch/arm/kernel/vmlinux.lds.S
+index 23150c0f0f4d..2780470c5ab7 100644
+--- a/arch/arm/kernel/vmlinux.lds.S
++++ b/arch/arm/kernel/vmlinux.lds.S
+@@ -121,6 +121,14 @@ SECTIONS
+ 		__pv_table_end = .;
+ 	}
+ 
++#ifdef CONFIG_DRIVERS_HDF
++	.init.hdf_table : {
++		_hdf_drivers_start = .;
++		*(.hdf.driver)
++		_hdf_drivers_end = .;
++	}
++#endif
++
+ 	INIT_DATA_SECTION(16)
+ 
+ 	.exit.data : {
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index ab4d43923c4d..9a869a2af74e 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -219,4 +219,6 @@ source "drivers/siox/Kconfig"
+ 
+ source "drivers/slimbus/Kconfig"
+ 
++source "drivers/hdf/khdf/Kconfig"
++
+ endmenu
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 578f469f72fb..c8296ce2c838 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -186,3 +186,4 @@ obj-$(CONFIG_MULTIPLEXER)	+= mux/
+ obj-$(CONFIG_UNISYS_VISORBUS)	+= visorbus/
+ obj-$(CONFIG_SIOX)		+= siox/
+ obj-$(CONFIG_GNSS)		+= gnss/
++obj-$(CONFIG_DRIVERS_HDF)	+= hdf/
+diff --git a/drivers/hdf/Makefile b/drivers/hdf/Makefile
+new file mode 100644
+index 000000000000..59190dd70d34
+--- /dev/null
++++ b/drivers/hdf/Makefile
+@@ -0,0 +1,3 @@
++export HDF_RELATIVE_PATH := drivers/huawei_platform/hdf
++export PROJECT_ROOT := ../../../../../
++obj-$(CONFIG_DRIVERS_HDF) += khdf/
+diff --git a/drivers/hdf/framework b/drivers/hdf/framework
+new file mode 120000
+index 000000000000..222a5f03668e
+--- /dev/null
++++ b/drivers/hdf/framework
+@@ -0,0 +1 @@
++../../../../../../../drivers/framework
+\ No newline at end of file
+diff --git a/drivers/hdf/khdf b/drivers/hdf/khdf
+new file mode 120000
+index 000000000000..45cfd260b09c
+--- /dev/null
++++ b/drivers/hdf/khdf
+@@ -0,0 +1 @@
++../../../../../../../drivers/adapter/khdf/linux
+\ No newline at end of file
+diff --git a/include/hdf b/include/hdf
+new file mode 120000
+index 000000000000..cb247a4d855c
+--- /dev/null
++++ b/include/hdf
+@@ -0,0 +1 @@
++../../../../../../drivers/framework/include
+\ No newline at end of file
+-- 
+2.25.1
+
