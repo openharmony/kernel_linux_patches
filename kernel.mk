@@ -15,7 +15,7 @@
 # ohos makefile to build kernel
 PRODUCT_NAME=$(TARGET_PRODUCT)
 OHOS_BUILD_HOME := $(realpath $(shell pwd)/../../../)
-KERNEL_SRC_TMP_PATH := $(OUT_DIR)/kernel/src_tmp/linux-4.19
+KERNEL_SRC_TMP_PATH := $(OUT_DIR)/kernel/linux-4.19
 ifeq ($(PRODUCT_NAME), Hi3516DV300)
     OHOS_BUILD_HOME := $(OHOS_ROOT_PATH)
     BOOT_IMAGE_PATH = $(OHOS_BUILD_HOME)/device/hisilicon/hispark_taurus/prebuilts
@@ -58,13 +58,24 @@ KERNEL_MAKE := \
     $(KERNEL_PREBUILT_MAKE)
 
 ifeq ($(PRODUCT_NAME), Hi3516DV300)
+HI3516DV300_PATCH_DIR := $(OHOS_BUILD_HOME)/kernel/linux/patches/linux-4.19/hi3516dv300_small_patch
+HI3516DV300_PATCH_FILE := $(HI3516DV300_PATCH_DIR)/hi3516dv300_small.patch
 HI3516DV300_PATCH_FILE := $(OHOS_BUILD_HOME)/device/hisilicon/hi3516dv300/sdk_linux/open_source/linux/hisi_linux-4.19_hos_l2.patch
+HDF_PATCH_FILE := $(HI3516DV300_PATCH_DIR)/hdf.patch
+DFX_PATCH_FILE := $(HI3516DV300_PATCH_DIR)/dfx.patch
 KERNEL_IMAGE_FILE := $(KERNEL_SRC_TMP_PATH)/arch/arm/boot/uImage
+export HDF_PROJECT_ROOT=$(OHOS_BUILD_HOME)/
+export PRODUCT_PATH=vendor/hisilicon/hispark_taurus_linux
 
 $(KERNEL_IMAGE_FILE):
 	$(hide) echo "build kernel..."
 	$(hide) rm -rf $(KERNEL_SRC_TMP_PATH);mkdir -p $(KERNEL_SRC_TMP_PATH);cp -arfL $(KERNEL_SRC_PATH)/. $(KERNEL_SRC_TMP_PATH)/
-	$(hide) cd $(KERNEL_SRC_TMP_PATH) && patch -p1 < $(HI3516DV300_PATCH_FILE)
+
+	$(hide) pushd $(KERNEL_SRC_TMP_PATH); \
+		# patch -p1 < $(DFX_PATCH_FILE);patch -p1 < $(HDF_PATCH_FILE); \
+		patch -p1 < $(HI3516DV300_PATCH_FILE); \
+		popd
+	$(hide) cp -rf $(KERNEL_CONFIG_PATH)/. $(KERNEL_SRC_TMP_PATH)/
 	$(hide) $(KERNEL_MAKE) -C $(KERNEL_SRC_TMP_PATH) ARCH=$(KERNEL_ARCH) $(KERNEL_CROSS_COMPILE) distclean
 	$(hide) $(KERNEL_MAKE) -C $(KERNEL_SRC_TMP_PATH) ARCH=$(KERNEL_ARCH) $(KERNEL_CROSS_COMPILE) hi3516dv300_emmc_smp_hos_l2_defconfig
 	$(hide) $(KERNEL_MAKE) -C $(KERNEL_SRC_TMP_PATH) ARCH=$(KERNEL_ARCH) $(KERNEL_CROSS_COMPILE) -j64 uImage

@@ -15,18 +15,18 @@
 
 set -e
 
-
+export OUT_DIR=$1
 if [ $2 == "hispark_taurus" ];then
     export TARGET_PRODUCT=hi3516dv300
+    LINUX_KERNEL_OUT=${OUT_DIR}/kernel/linux-4.19
 elif [ $2 == "Hi3516DV300" ];then
     export TARGET_PRODUCT=Hi3516DV300
+    LINUX_KERNEL_OUT=${OUT_DIR}/kernel/src_tmp/linux-4.19
 fi
 
 export OHOS_ROOT_PATH=$(pwd)/../../..
 #note out_dir style:out/xx/
-export OUT_DIR=$1
 
-LINUX_KERNEL_OUT=${OUT_DIR}/kernel/src_tmp/linux-4.19
 LINUX_KERNEL_UIMAGE_FILE=${LINUX_KERNEL_OUT}/arch/arm/boot/uImage
 
 HISPARK_TAS_SDK_LINUX_PATH=${OHOS_ROOT_PATH}/device/hisilicon/hispark_taurus/sdk_linux
@@ -37,7 +37,7 @@ make -f kernel.mk
 if [ -f ${LINUX_KERNEL_UIMAGE_FILE} ];then
     echo "uImage: ${LINUX_KERNEL_UIMAGE_FILE} build success"
 else
-    echo "uImage build failed!!!"
+    echo "uImage: ${LINUX_KERNEL_UIMAGE_FILE} build failed!!!"
     exit 1
 fi
 
