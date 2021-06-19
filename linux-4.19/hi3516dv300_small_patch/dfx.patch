@@ -1430,7 +1430,7 @@ index 000000000000..9bf2d3be20e6
 +}
 +static void __exit hilog_exit_module(void)
 +{
-+	cdev_del(&hilog_cdev);
++	cdev_del(&g_hilog_cdev);
 +	unregister_chrdev_region(MKDEV(hilog_major, 0), HILOG_NR_DEVS);
 +}
 +
