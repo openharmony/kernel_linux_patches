@@ -5,5 +5,9 @@ import("//build/lite/config/component/lite_component.gni")
 build_ext_component("linux_kernel") {
   exec_path = rebase_path(".", root_build_dir)
   outdir = rebase_path("$root_out_dir")
-  command = "./kernel_module_build.sh ${outdir} ${board_name}"
+  clang_dir = ""
+  if (ohos_build_compiler_dir != "") {
+    clang_dir = rebase_path("${ohos_build_compiler_dir}")
+  }
+  command = "./kernel_module_build.sh ${outdir} ${board_name} ${clang_dir}"
 }
