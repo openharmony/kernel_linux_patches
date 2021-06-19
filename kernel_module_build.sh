@@ -19,13 +19,16 @@ export OUT_DIR=$1
 if [ $2 == "hispark_taurus" ];then
     export TARGET_PRODUCT=hi3516dv300
     LINUX_KERNEL_OUT=${OUT_DIR}/kernel/linux-4.19
+    if [ $3 != "" ];then
+	LLVM_PATH=$3
+        export CLANG_CC=${LLVM_PATH}/bin/clang
+    fi
 elif [ $2 == "Hi3516DV300" ];then
     export TARGET_PRODUCT=Hi3516DV300
     LINUX_KERNEL_OUT=${OUT_DIR}/kernel/src_tmp/linux-4.19
 fi
 
 export OHOS_ROOT_PATH=$(pwd)/../../..
-#note out_dir style:out/xx/
 
 LINUX_KERNEL_UIMAGE_FILE=${LINUX_KERNEL_OUT}/arch/arm/boot/uImage
 
@@ -44,9 +47,9 @@ fi
 
 if [ $2 == "hispark_taurus" ];then
     cp -rf ${LINUX_KERNEL_UIMAGE_FILE} ${OUT_DIR}/uImage_hi3516dv300_smp
+else
+    export KERNEL_ROOT=${LINUX_KERNEL_OUT}
+    cd ${HISPARK_TAS_SDK_LINUX_MPP_PATH} && make -f sdk.mk
 fi
-
-export KERNEL_ROOT=${LINUX_KERNEL_OUT}
-pushd ${HISPARK_TAS_SDK_LINUX_MPP_PATH}; make -f sdk.mk; popd
 
 exit 0

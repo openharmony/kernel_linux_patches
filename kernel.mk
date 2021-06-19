@@ -28,7 +28,6 @@ KERNEL_CONFIG_PATH := $(OHOS_BUILD_HOME)/kernel/linux/config/linux-4.19
 PREBUILTS_GCC_DIR := $(OHOS_BUILD_HOME)/prebuilts/gcc
 PREBUILTS_CLANG_DIR := $(OHOS_BUILD_HOME)/prebuilts/clang
 CLANG_HOST_TOOLCHAIN := $(PREBUILTS_CLANG_DIR)/host/linux-x86/clang-r353983c/bin
-CLANG_CC := $(CLANG_HOST_TOOLCHAIN)/clang
 KERNEL_HOSTCC := $(CLANG_HOST_TOOLCHAIN)/clang
 KERNEL_PREBUILT_MAKE := make
 
@@ -36,9 +35,12 @@ ifeq ($(PRODUCT_NAME), Hi3516DV300)
     KERNEL_ARCH := arm
     KERNEL_TARGET_TOOLCHAIN := $(PREBUILTS_GCC_DIR)/linux-x86/arm/gcc-linaro-7.5.0-arm-linux-gnueabi/bin
     KERNEL_TARGET_TOOLCHAIN_PREFIX := $(KERNEL_TARGET_TOOLCHAIN)/arm-linux-gnueabi-
+    CLANG_CC := $(CLANG_HOST_TOOLCHAIN)/clang
 else ifeq ($(PRODUCT_NAME), hi3516dv300)
     KERNEL_ARCH := arm
-    CLANG_CC := $(OHOS_BUILD_HOME)/prebuilts/clang/ohos/linux-x86_64/clang-10.0.1/bin/clang
+    ifeq ($(CLANG_CC), "")
+        CLANG_CC := $(OHOS_BUILD_HOME)/prebuilts/clang/ohos/linux-x86_64/clang-10.0.1/bin/clang
+    endif
 endif
 
 KERNEL_PERL := /usr/bin/perl
