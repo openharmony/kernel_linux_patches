@@ -10,4 +10,5 @@ build_ext_component("linux_kernel") {
     clang_dir = rebase_path("${ohos_build_compiler_dir}")
   }
   command = "./kernel_module_build.sh ${outdir} ${board_name} ${clang_dir}"
+  deps = [ "//prebuilts/lite/sysroot/build:mark_as_prebuilts" ]
 }
