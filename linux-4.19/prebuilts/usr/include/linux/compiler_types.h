@@ -130,8 +130,10 @@ struct ftrace_likely_data {
 #ifndef __diag_GCC
 #define __diag_GCC(version, severity, string)
 #endif
+#ifndef __MUSL__
 #ifndef __copy
 # define __copy(symbol)
+#endif
 #endif
 #define __diag_push()	__diag(push)
 #define __diag_pop()	__diag(pop)
@@ -174,6 +176,7 @@ struct ftrace_likely_data {
 #else
 # define __gnu_inline
 #endif
+#ifndef __MUSL__
 #if !defined(CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING) || \
 	!defined(CONFIG_OPTIMIZE_INLINING)
 #define inline \
@@ -181,9 +184,12 @@ struct ftrace_likely_data {
 #else
 #define inline inline	__attribute__((unused)) notrace __gnu_inline
 #endif
+#endif
 #define __inline__ inline
 #define __inline inline
+#ifndef __MUSL__
 #define noinline	__attribute__((noinline))
+#endif
 #ifndef __always_inline
 #define __always_inline inline __attribute__((always_inline))
 #endif
