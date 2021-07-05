@@ -76,7 +76,7 @@ export PRODUCT_PATH=vendor/hisilicon/hispark_taurus_linux
 
 $(KERNEL_IMAGE_FILE):
 	$(hide) echo "build kernel..."
-	$(hide) rm -rf $(KERNEL_SRC_TMP_PATH);mkdir -p $(KERNEL_SRC_TMP_PATH);cp -arfL $(KERNEL_SRC_PATH)/. $(KERNEL_SRC_TMP_PATH)/
+	$(hide) rm -rf $(KERNEL_SRC_TMP_PATH);mkdir -p $(KERNEL_SRC_TMP_PATH);cp -arfL $(KERNEL_SRC_PATH)/* $(KERNEL_SRC_TMP_PATH)/
 	$(hide) cd $(KERNEL_SRC_TMP_PATH) && patch -p1 < $(DFX_PATCH_FILE) && patch -p1 < $(HDF_PATCH_FILE) && patch -p1 < $(HI3516DV300_PATCH_FILE)
 	$(hide) cp -rf $(KERNEL_CONFIG_PATH)/. $(KERNEL_SRC_TMP_PATH)/
 	$(hide) $(KERNEL_MAKE) -C $(KERNEL_SRC_TMP_PATH) ARCH=$(KERNEL_ARCH) $(KERNEL_CROSS_COMPILE) distclean
