@@ -73,7 +73,7 @@ hisi\_linux-4.19\_hos\_l2.patch: 在Hi3516DV300芯片上支持arm架构的内核
 
     ```
     export TARGET_PRODUCT=Hi3516DV300 # HDF驱动需要
-    export PATH=`pwd`/prebuilts/mingw-w64/ohos/linux-x86_64/clang-mingw/bin:`pwd`/prebuilts/gcc/linux-x86/arm/gcc-linaro-7.5.0-arm-linux-gnueabi/bin/:$PATH # 配置编译环境
+    export PATH=`pwd`/prebuilts/clang/host/linux-x86/clang-r353983c/bin:`pwd`/prebuilts/gcc/linux-x86/arm/gcc-linaro-7.5.0-arm-linux-gnueabi/bin/:$PATH # 配置编译环境
     MAKE_OPTIONES="ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- CC=clang HOSTCC=clang" # 使用工程项目自带的clang环境
     ```
 
