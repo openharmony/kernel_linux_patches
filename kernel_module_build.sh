@@ -26,6 +26,7 @@ if [ $2 == "hispark_taurus" ];then
 elif [ $2 == "Hi3516DV300" ];then
     export TARGET_PRODUCT=Hi3516DV300
     LINUX_KERNEL_OUT=${OUT_DIR}/kernel/src_tmp/linux-4.19
+    CLANG_BASE_PATH=$3
 fi
 
 export OHOS_ROOT_PATH=$(pwd)/../../..
@@ -49,6 +50,7 @@ if [ $2 == "hispark_taurus" ];then
     cp -rf ${LINUX_KERNEL_UIMAGE_FILE} ${OUT_DIR}/uImage_hi3516dv300_smp
 else
     export KERNEL_ROOT=${LINUX_KERNEL_OUT}
+    export COMPILER_PATH_DIR="$CLANG_BASE_PATH/bin"
     cd ${HISPARK_TAS_SDK_LINUX_MPP_PATH} && make -f sdk.mk
 fi
 
