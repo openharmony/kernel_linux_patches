@@ -45,14 +45,6 @@ else
     exit 1
 fi
 
-if [ $2 == "Hi3516DV300" ];then
-    if [ ! -d "${OUT_DIR}/../ohos-arm-release/obj/third_party/musl/usr/include/arm-linux-ohosmusl" ];then
-        mkdir -p ${OUT_DIR}/../ohos-arm-release/obj/third_party/musl/usr/include/arm-linux-ohosmusl
-    fi
-    cp -r $(pwd)/linux-4.19/prebuilts/usr/include/* ${OUT_DIR}/../ohos-arm-release/obj/third_party/musl/usr/include/arm-linux-ohosmusl
-    rm -rf ${OUT_DIR}/../ohos-arm-release/obj/third_party/musl/usr/include/arm-linux-ohosmusl/asm-arm
-fi
-
 if [ $2 == "hispark_taurus" ];then
     cp -rf ${LINUX_KERNEL_UIMAGE_FILE} ${OUT_DIR}/uImage_hi3516dv300_smp
 else
