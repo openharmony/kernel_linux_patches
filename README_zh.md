@@ -24,14 +24,16 @@ Linux社区LTS 4.19.y分支信息请查看[kernel官网](https://git.kernel.org/
 
 vendor厂商提供的特定芯片架构驱动代码：
 
-hisi\_linux-4.19\_hos\_l2.patch: 在Hi3516DV300芯片上支持arm架构的内核启动（DTS等）及对应的drm/mmc等驱动的支持。
+hi3516dv300_small.patch: 在Hi3516DV300芯片上支持arm架构的内核启动（DTS等）及对应的drm/mmc等驱动的支持。
 
 ## 目录<a name="section21571344112"></a>
 
 ```
 ├── kernel.mk          # 支持Hi3516DV300等平台内核编译Makefile
 ├── kernel_module_build.sh          # 支持Hi3516DV300等平台内核及KO模块编译脚本
-├── device/hisilicon/hi3516dv300/sdk_linux/open_source/linux/hisi_linux-4.19_hos_l2.patch   # 厂商Hisilicon对应的开源开发板Hi3516dv300相关标准系统的patch
+├── linux-4.19/hi3516dv300_small_patch # 4.19内核上Hi3516dv300开发板的补丁
+    ├── hi3516dv300_small.patch   # 厂商Hisilicon对应的开源开发板Hi3516dv300相关的芯片patch
+    ├── hdf.patch                 # Hi3516dv300开发板上支持HDF特性的patch
 ```
 
 ## 使用<a name="section1393789267"></a>
@@ -40,12 +42,12 @@ hisi\_linux-4.19\_hos\_l2.patch: 在Hi3516DV300芯片上支持arm架构的内核
 
 如需使用上述patch，需要在内核代码完成对应芯片平台驱动补丁进行合入。
 
-1.  合入芯片平台驱动补丁
+1.  合入芯片平台驱动补丁（参考kernel.mk）
 
     针对不同芯片平台合入对应的patch，以上述Hi3516DV300为例：
 
     ```
-    patch -p1 < device/hisilicon/hi3516dv300/sdk_linux/open_source/linux/hisi_linux-4.19_hos_l2.patch
+    patch -p1 < hdf.patch && patch -p1 < hi3516dv300_small.patch
     ```
 
     >![](public_sys-resources/icon-notice.gif) **须知：**   
@@ -81,7 +83,7 @@ hisi\_linux-4.19\_hos\_l2.patch: 在Hi3516DV300芯片上支持arm架构的内核
 3.  生成内核.config。
 
     ```
-    make ${MAKE_OPTIONES} hi3516dv300_emmc_smp_hos_l2_defconfig # 使用自带的默认config 构建内核
+    make ${MAKE_OPTIONES} hi3516dv300_standard_defconfig # 使用自带的默认config 构建内核
     ```
 
 4.  编译生成对应的内核Image。
