@@ -71,7 +71,6 @@ else
 DEFCONFIG_FILE := hi3516dv300_standard_defconfig
 endif
 export HDF_PROJECT_ROOT=$(OHOS_BUILD_HOME)/
-export PRODUCT_PATH=vendor/hisilicon/hispark_taurus_linux
 
 $(KERNEL_IMAGE_FILE):
 	$(hide) echo "build kernel..."
