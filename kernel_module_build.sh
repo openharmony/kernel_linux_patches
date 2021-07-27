@@ -30,6 +30,7 @@ elif [ $2 == "Hi3516DV300" ];then
 fi
 
 export OHOS_ROOT_PATH=$(pwd)/../../..
+export PRODUCT_PATH=$4
 
 LINUX_KERNEL_UIMAGE_FILE=${LINUX_KERNEL_OUT}/arch/arm/boot/uImage
 
