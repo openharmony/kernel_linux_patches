@@ -3,8 +3,8 @@
  * to provide necessary information from kernel to userspace, such as constants,
  * structures, and macros, and thus, contains no copyrightable information.
  */
-#ifndef _UAPI__ASMARM_SETUP_H
-#define _UAPI__ASMARM_SETUP_H
+#ifndef __ASMARM_SETUP_H
+#define __ASMARM_SETUP_H
 #include <linux/types.h>
 #define COMMAND_LINE_SIZE 1024
 #define ATAG_NONE	0x00000000

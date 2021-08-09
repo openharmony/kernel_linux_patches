@@ -3,8 +3,8 @@
  * to provide necessary information from kernel to userspace, such as constants,
  * structures, and macros, and thus, contains no copyrightable information.
  */
-#ifndef _UAPI_ASM_TYPES_H
-#define _UAPI_ASM_TYPES_H
+#ifndef _ASM_TYPES_H
+#define _ASM_TYPES_H
 #include <asm-generic/int-ll64.h>
 #ifdef __INT32_TYPE__
 #undef __INT32_TYPE__

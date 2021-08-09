@@ -3,8 +3,8 @@
  * to provide necessary information from kernel to userspace, such as constants,
  * structures, and macros, and thus, contains no copyrightable information.
  */
-#ifndef _UAPI__ASM_ARM_PTRACE_H
-#define _UAPI__ASM_ARM_PTRACE_H
+#ifndef __ASM_ARM_PTRACE_H
+#define __ASM_ARM_PTRACE_H
 #include <asm/hwcap.h>
 #define PTRACE_GETREGS		12
 #define PTRACE_SETREGS		13
@@ -28,13 +28,8 @@
 #define FIQ26_MODE	0x00000001
 #define IRQ26_MODE	0x00000002
 #define SVC26_MODE	0x00000003
-#if defined(__KERNEL__) && defined(CONFIG_CPU_V7M)
-#define USR_MODE	0x00000000
-#define SVC_MODE	0x00000000
-#else
 #define USR_MODE	0x00000010
 #define SVC_MODE	0x00000013
-#endif
 #define FIQ_MODE	0x00000011
 #define IRQ_MODE	0x00000012
 #define MON_MODE	0x00000016
@@ -46,11 +41,7 @@
 #define MODE_MASK	0x0000001f
 #define V4_PSR_T_BIT	0x00000020
 #define V7M_PSR_T_BIT	0x01000000
-#if defined(__KERNEL__) && defined(CONFIG_CPU_V7M)
-#define PSR_T_BIT	V7M_PSR_T_BIT
-#else
 #define PSR_T_BIT	V4_PSR_T_BIT
-#endif
 #define PSR_F_BIT	0x00000040
 #define PSR_I_BIT	0x00000080
 #define PSR_A_BIT	0x00000100
@@ -78,11 +69,9 @@
 #define PT_DATA_ADDR		0x10004
 #define PT_TEXT_END_ADDR	0x10008
 #ifndef __ASSEMBLY__
-#ifndef __KERNEL__
 struct pt_regs {
 	long uregs[18];
 };
-#endif
 #define ARM_cpsr	uregs[16]
 #define ARM_pc		uregs[15]
 #define ARM_lr		uregs[14]
