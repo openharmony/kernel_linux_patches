@@ -3,10 +3,10 @@
  * to provide necessary information from kernel to userspace, such as constants,
  * structures, and macros, and thus, contains no copyrightable information.
  */
-#ifndef _UAPI__ASM_ARM_UNISTD_H
-#define _UAPI__ASM_ARM_UNISTD_H
+#ifndef __ASM_ARM_UNISTD_H
+#define __ASM_ARM_UNISTD_H
 #define __NR_OABI_SYSCALL_BASE	0x900000
-#if defined(__thumb__) || 1
+#if defined(__thumb__) || defined(__ARM_EABI__)
 #define __NR_SYSCALL_BASE	0
 #include <asm/unistd-eabi.h>
 #else

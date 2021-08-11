@@ -3,6 +3,8 @@
  * to provide necessary information from kernel to userspace, such as constants,
  * structures, and macros, and thus, contains no copyrightable information.
  */
-#include <asm-generic/mman.h>
-#define arch_mmap_check(addr, len, flags) \
-	(((flags) & MAP_FIXED && (addr) < FIRST_USER_ADDRESS) ? -EINVAL : 0)
+#ifndef __ASM_BITSPERLONG_H
+#define __ASM_BITSPERLONG_H
+#define __BITS_PER_LONG 64
+#include <asm-generic/bitsperlong.h>
+#endif

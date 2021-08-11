@@ -3,8 +3,8 @@
  * to provide necessary information from kernel to userspace, such as constants,
  * structures, and macros, and thus, contains no copyrightable information.
  */
-#ifndef _UAPI__ASMARM_HWCAP_H
-#define _UAPI__ASMARM_HWCAP_H
+#ifndef __ASMARM_HWCAP_H
+#define __ASMARM_HWCAP_H
 #define HWCAP_SWP	(1 << 0)
 #define HWCAP_HALF	(1 << 1)
 #define HWCAP_THUMB	(1 << 2)

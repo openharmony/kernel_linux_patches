@@ -3,4 +3,9 @@
  * to provide necessary information from kernel to userspace, such as constants,
  * structures, and macros, and thus, contains no copyrightable information.
  */
-#include <asm-generic/bpf_perf_event.h>
+#ifndef __ASM_AUXVEC_H
+#define __ASM_AUXVEC_H
+#define AT_SYSINFO_EHDR	33
+#define AT_MINSIGSTKSZ	51
+#define AT_VECTOR_SIZE_ARCH 2
+#endif

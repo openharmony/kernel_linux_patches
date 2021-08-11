@@ -3,11 +3,10 @@
  * to provide necessary information from kernel to userspace, such as constants,
  * structures, and macros, and thus, contains no copyrightable information.
  */
-#ifndef __ASM_ARM_BYTEORDER_H
-#define __ASM_ARM_BYTEORDER_H
-#ifdef __ARMEB__
-#include <linux/byteorder/big_endian.h>
-#else
-#include <linux/byteorder/little_endian.h>
-#endif
+#ifndef __ASM_SIGNAL_H
+#define __ASM_SIGNAL_H
+#define SA_RESTORER	0x04000000
+#define MINSIGSTKSZ 5120
+#define SIGSTKSZ    16384
+#include <asm-generic/signal.h>
 #endif

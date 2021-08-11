@@ -3,14 +3,12 @@
  * to provide necessary information from kernel to userspace, such as constants,
  * structures, and macros, and thus, contains no copyrightable information.
  */
-#ifndef _UAPI_ASMARM_SIGNAL_H
-#define _UAPI_ASMARM_SIGNAL_H
+#ifndef _ASMARM_SIGNAL_H
+#define _ASMARM_SIGNAL_H
 #include <linux/types.h>
 struct siginfo;
-#ifndef __KERNEL__
 #define _KERNEL_NSIG		32
 typedef unsigned long sigset_t;
-#endif
 #define SIGHUP		 1
 #define SIGINT		 2
 #define SIGQUIT		 3
@@ -62,7 +60,6 @@ typedef unsigned long sigset_t;
 #define MINSIGSTKSZ	2048
 #define SIGSTKSZ	8192
 #include <asm-generic/signal-defs.h>
-#ifndef __KERNEL__
 struct sigaction {
 	union {
 	  __sighandler_t _sa_handler;
@@ -74,9 +71,8 @@ struct sigaction {
 };
 #define sa_handler	_u._sa_handler
 #define sa_sigaction	_u._sa_sigaction
-#endif
 typedef struct sigaltstack {
-	void __user *ss_sp;
+	void *ss_sp;
 	int ss_flags;
 	size_t ss_size;
 } stack_t;

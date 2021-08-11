@@ -188,9 +188,7 @@ struct kvm_vcpu_events {
 #define KVM_ARM_IRQ_TYPE_PPI		2
 #define KVM_ARM_IRQ_CPU_IRQ		0
 #define KVM_ARM_IRQ_CPU_FIQ		1
-#ifndef __KERNEL__
 #define KVM_ARM_IRQ_GIC_MAX		127
-#endif
 #define KVM_NR_IRQCHIPS          1
 #define KVM_PSCI_FN_BASE		0x95c1ba5e
 #define KVM_PSCI_FN(n)			(KVM_PSCI_FN_BASE + (n))
