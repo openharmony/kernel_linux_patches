@@ -17,6 +17,10 @@ set -e
 
 export OUT_DIR=$1
 if [ $2 == "hispark_taurus" ];then
+    if [ ""x == $(which arm-linux-gnueabi-ld)x ] || [ ""x == $(which arm-linux-gnueabi-gcc)x ];then
+        echo "Please install gcc-arm-linux-gnueabi, run \"sudo apt-get install gcc-arm-linux-gnueabi\"."
+        exit 1
+    fi
     export TARGET_PRODUCT=hi3516dv300
     LINUX_KERNEL_OUT=${OUT_DIR}/kernel/linux-4.19
     if [ $3 != "" ];then
