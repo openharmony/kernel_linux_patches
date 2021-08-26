@@ -38,9 +38,6 @@ export PRODUCT_PATH=$4
 
 LINUX_KERNEL_UIMAGE_FILE=${LINUX_KERNEL_OUT}/arch/arm/boot/uImage
 
-HISPARK_TAS_SDK_LINUX_PATH=${OHOS_ROOT_PATH}/device/hisilicon/hispark_taurus/sdk_linux
-HISPARK_TAS_SDK_LINUX_MPP_PATH=${HISPARK_TAS_SDK_LINUX_PATH}/soc/src/mpp
-
 make -f kernel.mk
 
 if [ -f ${LINUX_KERNEL_UIMAGE_FILE} ];then
@@ -52,10 +49,6 @@ fi
 
 if [ $2 == "hispark_taurus" ];then
     cp -rf ${LINUX_KERNEL_UIMAGE_FILE} ${OUT_DIR}/uImage_hi3516dv300_smp
-else
-    export KERNEL_ROOT=${LINUX_KERNEL_OUT}
-    export COMPILER_PATH_DIR="$CLANG_BASE_PATH/bin"
-    cd ${HISPARK_TAS_SDK_LINUX_MPP_PATH} && make -f sdk.mk
 fi
 
 exit 0
