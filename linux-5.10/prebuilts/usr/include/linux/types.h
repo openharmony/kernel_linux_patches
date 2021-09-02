@@ -1,23 +1,27 @@
-/*
- * This header was generated from the Linux kernel headers by update_headers.py,
- * to provide necessary information from kernel to userspace, such as constants,
- * structures, and macros, and thus, contains no copyrightable information.
- */
+/****************************************************************************
+ ****************************************************************************
+ ***
+ ***   This header was automatically generated from a Linux kernel header
+ ***   of the same name, to make information necessary for userspace to
+ ***   call into the kernel available to libc.  It contains only constants,
+ ***   structures, and macros generated from the original header, and thus,
+ ***   contains no copyrightable information.
+ ***
+ ***   To edit the content of this header, modify the corresponding
+ ***   source file (e.g. under external/kernel-headers/original/) then
+ ***   run bionic/libc/kernel/tools/update_all.py
+ ***
+ ***   Any manual change here will be lost the next time this script will
+ ***   be run. You've been warned!
+ ***
+ ****************************************************************************
+ ****************************************************************************/
 #ifndef _UAPI_LINUX_TYPES_H
 #define _UAPI_LINUX_TYPES_H
 #include <asm/types.h>
 #ifndef __ASSEMBLY__
-#ifndef	__KERNEL__
-#if 0
-#warning "Attempt to use kernel headers from user space, see https:
-#endif
-#endif
 #include <linux/posix_types.h>
-#if 0
-#define __bitwise__ __attribute__((bitwise))
-#else
 #define __bitwise__
-#endif
 #define __bitwise __bitwise__
 typedef __u16 __bitwise __le16;
 typedef __u16 __bitwise __be16;

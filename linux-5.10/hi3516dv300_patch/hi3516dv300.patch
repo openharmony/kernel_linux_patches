@@ -59245,22 +59245,6 @@ index b08d936d5fa7..1a62975c6a64 100644
  	if (!chan->buf) {
  		kfree(chan);
  		return NULL;
-diff --git a/lib/vdso/gettimeofday.c b/lib/vdso/gettimeofday.c
-index 2919f1698140..8947dfd00246 100644
---- a/lib/vdso/gettimeofday.c
-+++ b/lib/vdso/gettimeofday.c
-@@ -253,9 +253,10 @@ __cvdso_clock_gettime_data(const struct vdso_data *vd, clockid_t clock,
- 			   struct __kernel_timespec *ts)
- {
- 	int ret = __cvdso_clock_gettime_common(vd, clock, ts);
--
-+    /*
- 	if (unlikely(ret))
- 		return clock_gettime_fallback(clock, ts);
-+    */
- 	return 0;
- }
- 
 diff --git a/mm/init-mm.c b/mm/init-mm.c
 index 153162669f80..6382b3b6ba39 100644
 --- a/mm/init-mm.c
