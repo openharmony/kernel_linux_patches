@@ -1,8 +1,21 @@
-/*
- * This header was generated from the Linux kernel headers by update_headers.py,
- * to provide necessary information from kernel to userspace, such as constants,
- * structures, and macros, and thus, contains no copyrightable information.
- */
+/****************************************************************************
+ ****************************************************************************
+ ***
+ ***   This header was automatically generated from a Linux kernel header
+ ***   of the same name, to make information necessary for userspace to
+ ***   call into the kernel available to libc.  It contains only constants,
+ ***   structures, and macros generated from the original header, and thus,
+ ***   contains no copyrightable information.
+ ***
+ ***   To edit the content of this header, modify the corresponding
+ ***   source file (e.g. under external/kernel-headers/original/) then
+ ***   run bionic/libc/kernel/tools/update_all.py
+ ***
+ ***   Any manual change here will be lost the next time this script will
+ ***   be run. You've been warned!
+ ***
+ ****************************************************************************
+ ****************************************************************************/
 #ifndef _UAPI_ASM_ARM_UNISTD_COMMON_H
 #define _UAPI_ASM_ARM_UNISTD_COMMON_H 1
 #define __NR_restart_syscall (__NR_SYSCALL_BASE + 0)
@@ -360,4 +373,43 @@
 #define __NR_statx (__NR_SYSCALL_BASE + 397)
 #define __NR_rseq (__NR_SYSCALL_BASE + 398)
 #define __NR_io_pgetevents (__NR_SYSCALL_BASE + 399)
+#define __NR_migrate_pages (__NR_SYSCALL_BASE + 400)
+#define __NR_kexec_file_load (__NR_SYSCALL_BASE + 401)
+#define __NR_clock_gettime64 (__NR_SYSCALL_BASE + 403)
+#define __NR_clock_settime64 (__NR_SYSCALL_BASE + 404)
+#define __NR_clock_adjtime64 (__NR_SYSCALL_BASE + 405)
+#define __NR_clock_getres_time64 (__NR_SYSCALL_BASE + 406)
+#define __NR_clock_nanosleep_time64 (__NR_SYSCALL_BASE + 407)
+#define __NR_timer_gettime64 (__NR_SYSCALL_BASE + 408)
+#define __NR_timer_settime64 (__NR_SYSCALL_BASE + 409)
+#define __NR_timerfd_gettime64 (__NR_SYSCALL_BASE + 410)
+#define __NR_timerfd_settime64 (__NR_SYSCALL_BASE + 411)
+#define __NR_utimensat_time64 (__NR_SYSCALL_BASE + 412)
+#define __NR_pselect6_time64 (__NR_SYSCALL_BASE + 413)
+#define __NR_ppoll_time64 (__NR_SYSCALL_BASE + 414)
+#define __NR_io_pgetevents_time64 (__NR_SYSCALL_BASE + 416)
+#define __NR_recvmmsg_time64 (__NR_SYSCALL_BASE + 417)
+#define __NR_mq_timedsend_time64 (__NR_SYSCALL_BASE + 418)
+#define __NR_mq_timedreceive_time64 (__NR_SYSCALL_BASE + 419)
+#define __NR_semtimedop_time64 (__NR_SYSCALL_BASE + 420)
+#define __NR_rt_sigtimedwait_time64 (__NR_SYSCALL_BASE + 421)
+#define __NR_futex_time64 (__NR_SYSCALL_BASE + 422)
+#define __NR_sched_rr_get_interval_time64 (__NR_SYSCALL_BASE + 423)
+#define __NR_pidfd_send_signal (__NR_SYSCALL_BASE + 424)
+#define __NR_io_uring_setup (__NR_SYSCALL_BASE + 425)
+#define __NR_io_uring_enter (__NR_SYSCALL_BASE + 426)
+#define __NR_io_uring_register (__NR_SYSCALL_BASE + 427)
+#define __NR_open_tree (__NR_SYSCALL_BASE + 428)
+#define __NR_move_mount (__NR_SYSCALL_BASE + 429)
+#define __NR_fsopen (__NR_SYSCALL_BASE + 430)
+#define __NR_fsconfig (__NR_SYSCALL_BASE + 431)
+#define __NR_fsmount (__NR_SYSCALL_BASE + 432)
+#define __NR_fspick (__NR_SYSCALL_BASE + 433)
+#define __NR_pidfd_open (__NR_SYSCALL_BASE + 434)
+#define __NR_clone3 (__NR_SYSCALL_BASE + 435)
+#define __NR_close_range (__NR_SYSCALL_BASE + 436)
+#define __NR_openat2 (__NR_SYSCALL_BASE + 437)
+#define __NR_pidfd_getfd (__NR_SYSCALL_BASE + 438)
+#define __NR_faccessat2 (__NR_SYSCALL_BASE + 439)
+#define __NR_process_madvise (__NR_SYSCALL_BASE + 440)
 #endif
