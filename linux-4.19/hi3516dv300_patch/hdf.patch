@@ -105,7 +105,7 @@ index bd7ac53b7..d7efd1e3d 100644
  hid-$(CONFIG_DEBUG_FS)		+= hid-debug.o
 
 diff --git a/drivers/hid/hid-input.c b/drivers/hid/hid-input.c
-index 11bd2ca22..6f7805698 100644
+index 11bd2ca22..a5d0d6c19 100644
 --- a/drivers/hid/hid-input.c
 +++ b/drivers/hid/hid-input.c
 @@ -32,6 +32,10 @@
@@ -135,7 +135,7 @@ index 11bd2ca22..6f7805698 100644
  }
  EXPORT_SYMBOL_GPL(hidinput_report_event);
  
-@@ -1729,6 +1741,35 @@ static inline void hidinput_configure_usages(struct hid_input *hidinput,
+@@ -1729,6 +1741,41 @@ static inline void hidinput_configure_usages(struct hid_input *hidinput,
  						 report->field[i]->usage + j);
  }
  
@@ -158,6 +158,12 @@ index 11bd2ca22..6f7805698 100644
 +	memcpy(info->soundCode, dev->sndbit, sizeof(unsigned long) * BITS_TO_LONGS(SND_CNT));
 +	memcpy(info->forceCode, dev->ffbit, sizeof(unsigned long) * BITS_TO_LONGS(FF_CNT));
 +	memcpy(info->switchCode, dev->swbit, sizeof(unsigned long) * BITS_TO_LONGS(SW_CNT));
++	for (int i = 0; i < BITS_TO_LONGS(ABS_CNT); i++) {
++        if (dev->absbit[i] != 0) {
++            memcpy(info->axisInfo, dev->absinfo, sizeof(struct input_absinfo) * ABS_CNT);
++            break;
++        }
++    }
 +	info->bustype = dev->id.bustype;
 +	info->vendor = dev->id.vendor;
 +	info->product = dev->id.product;
@@ -171,7 +177,7 @@ index 11bd2ca22..6f7805698 100644
  /*
   * Register the input device; print a message.
   * Configure the input layer interface
-@@ -1811,7 +1852,9 @@ int hidinput_connect(struct hid_device *hid, unsigned int force)
+@@ -1811,7 +1858,9 @@ int hidinput_connect(struct hid_device *hid, unsigned int force)
  			hidinput_cleanup_hidinput(hid, hidinput);
  			continue;
  		}
@@ -183,7 +189,7 @@ index 11bd2ca22..6f7805698 100644
  			goto out_unwind;
  		hidinput->registered = true;
 diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
-index bde5cef32..f524af2a7 100644
+index bde5cef32..1cf2e9b9c 100644
 --- a/drivers/hid/hid-core.c
 +++ b/drivers/hid/hid-core.c
 @@ -36,6 +36,9 @@
@@ -208,7 +214,7 @@ index bde5cef32..f524af2a7 100644
  }
  
  /*
-@@ -1743,6 +1751,71 @@ static const struct device_attribute dev_attr_country = {
+@@ -1743,6 +1751,81 @@ static const struct device_attribute dev_attr_country = {
  	.show = show_country,
  };
  
@@ -247,6 +253,15 @@ index bde5cef32..f524af2a7 100644
 +	}
 +	return false;
 +}
++static bool check_trackball(char *name)
++{
++	static char *option[]={"Trackball"};
++	for (int i = 0; i < 1; i++) {
++		if (strstr(name, option[i]))
++			return true;
++	}
++	return false;
++}
 +static void notify_connect_event(struct hid_device *hdev)
 +{
 +	bool check;
@@ -260,6 +275,7 @@ index bde5cef32..f524af2a7 100644
 +	type = check_kbd(hdev->name)?HID_TYPE_KEYBOARD:type;
 +	type = check_rocker(hdev->name)?HID_TYPE_ROCKER:type;
 +	type = check_encoder(hdev->name)?HID_TYPE_ENCODER:type;
++	type = check_trackball(hdev->name)?HID_TYPE_TRACKBALL:type;
 +	if ( type < 0) {
 +		kfree(dev);
 +		dev = NULL;
@@ -280,7 +296,7 @@ index bde5cef32..f524af2a7 100644
  int hid_connect(struct hid_device *hdev, unsigned int connect_mask)
  {
  	static const char *types[] = { "Device", "Pointer", "Mouse", "Device",
-@@ -1832,6 +1905,9 @@ int hid_connect(struct hid_device *hdev, unsigned int connect_mask)
+@@ -1832,6 +1915,9 @@ int hid_connect(struct hid_device *hdev, unsigned int connect_mask)
  	hid_info(hdev, "%s: %s HID v%x.%02x %s [%s] on %s\n",
  		 buf, bus, hdev->version >> 8, hdev->version & 0xff,
  		 type, hdev->name, hdev->phys);
@@ -290,7 +306,7 @@ index bde5cef32..f524af2a7 100644
  
  	return 0;
  }
-@@ -1847,6 +1923,10 @@ void hid_disconnect(struct hid_device *hdev)
+@@ -1847,6 +1933,10 @@ void hid_disconnect(struct hid_device *hdev)
  	if (hdev->claimed & HID_CLAIMED_HIDRAW)
  		hidraw_disconnect(hdev);
  	hdev->claimed = 0;
@@ -301,7 +317,7 @@ index bde5cef32..f524af2a7 100644
  }
  EXPORT_SYMBOL_GPL(hid_disconnect);
  
-@@ -1931,6 +2011,11 @@ EXPORT_SYMBOL_GPL(hid_hw_open);
+@@ -1931,6 +2021,11 @@ EXPORT_SYMBOL_GPL(hid_hw_open);
   */
  void hid_hw_close(struct hid_device *hdev)
  {
@@ -313,4 +329,3 @@ index bde5cef32..f524af2a7 100644
  	mutex_lock(&hdev->ll_open_lock);
  	if (!--hdev->ll_open_count)
  		hdev->ll_driver->close(hdev);
-
