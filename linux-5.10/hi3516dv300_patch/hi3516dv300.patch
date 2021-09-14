@@ -1,474 +1,5 @@
-From f9ab3fd7343141c1cd6e35e876f3efcf3359f64a Mon Sep 17 00:00:00 2001
-From: "dongyang.liu@hisilicon.com" <dongyang.liu@hisilicon.com>
-Date: Fri, 20 Aug 2021 07:10:47 +0000
-Subject: [PATCH] hi3516dv300
-
----
- arch/arm/Kconfig                              |    4 +-
- arch/arm/Makefile                             |    5 +
- arch/arm/boot/Makefile                        |   12 +-
- arch/arm/boot/dts/Makefile                    |    5 +
- arch/arm/boot/dts/hi3516dv300-demb.dts        |  270 ++
- arch/arm/boot/dts/hi3516dv300.dtsi            |  906 +++++
- arch/arm/boot/dts/skeleton.dtsi               |   18 +
- .../configs/hi3516dv300_emmc_smp_defconfig    | 3070 ++++++++++++++++
- .../hi3516dv300_emmc_smp_hos_l2_defconfig     | 3135 ++++++++++++++++
- arch/arm/configs/hi3516dv300_smp_defconfig    | 3189 +++++++++++++++++
- arch/arm/include/asm/mach/pci.h               |   24 +
- arch/arm/include/asm/vdso/gettimeofday.h      |    4 +-
- arch/arm/mach-hibvt/Kconfig                   |  258 ++
- arch/arm/mach-hibvt/Makefile                  |   27 +
- arch/arm/mach-hibvt/Makefile.boot             |    7 +
- .../mach-hibvt/include/mach/hi3516dv300_io.h  |   26 +
- .../include/mach/hi3516dv300_platform.h       |    4 +
- arch/arm/mach-hibvt/include/mach/io.h         |   52 +
- arch/arm/mach-hibvt/include/mach/platform.h   |   52 +
- arch/arm/mach-hibvt/mach-common.h             |    9 +
- arch/arm/mach-hibvt/mach-hi3516dv300.c        |   68 +
- arch/arm/mach-hibvt/platsmp.c                 |   62 +
- arch/arm/mm/dma-mapping.c                     |   16 +-
- arch/arm/vdso/vgettimeofday.c                 |    0
- arch/arm64/Makefile                           |    1 +
- arch/arm64/boot/Makefile                      |   45 +-
- arch/arm64/boot/dts/Makefile                  |    2 +
- arch/arm64/kernel/pci.c                       |   12 +
- arch/arm64/mm/init.c                          |    9 +
- drivers/Kconfig                               |    8 +
- drivers/Makefile                              |    4 +
- drivers/android/binder.c                      |    2 +-
- drivers/ata/Kconfig                           |    1 +
- drivers/ata/Kconfig.hiahci                    |   44 +
- drivers/ata/Makefile                          |    1 +
- drivers/ata/ahci.h                            |    9 +
- drivers/ata/ahci_platform.c                   |   23 +
- drivers/ata/hisi_sata_dbg.c                   |  174 +
- drivers/ata/hisi_sata_dbg.h                   |   58 +
- drivers/ata/libahci.c                         |  181 +
- drivers/block/paride/pcd.c                    |    3 +
- drivers/clk/Makefile                          |    1 +
- drivers/clk/hisilicon/Kconfig                 |  194 +-
- drivers/clk/hisilicon/Makefile                |    1 +
- drivers/clk/hisilicon/clk-hi3516dv300.c       |  271 ++
- drivers/clk/hisilicon/clk-hi3519av100.c       |  559 +++
- drivers/clk/hisilicon/clk-hisi-phase.c        |    2 +-
- drivers/clk/hisilicon/clk.c                   |    4 +
- drivers/clk/hisilicon/crg.h                   |    2 +-
- drivers/clk/hisilicon/reset.c                 |   30 +
- drivers/clk/hisilicon/reset.h                 |    3 +
- drivers/clocksource/Kconfig                   |   14 +
- drivers/clocksource/Makefile                  |    1 +
- drivers/clocksource/arm_arch_timer.c          |    3 +-
- drivers/clocksource/timer-hisp804.c           |  356 ++
- drivers/dma/Kconfig                           |   15 +-
- drivers/dma/Makefile                          |    2 +-
- drivers/dma/hiedmacv310.c                     | 1443 ++++++++
- drivers/dma/hiedmacv310.h                     |  153 +
- drivers/gpio/gpio-pl061.c                     |   16 +
- drivers/gpu/drm/hisilicon/Kconfig             |    1 +
- drivers/gpu/drm/hisilicon/Makefile            |    1 +
- drivers/gpu/drm/hisilicon/hismart/Kconfig     |    8 +
- drivers/gpu/drm/hisilicon/hismart/Makefile    |   27 +
- .../drm/hisilicon/hismart/drm_hal_mipitx.h    |   91 +
- .../gpu/drm/hisilicon/hismart/hi_adp_crtc.c   |  777 ++++
- .../gpu/drm/hisilicon/hismart/hi_adp_crtc.h   |   69 +
- .../gpu/drm/hisilicon/hismart/hi_adp_hdmitx.c |  345 ++
- .../gpu/drm/hisilicon/hismart/hi_adp_hdmitx.h |   28 +
- .../gpu/drm/hisilicon/hismart/hi_adp_mipitx.c |  223 ++
- .../gpu/drm/hisilicon/hismart/hi_adp_mipitx.h |   24 +
- .../gpu/drm/hisilicon/hismart/hi_drm_crtc.c   |  389 ++
- .../gpu/drm/hisilicon/hismart/hi_drm_crtc.h   |   17 +
- .../gpu/drm/hisilicon/hismart/hi_drm_drv.c    |  369 ++
- .../gpu/drm/hisilicon/hismart/hi_drm_drv.h    |   29 +
- .../drm/hisilicon/hismart/hi_drm_func_ext.c   |   43 +
- .../drm/hisilicon/hismart/hi_drm_func_ext.h   |   27 +
- .../gpu/drm/hisilicon/hismart/hi_drm_hdmitx.c |  233 ++
- .../gpu/drm/hisilicon/hismart/hi_drm_hdmitx.h |   16 +
- .../gpu/drm/hisilicon/hismart/hi_drm_mipitx.c |  181 +
- .../gpu/drm/hisilicon/hismart/hi_drm_mipitx.h |   17 +
- .../gpu/drm/hisilicon/hismart/hisilicon_drm.h |   31 +
- drivers/hi_vdmav100/Kconfig                   |   26 +
- drivers/hi_vdmav100/Makefile                  |    2 +
- drivers/hi_vdmav100/hi_vdma.h                 |   41 +
- drivers/hi_vdmav100/hi_vdmav100.c             |  534 +++
- drivers/hi_vdmav100/hi_vdmav100.h             |  122 +
- drivers/hi_vdmav100/hi_vdmav100_misc.c        |  109 +
- drivers/hid/Makefile                          |    9 +
- drivers/hidmac/Kconfig                        |   21 +
- drivers/hidmac/Makefile                       |    6 +
- drivers/hidmac/hi_pl08x.c                     | 1303 +++++++
- drivers/hidmac/hi_pl08x.h                     |   90 +
- drivers/hiedmac/Kconfig                       |   29 +
- drivers/hiedmac/Makefile                      |    4 +
- drivers/hiedmac/hiedmacv310.c                 |  946 +++++
- drivers/hiedmac/hiedmacv310.h                 |  184 +
- drivers/hisilicon/Kconfig                     |    4 +
- drivers/hisilicon/Makefile                    |    1 +
- drivers/hisilicon/cma/Kconfig                 |   16 +
- drivers/hisilicon/cma/Makefile                |    2 +
- drivers/hisilicon/cma/hi_cma.c                |  203 ++
- drivers/i2c/busses/Kconfig                    |   26 +
- drivers/i2c/busses/Makefile                   |    1 +
- drivers/i2c/busses/i2c-hibvt.c                | 1451 ++++++++
- drivers/i2c/i2c-dev.c                         |   53 +
- drivers/input/mousedev.c                      |    2 +-
- drivers/irqchip/irq-gic.c                     |   89 +-
- drivers/media/usb/gspca/ov519.c               |   10 +
- drivers/mfd/Kconfig                           |   11 +
- drivers/mfd/Makefile                          |    1 +
- drivers/mfd/hisi_fmc.c                        |  134 +
- drivers/mmc/core/block.c                      |   20 +-
- drivers/mmc/core/core.c                       |   17 +-
- drivers/mmc/core/mmc.c                        |    8 +-
- drivers/mmc/core/sd.c                         |    1 +
- drivers/mmc/core/sdio.c                       |   38 +
- drivers/mmc/host/Kconfig                      |   30 +
- drivers/mmc/host/Makefile                     |   17 +
- drivers/mmc/host/cqhci.c                      |   50 +-
- drivers/mmc/host/cqhci.h                      |    8 +
- drivers/mmc/host/himci/Kconfig                |   23 +
- drivers/mmc/host/himci/Makefile               |    2 +
- drivers/mmc/host/himci/himci.c                | 2580 +++++++++++++
- drivers/mmc/host/himci/himci.h                |  156 +
- drivers/mmc/host/himci/himci_hi3516dv300.c    |  160 +
- drivers/mmc/host/himci/himci_proc.c           |  246 ++
- drivers/mmc/host/himci/himci_proc.h           |   36 +
- drivers/mmc/host/himci/himci_reg.h            |  241 ++
- drivers/mmc/host/mci_proc.c                   |  301 ++
- drivers/mmc/host/mci_proc.h                   |   50 +
- drivers/mmc/host/sdhci-hisi.c                 |  783 ++++
- drivers/mmc/host/sdhci-hisi.h                 |  126 +
- drivers/mmc/host/sdhci.c                      |  300 +-
- drivers/mmc/host/sdhci.h                      |   52 +-
- drivers/mtd/Makefile                          |    3 +-
- drivers/mtd/nand/Kconfig                      |   25 +
- drivers/mtd/nand/Makefile                     |    2 +
- drivers/mtd/nand/hifmc100/Kconfig             |   17 +
- drivers/mtd/nand/hifmc100/Makefile            |   26 +
- drivers/mtd/nand/hifmc100/hifmc100.c          | 1218 +++++++
- drivers/mtd/nand/hifmc100/hifmc100.h          |  354 ++
- drivers/mtd/nand/hifmc100/hifmc100_os.c       |  247 ++
- .../mtd/nand/hifmc100/hifmc100_spi_general.c  |  313 ++
- .../mtd/nand/hifmc100/hifmc_spi_nand_ids.c    | 2457 +++++++++++++
- drivers/mtd/nand/hifmc100_nand/Kconfig        |   50 +
- drivers/mtd/nand/hifmc100_nand/Makefile       |   26 +
- .../mtd/nand/hifmc100_nand/hifmc100_nand.c    | 1170 ++++++
- .../mtd/nand/hifmc100_nand/hifmc100_nand.h    |  151 +
- .../mtd/nand/hifmc100_nand/hifmc100_nand_os.c |  180 +
- .../mtd/nand/hifmc100_nand/hifmc100_nand_os.h |   72 +
- .../nand/hifmc100_nand/hifmc_nand_spl_ids.c   |  982 +++++
- drivers/mtd/nand/raw/Makefile                 |    2 +-
- drivers/mtd/nand/raw/hinfc_gen.c              |  237 ++
- drivers/mtd/nand/raw/hinfc_gen.h              |  281 ++
- drivers/mtd/nand/raw/hinfc_spl_ids.c          |  970 +++++
- drivers/mtd/nand/raw/internals.h              |   11 +-
- drivers/mtd/nand/raw/match_table.c            |  102 +
- drivers/mtd/nand/raw/match_table.h            |   51 +
- drivers/mtd/nand/raw/nand_base.c              |   40 +-
- drivers/mtd/nand/raw/nand_ids.c               |   10 +-
- drivers/mtd/spi-nor/controllers/Kconfig       |   37 +-
- drivers/net/ethernet/hisilicon/Kconfig        |    2 +
- drivers/net/ethernet/hisilicon/Makefile       |    3 +-
- drivers/net/ethernet/hisilicon/higmac/Kconfig |  106 +
- .../net/ethernet/hisilicon/higmac/Makefile    |    2 +
- .../hisilicon/higmac/autoeee/autoeee.c        |  162 +
- .../hisilicon/higmac/autoeee/autoeee.h        |   52 +
- .../hisilicon/higmac/autoeee/phy_id_table.c   |  184 +
- drivers/net/ethernet/hisilicon/higmac/board.c |  118 +
- .../net/ethernet/hisilicon/higmac/higmac.c    | 2645 ++++++++++++++
- .../net/ethernet/hisilicon/higmac/higmac.h    |  603 ++++
- drivers/net/ethernet/hisilicon/higmac/pm.c    |  341 ++
- drivers/net/ethernet/hisilicon/higmac/pm.h    |   59 +
- .../net/ethernet/hisilicon/higmac/proc_dev.c  |  119 +
- .../net/ethernet/hisilicon/higmac/sockioctl.h |   19 +
- drivers/net/ethernet/hisilicon/higmac/tso.h   |   59 +
- drivers/net/ethernet/hisilicon/higmac/util.c  |  975 +++++
- drivers/net/ethernet/hisilicon/higmac/util.h  |  102 +
- .../ethernet/hisilicon/hisi-femac/Makefile    |    6 +
- .../hisilicon/hisi-femac/festa_s28v115_2c02.h |  191 +
- .../hisilicon/hisi-femac/festa_s28v202_2e01.h |   84 +
- .../hisilicon/hisi-femac/festa_v272_2723.h    |   44 +
- .../hisilicon/hisi-femac/hisi_femac.c         | 1588 ++++++++
- .../hisilicon/hisi-femac/hisi_femac.h         |  269 ++
- .../ethernet/hisilicon/hisi-femac/phy_fix.c   |  109 +
- .../ethernet/hisilicon/hisi-femac/phy_fix.h   |   22 +
- .../net/ethernet/hisilicon/hisi-femac/util.c  |  318 ++
- .../net/ethernet/hisilicon/hisi-femac/util.h  |   25 +
- drivers/net/ethernet/hisilicon/hisi_femac.c   |    4 +-
- .../ethernet/hisilicon/hns/hns_dsaf_gmac.c    |    2 +-
- .../net/ethernet/hisilicon/hns/hns_dsaf_ppe.c |    2 +-
- .../net/ethernet/hisilicon/hns/hns_dsaf_rcb.c |    2 +-
- .../net/ethernet/mellanox/mlx4/en_ethtool.c   |    7 +-
- drivers/net/mdio/Kconfig                      |    7 +
- drivers/net/mdio/Makefile                     |    3 +
- drivers/net/phy/mdio_hisi_femac.c             |  489 +++
- drivers/net/phy/mdio_hisi_gemac.c             |  256 ++
- drivers/net/phy/mdio_hisi_gemac.h             |   32 +
- drivers/net/phy/phy.c                         |   22 +
- drivers/net/phy/realtek.c                     |   10 +
- .../wireless/realtek/rtl8xxxu/rtl8xxxu_core.c |    1 +
- drivers/pci/Kconfig                           |    1 +
- drivers/pci/Makefile                          |    1 +
- drivers/pci/hipcie/Kconfig                    |   27 +
- drivers/pci/hipcie/Makefile                   |    8 +
- drivers/pci/hipcie/pci.h                      |   96 +
- drivers/pci/hipcie/pcie.c                     |  985 +++++
- drivers/pci/pci-driver.c                      |    4 +
- drivers/phy/Kconfig                           |    1 +
- drivers/phy/Makefile                          |    1 +
- drivers/phy/hibvt/Kconfig                     |   23 +
- drivers/phy/hibvt/Makefile                    |    5 +
- drivers/phy/hibvt/phy-hisi-sata.c             |  175 +
- drivers/phy/hibvt/phy-hisi-sata.h             |   39 +
- drivers/phy/hibvt/usb/Kconfig                 |   85 +
- drivers/phy/hibvt/usb/Makefile                |   17 +
- drivers/phy/hibvt/usb/phy-hi3516dv300-usb.c   |  310 ++
- drivers/phy/hibvt/usb/phy-hisi-usb.c          |  149 +
- drivers/phy/hibvt/usb/phy-hisi-usb.h          |   72 +
- drivers/phy/hibvt/usb/phy-hixvp-hisi-usb.c    |  803 +++++
- drivers/power/reset/Kconfig                   |    2 +-
- drivers/ras/Kconfig                           |    6 +-
- drivers/rtc/Kconfig                           |    8 +
- drivers/rtc/Makefile                          |    1 +
- drivers/rtc/rtc-hibvt.c                       |  663 ++++
- drivers/scsi/ufs/Kconfig                      |    9 +
- drivers/scsi/ufs/Makefile                     |    1 +
- drivers/scsi/ufs/ufshcd-pltfrm.c              |   49 +
- drivers/scsi/ufs/ufshcd.c                     |  218 ++
- drivers/scsi/ufs/ufshcd.h                     |   39 +
- drivers/spi/spi-gpio.c                        |    4 +-
- drivers/spi/spi-pl022.c                       |  205 +-
- drivers/tty/vt/vc_screen.c                    |    3 +
- drivers/usb/core/hub.c                        |    4 +
- drivers/usb/dwc3/Makefile                     |    5 +-
- drivers/usb/dwc3/core.c                       |   42 +-
- drivers/usb/dwc3/core.h                       |   33 +-
- drivers/usb/dwc3/dwc3-hisi.c                  |  446 +++
- drivers/usb/dwc3/dwc3-hisi.h                  |   54 +
- drivers/usb/dwc3/ep0.c                        |   36 +-
- drivers/usb/dwc3/gadget.c                     |  150 +-
- drivers/usb/dwc3/proc.c                       |  138 +
- drivers/usb/gadget/composite.c                |    3 +-
- drivers/usb/gadget/epautoconf.c               |   16 +-
- drivers/usb/gadget/function/f_mass_storage.c  |    8 +-
- drivers/usb/gadget/function/f_uac1.c          |   57 +-
- drivers/usb/gadget/function/f_uvc.c           |   29 +-
- drivers/usb/gadget/function/u_uvc.h           |    5 +-
- drivers/usb/gadget/function/uvc.h             |   10 +-
- drivers/usb/gadget/function/uvc_configfs.c    |  706 +++-
- drivers/usb/gadget/function/uvc_v4l2.c        |    5 +
- drivers/usb/gadget/function/uvc_video.c       |  115 +-
- drivers/vfio/pci/vfio_pci_intrs.c             |   18 +-
- drivers/vfio/vfio_iommu_spapr_tce.c           |    6 +-
- drivers/vfio/vfio_iommu_type1.c               |   10 +
- fs/9p/vfs_inode.c                             |    9 +-
- fs/9p/vfs_inode_dotl.c                        |    9 +-
- fs/aio.c                                      |    8 +
- fs/btrfs/block-group.c                        |   38 +
- fs/fat/dir.c                                  |  412 ++-
- fs/fat/fat.h                                  |    4 +
- fs/fat/fatent.c                               |    7 +
- fs/fat/file.c                                 |   28 +-
- fs/fat/inode.c                                |   79 +-
- fs/fat/misc.c                                 |   32 +-
- fs/jffs2/compr.h                              |    8 +-
- fs/ubifs/file.c                               |    3 +
- include/dt-bindings/clock/hi3516dv300-clock.h |  100 +
- include/linux/blkdev.h                        |    4 +
- include/linux/cpu.h                           |    1 +
- include/linux/fb.h                            |    6 +
- include/linux/hi_cma.h                        |   54 +
- include/linux/hid.h                           |    1 +
- include/linux/hiedmac.h                       |   65 +
- include/linux/i2c.h                           |   17 +
- include/linux/mfd/hisi_fmc.h                  |  477 +++
- include/linux/mmc/host.h                      |   12 +
- include/linux/mtd/mtd.h                       |   66 +-
- include/linux/mtd/spi-nor.h                   |   82 +
- include/linux/netdev_features.h               |    4 +-
- include/linux/phy.h                           |    1 +
- include/linux/skbuff.h                        |    1 +
- include/linux/sunrpc/xprt.h                   |    1 +
- include/linux/types.h                         |    3 +
- include/uapi/linux/android/binder.h           |    1 +
- include/uapi/linux/i2c-dev.h                  |    2 +
- include/uapi/linux/i2c.h                      |    8 +-
- include/uapi/linux/msdos_fs.h                 |   20 +-
- include/uapi/linux/usb/g_uvc.h                |    1 +
- include/uapi/linux/usb/video.h                |   60 +
- init/main.c                                   |   32 +
- kernel/cpu.c                                  |   13 +
- kernel/dma/contiguous.c                       |   17 +
- kernel/printk/printk.c                        |    2 +-
- kernel/relay.c                                |    3 +-
- lib/vdso/gettimeofday.c                       |    3 +-
- mm/init-mm.c                                  |    1 +
- mm/madvise.c                                  |    1 +
- mm/mincore.c                                  |   78 +-
- mm/vmalloc.c                                  |    2 +
- net/bluetooth/hci_event.c                     |    3 +-
- net/ipv4/tcp_output.c                         |    5 +
- net/sunrpc/auth_gss/gss_mech_switch.c         |    7 +-
- net/sunrpc/svc.c                              |   13 +
- net/sunrpc/xprtrdma/backchannel.c             |    5 +
- net/wireless/nl80211.c                        |    2 +-
- net/wireless/wext-sme.c                       |    2 +-
- scripts/dtc/checks.c                          |    4 +-
- sound/core/control.c                          |    2 +-
- tools/testing/selftests/net/fib_tests.sh      |   14 +
- 311 files changed, 54034 insertions(+), 274 deletions(-)
- create mode 100644 arch/arm/boot/dts/hi3516dv300-demb.dts
- create mode 100644 arch/arm/boot/dts/hi3516dv300.dtsi
- create mode 100644 arch/arm/boot/dts/skeleton.dtsi
- create mode 100644 arch/arm/configs/hi3516dv300_emmc_smp_defconfig
- create mode 100644 arch/arm/configs/hi3516dv300_emmc_smp_hos_l2_defconfig
- create mode 100644 arch/arm/configs/hi3516dv300_smp_defconfig
- create mode 100644 arch/arm/mach-hibvt/Kconfig
- create mode 100644 arch/arm/mach-hibvt/Makefile
- create mode 100644 arch/arm/mach-hibvt/Makefile.boot
- create mode 100644 arch/arm/mach-hibvt/include/mach/hi3516dv300_io.h
- create mode 100644 arch/arm/mach-hibvt/include/mach/hi3516dv300_platform.h
- create mode 100644 arch/arm/mach-hibvt/include/mach/io.h
- create mode 100644 arch/arm/mach-hibvt/include/mach/platform.h
- create mode 100644 arch/arm/mach-hibvt/mach-common.h
- create mode 100644 arch/arm/mach-hibvt/mach-hi3516dv300.c
- create mode 100644 arch/arm/mach-hibvt/platsmp.c
- mode change 100644 => 100755 arch/arm/vdso/vgettimeofday.c
- create mode 100644 drivers/ata/Kconfig.hiahci
- create mode 100644 drivers/ata/hisi_sata_dbg.c
- create mode 100644 drivers/ata/hisi_sata_dbg.h
- create mode 100644 drivers/clk/hisilicon/clk-hi3516dv300.c
- create mode 100644 drivers/clk/hisilicon/clk-hi3519av100.c
- create mode 100644 drivers/clocksource/timer-hisp804.c
- create mode 100644 drivers/dma/hiedmacv310.c
- create mode 100644 drivers/dma/hiedmacv310.h
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/Kconfig
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/Makefile
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/drm_hal_mipitx.h
- create mode 100755 drivers/gpu/drm/hisilicon/hismart/hi_adp_crtc.c
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/hi_adp_crtc.h
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/hi_adp_hdmitx.c
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/hi_adp_hdmitx.h
- create mode 100755 drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.c
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.h
- create mode 100755 drivers/gpu/drm/hisilicon/hismart/hi_drm_crtc.c
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/hi_drm_crtc.h
- create mode 100755 drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.c
- create mode 100755 drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.h
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/hi_drm_func_ext.c
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/hi_drm_func_ext.h
- create mode 100755 drivers/gpu/drm/hisilicon/hismart/hi_drm_hdmitx.c
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/hi_drm_hdmitx.h
- create mode 100755 drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.c
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.h
- create mode 100644 drivers/gpu/drm/hisilicon/hismart/hisilicon_drm.h
- create mode 100644 drivers/hi_vdmav100/Kconfig
- create mode 100644 drivers/hi_vdmav100/Makefile
- create mode 100644 drivers/hi_vdmav100/hi_vdma.h
- create mode 100644 drivers/hi_vdmav100/hi_vdmav100.c
- create mode 100644 drivers/hi_vdmav100/hi_vdmav100.h
- create mode 100644 drivers/hi_vdmav100/hi_vdmav100_misc.c
- create mode 100644 drivers/hidmac/Kconfig
- create mode 100644 drivers/hidmac/Makefile
- create mode 100644 drivers/hidmac/hi_pl08x.c
- create mode 100644 drivers/hidmac/hi_pl08x.h
- create mode 100644 drivers/hiedmac/Kconfig
- create mode 100644 drivers/hiedmac/Makefile
- create mode 100644 drivers/hiedmac/hiedmacv310.c
- create mode 100644 drivers/hiedmac/hiedmacv310.h
- create mode 100644 drivers/hisilicon/Kconfig
- create mode 100644 drivers/hisilicon/Makefile
- create mode 100644 drivers/hisilicon/cma/Kconfig
- create mode 100644 drivers/hisilicon/cma/Makefile
- create mode 100644 drivers/hisilicon/cma/hi_cma.c
- create mode 100644 drivers/i2c/busses/i2c-hibvt.c
- create mode 100644 drivers/mfd/hisi_fmc.c
- create mode 100644 drivers/mmc/host/himci/Kconfig
- create mode 100644 drivers/mmc/host/himci/Makefile
- create mode 100644 drivers/mmc/host/himci/himci.c
- create mode 100644 drivers/mmc/host/himci/himci.h
- create mode 100644 drivers/mmc/host/himci/himci_hi3516dv300.c
- create mode 100644 drivers/mmc/host/himci/himci_proc.c
- create mode 100644 drivers/mmc/host/himci/himci_proc.h
- create mode 100644 drivers/mmc/host/himci/himci_reg.h
- create mode 100644 drivers/mmc/host/mci_proc.c
- create mode 100644 drivers/mmc/host/mci_proc.h
- create mode 100644 drivers/mmc/host/sdhci-hisi.c
- create mode 100644 drivers/mmc/host/sdhci-hisi.h
- create mode 100644 drivers/mtd/nand/hifmc100/Kconfig
- create mode 100644 drivers/mtd/nand/hifmc100/Makefile
- create mode 100644 drivers/mtd/nand/hifmc100/hifmc100.c
- create mode 100644 drivers/mtd/nand/hifmc100/hifmc100.h
- create mode 100644 drivers/mtd/nand/hifmc100/hifmc100_os.c
- create mode 100644 drivers/mtd/nand/hifmc100/hifmc100_spi_general.c
- create mode 100644 drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c
- create mode 100644 drivers/mtd/nand/hifmc100_nand/Kconfig
- create mode 100644 drivers/mtd/nand/hifmc100_nand/Makefile
- create mode 100644 drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c
- create mode 100644 drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h
- create mode 100644 drivers/mtd/nand/hifmc100_nand/hifmc100_nand_os.c
- create mode 100644 drivers/mtd/nand/hifmc100_nand/hifmc100_nand_os.h
- create mode 100644 drivers/mtd/nand/hifmc100_nand/hifmc_nand_spl_ids.c
- create mode 100644 drivers/mtd/nand/raw/hinfc_gen.c
- create mode 100644 drivers/mtd/nand/raw/hinfc_gen.h
- create mode 100644 drivers/mtd/nand/raw/hinfc_spl_ids.c
- create mode 100644 drivers/mtd/nand/raw/match_table.c
- create mode 100644 drivers/mtd/nand/raw/match_table.h
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/Kconfig
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/Makefile
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/autoeee/autoeee.c
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/autoeee/autoeee.h
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/autoeee/phy_id_table.c
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/board.c
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/higmac.c
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/higmac.h
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/pm.c
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/pm.h
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/proc_dev.c
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/sockioctl.h
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/tso.h
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/util.c
- create mode 100644 drivers/net/ethernet/hisilicon/higmac/util.h
- create mode 100644 drivers/net/ethernet/hisilicon/hisi-femac/Makefile
- create mode 100644 drivers/net/ethernet/hisilicon/hisi-femac/festa_s28v115_2c02.h
- create mode 100644 drivers/net/ethernet/hisilicon/hisi-femac/festa_s28v202_2e01.h
- create mode 100644 drivers/net/ethernet/hisilicon/hisi-femac/festa_v272_2723.h
- create mode 100644 drivers/net/ethernet/hisilicon/hisi-femac/hisi_femac.c
- create mode 100644 drivers/net/ethernet/hisilicon/hisi-femac/hisi_femac.h
- create mode 100644 drivers/net/ethernet/hisilicon/hisi-femac/phy_fix.c
- create mode 100644 drivers/net/ethernet/hisilicon/hisi-femac/phy_fix.h
- create mode 100644 drivers/net/ethernet/hisilicon/hisi-femac/util.c
- create mode 100644 drivers/net/ethernet/hisilicon/hisi-femac/util.h
- create mode 100644 drivers/net/phy/mdio_hisi_femac.c
- create mode 100644 drivers/net/phy/mdio_hisi_gemac.c
- create mode 100644 drivers/net/phy/mdio_hisi_gemac.h
- create mode 100644 drivers/pci/hipcie/Kconfig
- create mode 100644 drivers/pci/hipcie/Makefile
- create mode 100644 drivers/pci/hipcie/pci.h
- create mode 100644 drivers/pci/hipcie/pcie.c
- create mode 100644 drivers/phy/hibvt/Kconfig
- create mode 100644 drivers/phy/hibvt/Makefile
- create mode 100644 drivers/phy/hibvt/phy-hisi-sata.c
- create mode 100644 drivers/phy/hibvt/phy-hisi-sata.h
- create mode 100644 drivers/phy/hibvt/usb/Kconfig
- create mode 100644 drivers/phy/hibvt/usb/Makefile
- create mode 100644 drivers/phy/hibvt/usb/phy-hi3516dv300-usb.c
- create mode 100644 drivers/phy/hibvt/usb/phy-hisi-usb.c
- create mode 100644 drivers/phy/hibvt/usb/phy-hisi-usb.h
- create mode 100644 drivers/phy/hibvt/usb/phy-hixvp-hisi-usb.c
- create mode 100644 drivers/rtc/rtc-hibvt.c
- create mode 100644 drivers/usb/dwc3/dwc3-hisi.c
- create mode 100644 drivers/usb/dwc3/dwc3-hisi.h
- mode change 100644 => 100755 drivers/usb/dwc3/gadget.c
- create mode 100755 drivers/usb/dwc3/proc.c
- mode change 100644 => 100755 drivers/usb/gadget/epautoconf.c
- mode change 100644 => 100755 drivers/usb/gadget/function/uvc_configfs.c
- create mode 100644 include/dt-bindings/clock/hi3516dv300-clock.h
- create mode 100644 include/linux/hi_cma.h
- create mode 100644 include/linux/hiedmac.h
- create mode 100644 include/linux/mfd/hisi_fmc.h
-
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 2f7a32b77282..b055611ab0a0 100644
+index 2f7a32b77..b055611ab 100644
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
 @@ -321,7 +321,7 @@ config ARCH_MULTIPLATFORM
@@ -490,7 +21,7 @@ index 2f7a32b77282..b055611ab0a0 100644
  
  source "arch/arm/mach-integrator/Kconfig"
 diff --git a/arch/arm/Makefile b/arch/arm/Makefile
-index cb7c6b02fede..b79b0d689a73 100644
+index cb7c6b02f..b79b0d689 100644
 --- a/arch/arm/Makefile
 +++ b/arch/arm/Makefile
 @@ -182,6 +182,7 @@ machine-$(CONFIG_ARCH_FOOTBRIDGE)	+= footbridge
@@ -513,7 +44,7 @@ index cb7c6b02fede..b79b0d689a73 100644
  
  core-y				+= arch/arm/
 diff --git a/arch/arm/boot/Makefile b/arch/arm/boot/Makefile
-index 0b3cd7a33a26..763d37e86f64 100644
+index 0b3cd7a33..763d37e86 100644
 --- a/arch/arm/boot/Makefile
 +++ b/arch/arm/boot/Makefile
 @@ -16,6 +16,8 @@ OBJCOPYFLAGS	:=-O binary -R .comment -S
@@ -560,7 +91,7 @@ index 0b3cd7a33a26..763d37e86f64 100644
  	$(call if_changed,uimage)
  
 diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index ce66ffd5a1bb..a84efd2d6c11 100644
+index ce66ffd5a..a84efd2d6 100644
 --- a/arch/arm/boot/dts/Makefile
 +++ b/arch/arm/boot/dts/Makefile
 @@ -239,6 +239,10 @@ dtb-$(CONFIG_ARCH_HISI) += \
@@ -581,7 +112,7 @@ index ce66ffd5a1bb..a84efd2d6c11 100644
 +
 diff --git a/arch/arm/boot/dts/hi3516dv300-demb.dts b/arch/arm/boot/dts/hi3516dv300-demb.dts
 new file mode 100644
-index 000000000000..8e6c6abc33f7
+index 000000000..8e6c6abc3
 --- /dev/null
 +++ b/arch/arm/boot/dts/hi3516dv300-demb.dts
 @@ -0,0 +1,270 @@
@@ -857,7 +388,7 @@ index 000000000000..8e6c6abc33f7
 +};
 diff --git a/arch/arm/boot/dts/hi3516dv300.dtsi b/arch/arm/boot/dts/hi3516dv300.dtsi
 new file mode 100644
-index 000000000000..a8ea89e91fa4
+index 000000000..a8ea89e91
 --- /dev/null
 +++ b/arch/arm/boot/dts/hi3516dv300.dtsi
 @@ -0,0 +1,906 @@
@@ -1769,7 +1300,7 @@ index 000000000000..a8ea89e91fa4
 +};
 diff --git a/arch/arm/boot/dts/skeleton.dtsi b/arch/arm/boot/dts/skeleton.dtsi
 new file mode 100644
-index 000000000000..34eda68d9ea2
+index 000000000..34eda68d9
 --- /dev/null
 +++ b/arch/arm/boot/dts/skeleton.dtsi
 @@ -0,0 +1,18 @@
@@ -1793,7 +1324,7 @@ index 000000000000..34eda68d9ea2
 +};
 diff --git a/arch/arm/configs/hi3516dv300_emmc_smp_defconfig b/arch/arm/configs/hi3516dv300_emmc_smp_defconfig
 new file mode 100644
-index 000000000000..daeb1fa651cd
+index 000000000..daeb1fa65
 --- /dev/null
 +++ b/arch/arm/configs/hi3516dv300_emmc_smp_defconfig
 @@ -0,0 +1,3070 @@
@@ -4869,7 +4400,7 @@ index 000000000000..daeb1fa651cd
 +# CONFIG_CORESIGHT is not set
 diff --git a/arch/arm/configs/hi3516dv300_emmc_smp_hos_l2_defconfig b/arch/arm/configs/hi3516dv300_emmc_smp_hos_l2_defconfig
 new file mode 100644
-index 000000000000..016d763899fd
+index 000000000..016d76389
 --- /dev/null
 +++ b/arch/arm/configs/hi3516dv300_emmc_smp_hos_l2_defconfig
 @@ -0,0 +1,3135 @@
@@ -8010,7 +7541,7 @@ index 000000000000..016d763899fd
 +# CONFIG_TEST_STATIC_KEYS is not set
 diff --git a/arch/arm/configs/hi3516dv300_smp_defconfig b/arch/arm/configs/hi3516dv300_smp_defconfig
 new file mode 100644
-index 000000000000..109c06652395
+index 000000000..109c06652
 --- /dev/null
 +++ b/arch/arm/configs/hi3516dv300_smp_defconfig
 @@ -0,0 +1,3189 @@
@@ -11204,7 +10735,7 @@ index 000000000000..109c06652395
 +# CONFIG_PID_IN_CONTEXTIDR is not set
 +# CONFIG_CORESIGHT is not set
 diff --git a/arch/arm/include/asm/mach/pci.h b/arch/arm/include/asm/mach/pci.h
-index ea9bd08895b7..dbe96664ba94 100644
+index ea9bd0889..dbe96664b 100644
 --- a/arch/arm/include/asm/mach/pci.h
 +++ b/arch/arm/include/asm/mach/pci.h
 @@ -9,6 +9,7 @@
@@ -11260,7 +10791,7 @@ index ea9bd08895b7..dbe96664ba94 100644
  	int		busnr;		/* primary bus number			*/
  	u64		mem_offset;	/* bus->cpu memory mapping offset	*/
 diff --git a/arch/arm/include/asm/vdso/gettimeofday.h b/arch/arm/include/asm/vdso/gettimeofday.h
-index 2134cbd5469f..6f078fedb0cb 100644
+index 2134cbd54..6f078fedb 100644
 --- a/arch/arm/include/asm/vdso/gettimeofday.h
 +++ b/arch/arm/include/asm/vdso/gettimeofday.h
 @@ -109,14 +109,14 @@ static __always_inline int clock_getres32_fallback(
@@ -11282,7 +10813,7 @@ index 2134cbd5469f..6f078fedb0cb 100644
  	/*
 diff --git a/arch/arm/mach-hibvt/Kconfig b/arch/arm/mach-hibvt/Kconfig
 new file mode 100644
-index 000000000000..9c8c76981bea
+index 000000000..9c8c76981
 --- /dev/null
 +++ b/arch/arm/mach-hibvt/Kconfig
 @@ -0,0 +1,258 @@
@@ -11546,7 +11077,7 @@ index 000000000000..9c8c76981bea
 +endif
 diff --git a/arch/arm/mach-hibvt/Makefile b/arch/arm/mach-hibvt/Makefile
 new file mode 100644
-index 000000000000..ec3243ec975a
+index 000000000..ec3243ec9
 --- /dev/null
 +++ b/arch/arm/mach-hibvt/Makefile
 @@ -0,0 +1,27 @@
@@ -11579,7 +11110,7 @@ index 000000000000..ec3243ec975a
 +obj-$(CONFIG_SMP)	+= platsmp.o
 diff --git a/arch/arm/mach-hibvt/Makefile.boot b/arch/arm/mach-hibvt/Makefile.boot
 new file mode 100644
-index 000000000000..8c8b30077e37
+index 000000000..8c8b30077
 --- /dev/null
 +++ b/arch/arm/mach-hibvt/Makefile.boot
 @@ -0,0 +1,7 @@
@@ -11592,7 +11123,7 @@ index 000000000000..8c8b30077e37
 +initrd_phys-$(CONFIG_ARCH_HISI_BVT)   := $(CONFIG_HI_INITRD_PHYS)
 diff --git a/arch/arm/mach-hibvt/include/mach/hi3516dv300_io.h b/arch/arm/mach-hibvt/include/mach/hi3516dv300_io.h
 new file mode 100644
-index 000000000000..72ab47e83d19
+index 000000000..72ab47e83
 --- /dev/null
 +++ b/arch/arm/mach-hibvt/include/mach/hi3516dv300_io.h
 @@ -0,0 +1,26 @@
@@ -11624,7 +11155,7 @@ index 000000000000..72ab47e83d19
 +#endif
 diff --git a/arch/arm/mach-hibvt/include/mach/hi3516dv300_platform.h b/arch/arm/mach-hibvt/include/mach/hi3516dv300_platform.h
 new file mode 100644
-index 000000000000..94c48064b311
+index 000000000..94c48064b
 --- /dev/null
 +++ b/arch/arm/mach-hibvt/include/mach/hi3516dv300_platform.h
 @@ -0,0 +1,4 @@
@@ -11634,7 +11165,7 @@ index 000000000000..94c48064b311
 +#endif /* End of __HI3516DV300_CHIP_REGS_H__ */
 diff --git a/arch/arm/mach-hibvt/include/mach/io.h b/arch/arm/mach-hibvt/include/mach/io.h
 new file mode 100644
-index 000000000000..b5fd58c7bfe6
+index 000000000..b5fd58c7b
 --- /dev/null
 +++ b/arch/arm/mach-hibvt/include/mach/io.h
 @@ -0,0 +1,52 @@
@@ -11692,7 +11223,7 @@ index 000000000000..b5fd58c7bfe6
 +#endif
 diff --git a/arch/arm/mach-hibvt/include/mach/platform.h b/arch/arm/mach-hibvt/include/mach/platform.h
 new file mode 100644
-index 000000000000..5e41d2696954
+index 000000000..5e41d2696
 --- /dev/null
 +++ b/arch/arm/mach-hibvt/include/mach/platform.h
 @@ -0,0 +1,52 @@
@@ -11750,7 +11281,7 @@ index 000000000000..5e41d2696954
 +#endif /* End of __HISI_PLATFORM_H__ */
 diff --git a/arch/arm/mach-hibvt/mach-common.h b/arch/arm/mach-hibvt/mach-common.h
 new file mode 100644
-index 000000000000..f5edadb0f0a8
+index 000000000..f5edadb0f
 --- /dev/null
 +++ b/arch/arm/mach-hibvt/mach-common.h
 @@ -0,0 +1,9 @@
@@ -11765,7 +11296,7 @@ index 000000000000..f5edadb0f0a8
 +#endif /* __SMP_COMMON_H */
 diff --git a/arch/arm/mach-hibvt/mach-hi3516dv300.c b/arch/arm/mach-hibvt/mach-hi3516dv300.c
 new file mode 100644
-index 000000000000..3061683bb711
+index 000000000..3061683bb
 --- /dev/null
 +++ b/arch/arm/mach-hibvt/mach-hi3516dv300.c
 @@ -0,0 +1,68 @@
@@ -11839,7 +11370,7 @@ index 000000000000..3061683bb711
 +#endif /* CONFIG_SMP */
 diff --git a/arch/arm/mach-hibvt/platsmp.c b/arch/arm/mach-hibvt/platsmp.c
 new file mode 100644
-index 000000000000..a73be20b133c
+index 000000000..a73be20b1
 --- /dev/null
 +++ b/arch/arm/mach-hibvt/platsmp.c
 @@ -0,0 +1,62 @@
@@ -11906,7 +11437,7 @@ index 000000000000..a73be20b133c
 +}
 +
 diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
-index c4b8df2ad328..374737bd59a6 100644
+index c4b8df2ad..374737bd5 100644
 --- a/arch/arm/mm/dma-mapping.c
 +++ b/arch/arm/mm/dma-mapping.c
 @@ -237,7 +237,7 @@ const struct dma_map_ops arm_coherent_dma_ops = {
@@ -11957,7 +11488,7 @@ diff --git a/arch/arm/vdso/vgettimeofday.c b/arch/arm/vdso/vgettimeofday.c
 old mode 100644
 new mode 100755
 diff --git a/arch/arm64/Makefile b/arch/arm64/Makefile
-index 485b7dbd4f9e..65b9f45c8d8d 100644
+index 485b7dbd4..65b9f45c8 100644
 --- a/arch/arm64/Makefile
 +++ b/arch/arm64/Makefile
 @@ -11,6 +11,7 @@
@@ -11969,7 +11500,7 @@ index 485b7dbd4f9e..65b9f45c8d8d 100644
  ifeq ($(CONFIG_RELOCATABLE), y)
  # Pass --no-apply-dynamic-relocs to restore pre-binutils-2.27 behaviour
 diff --git a/arch/arm64/boot/Makefile b/arch/arm64/boot/Makefile
-index cd3414898d10..f3e98628b10f 100644
+index cd3414898..f3e98628b 100644
 --- a/arch/arm64/boot/Makefile
 +++ b/arch/arm64/boot/Makefile
 @@ -18,12 +18,28 @@ OBJCOPYFLAGS_Image :=-O binary -R .note -R .note.gnu.build-id -R .comment -S
@@ -12040,7 +11571,7 @@ index cd3414898d10..f3e98628b10f 100644
  	$(CONFIG_SHELL) $(srctree)/$(src)/install.sh $(KERNELRELEASE) \
  	$(obj)/Image.gz System.map "$(INSTALL_PATH)"
 diff --git a/arch/arm64/boot/dts/Makefile b/arch/arm64/boot/dts/Makefile
-index 9b1170658d60..9520bb2444f4 100644
+index 9b1170658..9520bb244 100644
 --- a/arch/arm64/boot/dts/Makefile
 +++ b/arch/arm64/boot/dts/Makefile
 @@ -30,3 +30,5 @@ subdir-y += ti
@@ -12050,7 +11581,7 @@ index 9b1170658d60..9520bb2444f4 100644
 +dtbs: $(addprefix $(obj)/, $(DTB_LIST))
 +clean-files := dts/*.dtb *.dtb
 diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index 1006ed2d7c60..aa1d2f2b9377 100644
+index 1006ed2d7..aa1d2f2b9 100644
 --- a/arch/arm64/kernel/pci.c
 +++ b/arch/arm64/kernel/pci.c
 @@ -29,6 +29,18 @@ int pcibios_alloc_irq(struct pci_dev *dev)
@@ -12073,7 +11604,7 @@ index 1006ed2d7c60..aa1d2f2b9377 100644
  
  /*
 diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
-index c0a7f0d90b39..a5ca33ad826e 100644
+index c0a7f0d90..a5ca33ad8 100644
 --- a/arch/arm64/mm/init.c
 +++ b/arch/arm64/mm/init.c
 @@ -180,6 +180,10 @@ static void __init reserve_elfcorehdr(void)
@@ -12101,13 +11632,14 @@ index c0a7f0d90b39..a5ca33ad826e 100644
  
  static void __init zone_sizes_init(unsigned long min, unsigned long max)
 diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 3963568e6eea..5adf342a30cc 100644
+index 8eddfc2cd..d93fd59e8 100644
 --- a/drivers/Kconfig
 +++ b/drivers/Kconfig
-@@ -238,4 +238,12 @@ source "drivers/most/Kconfig"
- 
+@@ -237,4 +237,12 @@ source "drivers/counter/Kconfig"
  source "drivers/hdf/khdf/Kconfig"
  
+ source "drivers/most/Kconfig"
++
 +source "drivers/hidmac/Kconfig"
 +
 +source "drivers/hiedmac/Kconfig"
@@ -12115,22 +11647,21 @@ index 3963568e6eea..5adf342a30cc 100644
 +source "drivers/hisilicon/Kconfig"
 +
 +source "drivers/hi_vdmav100/Kconfig"
-+
  endmenu
 diff --git a/drivers/Makefile b/drivers/Makefile
-index 4cff090d6239..60c0725bea20 100644
+index 025b92b1f..e4d348361 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
 @@ -190,3 +190,7 @@ obj-$(CONFIG_INTERCONNECT)	+= interconnect/
  obj-$(CONFIG_COUNTER)		+= counter/
- obj-$(CONFIG_MOST)		+= most/
  obj-$(CONFIG_DRIVERS_HDF)	+= hdf/
-+obj-$(CONFIG_HI_DMAC)		+= hidmac/
-+obj-$(CONFIG_HIEDMAC)		+= hiedmac/
-+obj-$(CONFIG_ARCH_HISI_BVT)	+= hisilicon/
-+obj-$(CONFIG_HI_VDMA_V100)	+= hi_vdmav100/
+ obj-$(CONFIG_MOST)		+= most/
++obj-$(CONFIG_HI_DMAC)          += hidmac/
++obj-$(CONFIG_HIEDMAC)          += hiedmac/
++obj-$(CONFIG_ARCH_HISI_BVT)    += hisilicon/
++obj-$(CONFIG_HI_VDMA_V100)     += hi_vdmav100/
 diff --git a/drivers/android/binder.c b/drivers/android/binder.c
-index 2a3952925855..a324b85ee9a8 100644
+index 2a3952925..a324b85ee 100644
 --- a/drivers/android/binder.c
 +++ b/drivers/android/binder.c
 @@ -2945,7 +2945,7 @@ static void binder_transaction(struct binder_proc *proc,
@@ -12143,7 +11674,7 @@ index 2a3952925855..a324b85ee9a8 100644
  		}
  		if (!target_node) {
 diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-index 030cb32da980..97d530d3e18c 100644
+index 030cb32da..97d530d3e 100644
 --- a/drivers/ata/Kconfig
 +++ b/drivers/ata/Kconfig
 @@ -2,6 +2,7 @@
@@ -12156,7 +11687,7 @@ index 030cb32da980..97d530d3e18c 100644
  	bool
 diff --git a/drivers/ata/Kconfig.hiahci b/drivers/ata/Kconfig.hiahci
 new file mode 100644
-index 000000000000..030de3fc9d0a
+index 000000000..030de3fc9
 --- /dev/null
 +++ b/drivers/ata/Kconfig.hiahci
 @@ -0,0 +1,44 @@
@@ -12205,7 +11736,7 @@ index 000000000000..030de3fc9d0a
 +endif
 +
 diff --git a/drivers/ata/Makefile b/drivers/ata/Makefile
-index b8aebfb14e82..f81f2d66b969 100644
+index b8aebfb14..f81f2d66b 100644
 --- a/drivers/ata/Makefile
 +++ b/drivers/ata/Makefile
 @@ -1,6 +1,7 @@
@@ -12217,7 +11748,7 @@ index b8aebfb14e82..f81f2d66b969 100644
  # non-SFF interface
  obj-$(CONFIG_SATA_AHCI)		+= ahci.o libahci.o
 diff --git a/drivers/ata/ahci.h b/drivers/ata/ahci.h
-index d1f284f0c83d..af7963b12532 100644
+index d1f284f0c..af7963b12 100644
 --- a/drivers/ata/ahci.h
 +++ b/drivers/ata/ahci.h
 @@ -224,6 +224,9 @@ enum {
@@ -12244,7 +11775,7 @@ index d1f284f0c83d..af7963b12532 100644
  	 * If platform uses PHYs. There is a 1:1 relation between the port number and
  	 * the PHY position in this array.
 diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
-index 3aab2e3d57f3..385d3d7d51bb 100644
+index 3aab2e3d5..385d3d7d5 100644
 --- a/drivers/ata/ahci_platform.c
 +++ b/drivers/ata/ahci_platform.c
 @@ -22,6 +22,16 @@
@@ -12288,7 +11819,7 @@ index 3aab2e3d57f3..385d3d7d51bb 100644
  	if (!port)
 diff --git a/drivers/ata/hisi_sata_dbg.c b/drivers/ata/hisi_sata_dbg.c
 new file mode 100644
-index 000000000000..935c7168905e
+index 000000000..935c71689
 --- /dev/null
 +++ b/drivers/ata/hisi_sata_dbg.c
 @@ -0,0 +1,174 @@
@@ -12468,7 +11999,7 @@ index 000000000000..935c7168905e
 +
 diff --git a/drivers/ata/hisi_sata_dbg.h b/drivers/ata/hisi_sata_dbg.h
 new file mode 100644
-index 000000000000..5103658a4f05
+index 000000000..5103658a4
 --- /dev/null
 +++ b/drivers/ata/hisi_sata_dbg.h
 @@ -0,0 +1,58 @@
@@ -12531,7 +12062,7 @@ index 000000000000..5103658a4f05
 +#endif
 +#endif /* _HISI_SATA_DBG_H */
 diff --git a/drivers/ata/libahci.c b/drivers/ata/libahci.c
-index fec2e9754aed..68c87b25cf90 100644
+index fec2e9754..68c87b25c 100644
 --- a/drivers/ata/libahci.c
 +++ b/drivers/ata/libahci.c
 @@ -31,6 +31,7 @@
@@ -12824,7 +12355,7 @@ index fec2e9754aed..68c87b25cf90 100644
  	return ahci_port_resume(ap);
  }
 diff --git a/drivers/block/paride/pcd.c b/drivers/block/paride/pcd.c
-index 70da8b86ce58..5725b026b727 100644
+index 70da8b86c..5725b026b 100644
 --- a/drivers/block/paride/pcd.c
 +++ b/drivers/block/paride/pcd.c
 @@ -1031,6 +1031,9 @@ static int __init pcd_init(void)
@@ -12838,7 +12369,7 @@ index 70da8b86ce58..5725b026b727 100644
  			register_cdrom(cd->disk, &cd->info);
  			cd->disk->private_data = cd;
 diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index da8fcf147eb1..04bbcd945e62 100644
+index da8fcf147..04bbcd945 100644
 --- a/drivers/clk/Makefile
 +++ b/drivers/clk/Makefile
 @@ -82,6 +82,7 @@ obj-$(CONFIG_ARCH_BERLIN)		+= berlin/
@@ -12850,7 +12381,7 @@ index da8fcf147eb1..04bbcd945e62 100644
  obj-y					+= imx/
  obj-y					+= ingenic/
 diff --git a/drivers/clk/hisilicon/Kconfig b/drivers/clk/hisilicon/Kconfig
-index 6a9e93a0bb95..4d212e5a193a 100644
+index 6a9e93a0b..4d212e5a1 100644
 --- a/drivers/clk/hisilicon/Kconfig
 +++ b/drivers/clk/hisilicon/Kconfig
 @@ -22,6 +22,38 @@ config COMMON_CLK_HI3660
@@ -13069,7 +12600,7 @@ index 6a9e93a0bb95..4d212e5a193a 100644
  	help
  	  Build reset controller driver for HiSilicon device chipsets.
 diff --git a/drivers/clk/hisilicon/Makefile b/drivers/clk/hisilicon/Makefile
-index b2441b99f3d5..91dc23fdb9c3 100644
+index b2441b99f..91dc23fdb 100644
 --- a/drivers/clk/hisilicon/Makefile
 +++ b/drivers/clk/hisilicon/Makefile
 @@ -14,6 +14,7 @@ obj-$(CONFIG_COMMON_CLK_HI3660) += clk-hi3660.o
@@ -13082,7 +12613,7 @@ index b2441b99f3d5..91dc23fdb9c3 100644
  obj-$(CONFIG_STUB_CLK_HI3660)	+= clk-hi3660-stub.o
 diff --git a/drivers/clk/hisilicon/clk-hi3516dv300.c b/drivers/clk/hisilicon/clk-hi3516dv300.c
 new file mode 100644
-index 000000000000..1a2ab99758cf
+index 000000000..1a2ab9975
 --- /dev/null
 +++ b/drivers/clk/hisilicon/clk-hi3516dv300.c
 @@ -0,0 +1,271 @@
@@ -13359,7 +12890,7 @@ index 000000000000..1a2ab99758cf
 +
 diff --git a/drivers/clk/hisilicon/clk-hi3519av100.c b/drivers/clk/hisilicon/clk-hi3519av100.c
 new file mode 100644
-index 000000000000..657767941652
+index 000000000..657767941
 --- /dev/null
 +++ b/drivers/clk/hisilicon/clk-hi3519av100.c
 @@ -0,0 +1,559 @@
@@ -13923,7 +13454,7 @@ index 000000000000..657767941652
 +CLK_OF_DECLARE(hi3519av100_clk, "hisilicon,hi3519av100-clock",
 +	       hi3519av100_clk_init);
 diff --git a/drivers/clk/hisilicon/clk-hisi-phase.c b/drivers/clk/hisilicon/clk-hisi-phase.c
-index ba6afad66a2b..b13b916097fe 100644
+index ba6afad66..b13b91609 100644
 --- a/drivers/clk/hisilicon/clk-hisi-phase.c
 +++ b/drivers/clk/hisilicon/clk-hisi-phase.c
 @@ -77,7 +77,7 @@ static int hisi_clk_set_phase(struct clk_hw *hw, int degrees)
@@ -13936,7 +13467,7 @@ index ba6afad66a2b..b13b916097fe 100644
  
  	spin_unlock_irqrestore(phase->lock, flags);
 diff --git a/drivers/clk/hisilicon/clk.c b/drivers/clk/hisilicon/clk.c
-index 54d9fdc93599..9ca4fc05fa57 100644
+index 54d9fdc93..9ca4fc05f 100644
 --- a/drivers/clk/hisilicon/clk.c
 +++ b/drivers/clk/hisilicon/clk.c
 @@ -82,6 +82,10 @@ struct hisi_clock_data *hisi_clk_init(struct device_node *np,
@@ -13951,7 +13482,7 @@ index 54d9fdc93599..9ca4fc05fa57 100644
  err:
  	return NULL;
 diff --git a/drivers/clk/hisilicon/crg.h b/drivers/clk/hisilicon/crg.h
-index 803f6ba6d7a2..a847586605b7 100644
+index 803f6ba6d..a84758660 100644
 --- a/drivers/clk/hisilicon/crg.h
 +++ b/drivers/clk/hisilicon/crg.h
 @@ -13,7 +13,7 @@ struct hisi_reset_controller;
@@ -13964,7 +13495,7 @@ index 803f6ba6d7a2..a847586605b7 100644
  
  struct hisi_crg_dev {
 diff --git a/drivers/clk/hisilicon/reset.c b/drivers/clk/hisilicon/reset.c
-index 93cee17db8b1..e9a03d924912 100644
+index 93cee17db..e9a03d924 100644
 --- a/drivers/clk/hisilicon/reset.c
 +++ b/drivers/clk/hisilicon/reset.c
 @@ -87,6 +87,36 @@ static const struct reset_control_ops hisi_reset_ops = {
@@ -14005,7 +13536,7 @@ index 93cee17db8b1..e9a03d924912 100644
  {
  	struct hisi_reset_controller *rstc;
 diff --git a/drivers/clk/hisilicon/reset.h b/drivers/clk/hisilicon/reset.h
-index 81ff9e9e3678..5954bdf911e9 100644
+index 81ff9e9e3..5954bdf91 100644
 --- a/drivers/clk/hisilicon/reset.h
 +++ b/drivers/clk/hisilicon/reset.h
 @@ -11,6 +11,9 @@ struct hisi_reset_controller;
@@ -14019,7 +13550,7 @@ index 81ff9e9e3678..5954bdf911e9 100644
  #else
  static inline
 diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-index 39f4d8866200..ddf6f7373b90 100644
+index 39f4d8866..ddf6f7373 100644
 --- a/drivers/clocksource/Kconfig
 +++ b/drivers/clocksource/Kconfig
 @@ -347,6 +347,14 @@ config ARM_ARCH_TIMER_EVTSTREAM
@@ -14051,7 +13582,7 @@ index 39f4d8866200..ddf6f7373b90 100644
  	bool
  	depends on ARM_GLOBAL_TIMER
 diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
-index 1c444cc3bb44..1a184f6ba796 100644
+index 1c444cc3b..1a184f6ba 100644
 --- a/drivers/clocksource/Makefile
 +++ b/drivers/clocksource/Makefile
 @@ -69,6 +69,7 @@ obj-$(CONFIG_ARM_ARCH_TIMER)		+= arm_arch_timer.o
@@ -14063,7 +13594,7 @@ index 1c444cc3bb44..1a184f6ba796 100644
  obj-$(CONFIG_KEYSTONE_TIMER)		+= timer-keystone.o
  obj-$(CONFIG_INTEGRATOR_AP_TIMER)	+= timer-integrator-ap.o
 diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index f4881764bf8f..d435d12664fa 100644
+index f4881764b..d435d1266 100644
 --- a/drivers/clocksource/arm_arch_timer.c
 +++ b/drivers/clocksource/arm_arch_timer.c
 @@ -631,7 +631,8 @@ static bool arch_timer_counter_has_wa(void)
@@ -14078,7 +13609,7 @@ index f4881764bf8f..d435d12664fa 100644
  
 diff --git a/drivers/clocksource/timer-hisp804.c b/drivers/clocksource/timer-hisp804.c
 new file mode 100644
-index 000000000000..b2c857a418a5
+index 000000000..b2c857a41
 --- /dev/null
 +++ b/drivers/clocksource/timer-hisp804.c
 @@ -0,0 +1,356 @@
@@ -14440,7 +13971,7 @@ index 000000000000..b2c857a418a5
 +CLOCKSOURCE_OF_DECLARE(hisp804, "hisilicon,hisp804", hisp804_timer_init);
 \ No newline at end of file
 diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
-index f28bb2334e74..fbdc52bac0b0 100644
+index f28bb2334..fbdc52bac 100644
 --- a/drivers/dma/Kconfig
 +++ b/drivers/dma/Kconfig
 @@ -328,6 +328,20 @@ config K3_DMA
@@ -14473,7 +14004,7 @@ index f28bb2334e74..fbdc52bac0b0 100644
  source "drivers/dma/bestcomm/Kconfig"
  
 diff --git a/drivers/dma/Makefile b/drivers/dma/Makefile
-index 948a8da05f8b..c5f89432d49b 100644
+index 948a8da05..c5f89432d 100644
 --- a/drivers/dma/Makefile
 +++ b/drivers/dma/Makefile
 @@ -82,7 +82,7 @@ obj-$(CONFIG_XGENE_DMA) += xgene-dma.o
@@ -14487,7 +14018,7 @@ index 948a8da05f8b..c5f89432d49b 100644
  obj-y += ti/
 diff --git a/drivers/dma/hiedmacv310.c b/drivers/dma/hiedmacv310.c
 new file mode 100644
-index 000000000000..a198c92241e6
+index 000000000..a198c9224
 --- /dev/null
 +++ b/drivers/dma/hiedmacv310.c
 @@ -0,0 +1,1443 @@
@@ -15936,7 +15467,7 @@ index 000000000000..a198c92241e6
 +MODULE_AUTHOR("Hisilicon");
 diff --git a/drivers/dma/hiedmacv310.h b/drivers/dma/hiedmacv310.h
 new file mode 100644
-index 000000000000..1fc093945d50
+index 000000000..1fc093945
 --- /dev/null
 +++ b/drivers/dma/hiedmacv310.h
 @@ -0,0 +1,153 @@
@@ -16094,7 +15625,7 @@ index 000000000000..1fc093945d50
 +#define HIEDMAC_CONTROL_DST_WIDTH_MASK GENMASK(14, 12)
 +#endif
 diff --git a/drivers/gpio/gpio-pl061.c b/drivers/gpio/gpio-pl061.c
-index f1b53dd1df1a..0825ad601d8b 100644
+index f1b53dd1d..0825ad601 100644
 --- a/drivers/gpio/gpio-pl061.c
 +++ b/drivers/gpio/gpio-pl061.c
 @@ -289,6 +289,9 @@ static int pl061_probe(struct amba_device *adev, const struct amba_id *id)
@@ -16129,7 +15660,7 @@ index f1b53dd1df1a..0825ad601d8b 100644
  	pl061->gc.direction_input = pl061_direction_input;
  	pl061->gc.direction_output = pl061_direction_output;
 diff --git a/drivers/gpu/drm/hisilicon/Kconfig b/drivers/gpu/drm/hisilicon/Kconfig
-index cc5a244db252..d69de65db208 100644
+index cc5a244db..d69de65db 100644
 --- a/drivers/gpu/drm/hisilicon/Kconfig
 +++ b/drivers/gpu/drm/hisilicon/Kconfig
 @@ -5,3 +5,4 @@
@@ -16138,7 +15669,7 @@ index cc5a244db252..d69de65db208 100644
  source "drivers/gpu/drm/hisilicon/kirin/Kconfig"
 +source "drivers/gpu/drm/hisilicon/hismart/Kconfig"
 diff --git a/drivers/gpu/drm/hisilicon/Makefile b/drivers/gpu/drm/hisilicon/Makefile
-index 69dec6084b04..4d4968e65b2a 100644
+index 69dec6084..4d4968e65 100644
 --- a/drivers/gpu/drm/hisilicon/Makefile
 +++ b/drivers/gpu/drm/hisilicon/Makefile
 @@ -5,3 +5,4 @@
@@ -16148,7 +15679,7 @@ index 69dec6084b04..4d4968e65b2a 100644
 +obj-$(CONFIG_DRM_HISI_HISMART) += hismart/
 diff --git a/drivers/gpu/drm/hisilicon/hismart/Kconfig b/drivers/gpu/drm/hisilicon/hismart/Kconfig
 new file mode 100644
-index 000000000000..ffc8564a8deb
+index 000000000..ffc8564a8
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/Kconfig
 @@ -0,0 +1,8 @@
@@ -16162,7 +15693,7 @@ index 000000000000..ffc8564a8deb
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/Makefile b/drivers/gpu/drm/hisilicon/hismart/Makefile
 new file mode 100644
-index 000000000000..7e611dd84b5f
+index 000000000..7e611dd84
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/Makefile
 @@ -0,0 +1,27 @@
@@ -16195,7 +15726,7 @@ index 000000000000..7e611dd84b5f
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/drm_hal_mipitx.h b/drivers/gpu/drm/hisilicon/hismart/drm_hal_mipitx.h
 new file mode 100644
-index 000000000000..88192d01f0e0
+index 000000000..88192d01f
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/drm_hal_mipitx.h
 @@ -0,0 +1,91 @@
@@ -16292,7 +15823,7 @@ index 000000000000..88192d01f0e0
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_adp_crtc.c b/drivers/gpu/drm/hisilicon/hismart/hi_adp_crtc.c
 new file mode 100755
-index 000000000000..897f7838fb6c
+index 000000000..897f7838f
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_adp_crtc.c
 @@ -0,0 +1,777 @@
@@ -17075,7 +16606,7 @@ index 000000000000..897f7838fb6c
 +}
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_adp_crtc.h b/drivers/gpu/drm/hisilicon/hismart/hi_adp_crtc.h
 new file mode 100644
-index 000000000000..31f13ff5fb76
+index 000000000..31f13ff5f
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_adp_crtc.h
 @@ -0,0 +1,69 @@
@@ -17150,7 +16681,7 @@ index 000000000000..31f13ff5fb76
 +#endif /* __HI_ADP_CRTC_H__ */
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_adp_hdmitx.c b/drivers/gpu/drm/hisilicon/hismart/hi_adp_hdmitx.c
 new file mode 100644
-index 000000000000..7b72a0639a16
+index 000000000..7b72a0639
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_adp_hdmitx.c
 @@ -0,0 +1,345 @@
@@ -17501,7 +17032,7 @@ index 000000000000..7b72a0639a16
 +}
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_adp_hdmitx.h b/drivers/gpu/drm/hisilicon/hismart/hi_adp_hdmitx.h
 new file mode 100644
-index 000000000000..4c7f08883850
+index 000000000..4c7f08883
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_adp_hdmitx.h
 @@ -0,0 +1,28 @@
@@ -17535,7 +17066,7 @@ index 000000000000..4c7f08883850
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.c b/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.c
 new file mode 100755
-index 000000000000..b58fafb7cc69
+index 000000000..a70f77e0a
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.c
 @@ -0,0 +1,223 @@
@@ -17764,7 +17295,7 @@ index 000000000000..b58fafb7cc69
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.h b/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.h
 new file mode 100644
-index 000000000000..d7f3767dcb40
+index 000000000..d7f3767dc
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.h
 @@ -0,0 +1,24 @@
@@ -17794,7 +17325,7 @@ index 000000000000..d7f3767dcb40
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_crtc.c b/drivers/gpu/drm/hisilicon/hismart/hi_drm_crtc.c
 new file mode 100755
-index 000000000000..ee41abf3b4b0
+index 000000000..ee41abf3b
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_crtc.c
 @@ -0,0 +1,389 @@
@@ -18189,7 +17720,7 @@ index 000000000000..ee41abf3b4b0
 +}
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_crtc.h b/drivers/gpu/drm/hisilicon/hismart/hi_drm_crtc.h
 new file mode 100644
-index 000000000000..ebe7aac6fe89
+index 000000000..ebe7aac6f
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_crtc.h
 @@ -0,0 +1,17 @@
@@ -18212,7 +17743,7 @@ index 000000000000..ebe7aac6fe89
 +#endif /* __HI_DRM_CTRC_H__ */
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.c b/drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.c
 new file mode 100755
-index 000000000000..166496e813cb
+index 000000000..166496e81
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.c
 @@ -0,0 +1,369 @@
@@ -18587,7 +18118,7 @@ index 000000000000..166496e813cb
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.h b/drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.h
 new file mode 100755
-index 000000000000..c399f78b6f17
+index 000000000..c399f78b6
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.h
 @@ -0,0 +1,29 @@
@@ -18622,7 +18153,7 @@ index 000000000000..c399f78b6f17
 +#endif /* __HI_DRM_DRV_H__ */
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_func_ext.c b/drivers/gpu/drm/hisilicon/hismart/hi_drm_func_ext.c
 new file mode 100644
-index 000000000000..f29e7f99821e
+index 000000000..f29e7f998
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_func_ext.c
 @@ -0,0 +1,43 @@
@@ -18672,7 +18203,7 @@ index 000000000000..f29e7f99821e
 \ No newline at end of file
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_func_ext.h b/drivers/gpu/drm/hisilicon/hismart/hi_drm_func_ext.h
 new file mode 100644
-index 000000000000..83a96b22b662
+index 000000000..83a96b22b
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_func_ext.h
 @@ -0,0 +1,27 @@
@@ -18705,7 +18236,7 @@ index 000000000000..83a96b22b662
 +#endif /* __HI_DRM_FUNC_EXT_H__ */
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_hdmitx.c b/drivers/gpu/drm/hisilicon/hismart/hi_drm_hdmitx.c
 new file mode 100755
-index 000000000000..1d11d98a2820
+index 000000000..1d11d98a2
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_hdmitx.c
 @@ -0,0 +1,233 @@
@@ -18944,7 +18475,7 @@ index 000000000000..1d11d98a2820
 +}
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_hdmitx.h b/drivers/gpu/drm/hisilicon/hismart/hi_drm_hdmitx.h
 new file mode 100644
-index 000000000000..22285a50ed94
+index 000000000..22285a50e
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_hdmitx.h
 @@ -0,0 +1,16 @@
@@ -18966,7 +18497,7 @@ index 000000000000..22285a50ed94
 +#endif /* __HI_DRM_HDMITX_H__ */
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.c b/drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.c
 new file mode 100755
-index 000000000000..b5007d5ffcd3
+index 000000000..b5007d5ff
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.c
 @@ -0,0 +1,181 @@
@@ -19153,7 +18684,7 @@ index 000000000000..b5007d5ffcd3
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.h b/drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.h
 new file mode 100644
-index 000000000000..34d2f0a37201
+index 000000000..34d2f0a37
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.h
 @@ -0,0 +1,17 @@
@@ -19176,7 +18707,7 @@ index 000000000000..34d2f0a37201
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hisilicon_drm.h b/drivers/gpu/drm/hisilicon/hismart/hisilicon_drm.h
 new file mode 100644
-index 000000000000..5f247a1a942a
+index 000000000..5f247a1a9
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hisilicon_drm.h
 @@ -0,0 +1,31 @@
@@ -19213,7 +18744,7 @@ index 000000000000..5f247a1a942a
 +#endif /* HISILICON_DRM_H */
 diff --git a/drivers/hi_vdmav100/Kconfig b/drivers/hi_vdmav100/Kconfig
 new file mode 100644
-index 000000000000..ecaa952b9798
+index 000000000..ecaa952b9
 --- /dev/null
 +++ b/drivers/hi_vdmav100/Kconfig
 @@ -0,0 +1,26 @@
@@ -19245,7 +18776,7 @@ index 000000000000..ecaa952b9798
 +endif
 diff --git a/drivers/hi_vdmav100/Makefile b/drivers/hi_vdmav100/Makefile
 new file mode 100644
-index 000000000000..ccac799b500d
+index 000000000..ccac799b5
 --- /dev/null
 +++ b/drivers/hi_vdmav100/Makefile
 @@ -0,0 +1,2 @@
@@ -19253,7 +18784,7 @@ index 000000000000..ccac799b500d
 +obj-$(CONFIG_HI_VDMA_MISC_DEV) += hi_vdmav100_misc.o
 diff --git a/drivers/hi_vdmav100/hi_vdma.h b/drivers/hi_vdmav100/hi_vdma.h
 new file mode 100644
-index 000000000000..3644fe6212cd
+index 000000000..3644fe621
 --- /dev/null
 +++ b/drivers/hi_vdmav100/hi_vdma.h
 @@ -0,0 +1,41 @@
@@ -19300,7 +18831,7 @@ index 000000000000..3644fe6212cd
 +#endif
 diff --git a/drivers/hi_vdmav100/hi_vdmav100.c b/drivers/hi_vdmav100/hi_vdmav100.c
 new file mode 100644
-index 000000000000..0199ddd231f7
+index 000000000..0199ddd23
 --- /dev/null
 +++ b/drivers/hi_vdmav100/hi_vdmav100.c
 @@ -0,0 +1,534 @@
@@ -19840,7 +19371,7 @@ index 000000000000..0199ddd231f7
 +MODULE_AUTHOR("BVT_OSDRV");
 diff --git a/drivers/hi_vdmav100/hi_vdmav100.h b/drivers/hi_vdmav100/hi_vdmav100.h
 new file mode 100644
-index 000000000000..8b8d3e6c0026
+index 000000000..8b8d3e6c0
 --- /dev/null
 +++ b/drivers/hi_vdmav100/hi_vdmav100.h
 @@ -0,0 +1,122 @@
@@ -19968,7 +19499,7 @@ index 000000000000..8b8d3e6c0026
 +#endif
 diff --git a/drivers/hi_vdmav100/hi_vdmav100_misc.c b/drivers/hi_vdmav100/hi_vdmav100_misc.c
 new file mode 100644
-index 000000000000..777a7c47cd53
+index 000000000..777a7c47c
 --- /dev/null
 +++ b/drivers/hi_vdmav100/hi_vdmav100_misc.c
 @@ -0,0 +1,109 @@
@@ -20082,7 +19613,7 @@ index 000000000000..777a7c47cd53
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("Hisilicon VDMA MISC Driver");
 diff --git a/drivers/hid/Makefile b/drivers/hid/Makefile
-index 4acb583c92a6..01350ca69d96 100644
+index 4acb583c9..01350ca69 100644
 --- a/drivers/hid/Makefile
 +++ b/drivers/hid/Makefile
 @@ -2,6 +2,15 @@
@@ -20103,7 +19634,7 @@ index 4acb583c92a6..01350ca69d96 100644
  
 diff --git a/drivers/hidmac/Kconfig b/drivers/hidmac/Kconfig
 new file mode 100644
-index 000000000000..dcb3e08bf5d2
+index 000000000..dcb3e08bf
 --- /dev/null
 +++ b/drivers/hidmac/Kconfig
 @@ -0,0 +1,21 @@
@@ -20130,7 +19661,7 @@ index 000000000000..dcb3e08bf5d2
 +endif
 diff --git a/drivers/hidmac/Makefile b/drivers/hidmac/Makefile
 new file mode 100644
-index 000000000000..7e41f4c37ffd
+index 000000000..7e41f4c37
 --- /dev/null
 +++ b/drivers/hidmac/Makefile
 @@ -0,0 +1,6 @@
@@ -20142,7 +19673,7 @@ index 000000000000..7e41f4c37ffd
 +
 diff --git a/drivers/hidmac/hi_pl08x.c b/drivers/hidmac/hi_pl08x.c
 new file mode 100644
-index 000000000000..4281caf7eb10
+index 000000000..4281caf7e
 --- /dev/null
 +++ b/drivers/hidmac/hi_pl08x.c
 @@ -0,0 +1,1303 @@
@@ -21451,7 +20982,7 @@ index 000000000000..4281caf7eb10
 +MODULE_DESCRIPTION("HiSilicon DMA Controller driver");
 diff --git a/drivers/hidmac/hi_pl08x.h b/drivers/hidmac/hi_pl08x.h
 new file mode 100644
-index 000000000000..1c3babf22e43
+index 000000000..1c3babf22
 --- /dev/null
 +++ b/drivers/hidmac/hi_pl08x.h
 @@ -0,0 +1,90 @@
@@ -21547,7 +21078,7 @@ index 000000000000..1c3babf22e43
 +#endif /* End of #ifndef __HI_INC_ECSDMACC_H__ */
 diff --git a/drivers/hiedmac/Kconfig b/drivers/hiedmac/Kconfig
 new file mode 100644
-index 000000000000..183747be82fb
+index 000000000..183747be8
 --- /dev/null
 +++ b/drivers/hiedmac/Kconfig
 @@ -0,0 +1,29 @@
@@ -21582,7 +21113,7 @@ index 000000000000..183747be82fb
 +endif
 diff --git a/drivers/hiedmac/Makefile b/drivers/hiedmac/Makefile
 new file mode 100644
-index 000000000000..a1b4b8b767b4
+index 000000000..a1b4b8b76
 --- /dev/null
 +++ b/drivers/hiedmac/Makefile
 @@ -0,0 +1,4 @@
@@ -21592,7 +21123,7 @@ index 000000000000..a1b4b8b767b4
 +obj-$(CONFIG_HIEDMAC)	+= hiedmacv310.o
 diff --git a/drivers/hiedmac/hiedmacv310.c b/drivers/hiedmac/hiedmacv310.c
 new file mode 100644
-index 000000000000..282ac3eaac98
+index 000000000..282ac3eaa
 --- /dev/null
 +++ b/drivers/hiedmac/hiedmacv310.c
 @@ -0,0 +1,946 @@
@@ -22544,7 +22075,7 @@ index 000000000000..282ac3eaac98
 +MODULE_AUTHOR("Hisilicon");
 diff --git a/drivers/hiedmac/hiedmacv310.h b/drivers/hiedmac/hiedmacv310.h
 new file mode 100644
-index 000000000000..4344d8940d61
+index 000000000..4344d8940
 --- /dev/null
 +++ b/drivers/hiedmac/hiedmacv310.h
 @@ -0,0 +1,184 @@
@@ -22734,7 +22265,7 @@ index 000000000000..4344d8940d61
 +#endif
 diff --git a/drivers/hisilicon/Kconfig b/drivers/hisilicon/Kconfig
 new file mode 100644
-index 000000000000..ab5884c08df9
+index 000000000..ab5884c08
 --- /dev/null
 +++ b/drivers/hisilicon/Kconfig
 @@ -0,0 +1,4 @@
@@ -22744,14 +22275,14 @@ index 000000000000..ab5884c08df9
 +endmenu
 diff --git a/drivers/hisilicon/Makefile b/drivers/hisilicon/Makefile
 new file mode 100644
-index 000000000000..0ba50a756682
+index 000000000..0ba50a756
 --- /dev/null
 +++ b/drivers/hisilicon/Makefile
 @@ -0,0 +1 @@
 +obj-$(CONFIG_CMA)			+= cma/
 diff --git a/drivers/hisilicon/cma/Kconfig b/drivers/hisilicon/cma/Kconfig
 new file mode 100644
-index 000000000000..7472dccd8952
+index 000000000..7472dccd8
 --- /dev/null
 +++ b/drivers/hisilicon/cma/Kconfig
 @@ -0,0 +1,16 @@
@@ -22773,7 +22304,7 @@ index 000000000000..7472dccd8952
 +	  CMA Multiplex Ratio will be improved when this macro defined.
 diff --git a/drivers/hisilicon/cma/Makefile b/drivers/hisilicon/cma/Makefile
 new file mode 100644
-index 000000000000..eefda7f57298
+index 000000000..eefda7f57
 --- /dev/null
 +++ b/drivers/hisilicon/cma/Makefile
 @@ -0,0 +1,2 @@
@@ -22781,7 +22312,7 @@ index 000000000000..eefda7f57298
 +obj-$(CONFIG_CMA) += hi_cma.o
 diff --git a/drivers/hisilicon/cma/hi_cma.c b/drivers/hisilicon/cma/hi_cma.c
 new file mode 100644
-index 000000000000..6ce2e2b45038
+index 000000000..6ce2e2b45
 --- /dev/null
 +++ b/drivers/hisilicon/cma/hi_cma.c
 @@ -0,0 +1,203 @@
@@ -22989,7 +22520,7 @@ index 000000000000..6ce2e2b45038
 +RESERVEDMEM_OF_DECLARE(cma, "hisi-mmz", hisi_mmz_setup);
 +
 diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
-index 7e693dcbdd19..c428abba0f50 100644
+index 7e693dcbd..c428abba0 100644
 --- a/drivers/i2c/busses/Kconfig
 +++ b/drivers/i2c/busses/Kconfig
 @@ -640,6 +640,16 @@ config I2C_GPIO_FAULT_INJECTOR
@@ -23031,7 +22562,7 @@ index 7e693dcbdd19..c428abba0f50 100644
 +		because DMA for 0xFFC one-time  largest data transfers;
  endmenu
 diff --git a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
-index 683c49faca05..2c615a7c1654 100644
+index 683c49fac..2c615a7c1 100644
 --- a/drivers/i2c/busses/Makefile
 +++ b/drivers/i2c/busses/Makefile
 @@ -63,6 +63,7 @@ obj-$(CONFIG_I2C_EG20T)		+= i2c-eg20t.o
@@ -23044,7 +22575,7 @@ index 683c49faca05..2c615a7c1654 100644
  obj-$(CONFIG_I2C_IBM_IIC)	+= i2c-ibm_iic.o
 diff --git a/drivers/i2c/busses/i2c-hibvt.c b/drivers/i2c/busses/i2c-hibvt.c
 new file mode 100644
-index 000000000000..4c7cd494ac40
+index 000000000..4c7cd494a
 --- /dev/null
 +++ b/drivers/i2c/busses/i2c-hibvt.c
 @@ -0,0 +1,1451 @@
@@ -24500,7 +24031,7 @@ index 000000000000..4c7cd494ac40
 +MODULE_DESCRIPTION("HISILICON BVT I2C Bus driver");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
-index 6ef38a8ee95c..6d5ac0628e87 100644
+index 6ef38a8ee..6d5ac0628 100644
 --- a/drivers/i2c/i2c-dev.c
 +++ b/drivers/i2c/i2c-dev.c
 @@ -231,7 +231,42 @@ static int i2cdev_check_addr(struct i2c_adapter *adapter, unsigned int addr)
@@ -24572,7 +24103,7 @@ index 6ef38a8ee95c..6d5ac0628e87 100644
  		/* NOTE:  returning a fault code here could cause trouble
  		 * in buggy userspace code.  Some old kernel bugs returned
 diff --git a/drivers/input/mousedev.c b/drivers/input/mousedev.c
-index 505c562a5daa..67d451beba08 100644
+index 505c562a5..67d451beb 100644
 --- a/drivers/input/mousedev.c
 +++ b/drivers/input/mousedev.c
 @@ -869,7 +869,7 @@ static struct mousedev *mousedev_create(struct input_dev *dev,
@@ -24585,7 +24116,7 @@ index 505c562a5daa..67d451beba08 100644
  		mousedev->close_device = mixdev_close_devices;
  	} else {
 diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 6053245a4754..7534882d0a01 100644
+index 6053245a4..7534882d0 100644
 --- a/drivers/irqchip/irq-gic.c
 +++ b/drivers/irqchip/irq-gic.c
 @@ -116,6 +116,24 @@ static DEFINE_RAW_SPINLOCK(cpu_map_lock);
@@ -24721,7 +24252,7 @@ index 6053245a4754..7534882d0a01 100644
  	if (ret)
  		goto error;
 diff --git a/drivers/media/usb/gspca/ov519.c b/drivers/media/usb/gspca/ov519.c
-index cd6776c3163b..8d06332bb214 100644
+index cd6776c31..8d06332bb 100644
 --- a/drivers/media/usb/gspca/ov519.c
 +++ b/drivers/media/usb/gspca/ov519.c
 @@ -3482,6 +3482,11 @@ static void ov511_mode_init_regs(struct sd *sd)
@@ -24749,7 +24280,7 @@ index cd6776c3163b..8d06332bb214 100644
  	ov518_reg_w32(sd, R51x_FIFO_PSIZE, packet_size & ~7, 2);
  
 diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index b8847ae04d93..e6bf07fe16e5 100644
+index b8847ae04..e6bf07fe1 100644
 --- a/drivers/mfd/Kconfig
 +++ b/drivers/mfd/Kconfig
 @@ -520,6 +520,17 @@ config MFD_HI655X_PMIC
@@ -24771,7 +24302,7 @@ index b8847ae04d93..e6bf07fe16e5 100644
  	tristate "HTC PASIC3 LED/DS1WM chip support"
  	select MFD_CORE
 diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index 1780019d2474..992e1895fa41 100644
+index 1780019d2..992e1895f 100644
 --- a/drivers/mfd/Makefile
 +++ b/drivers/mfd/Makefile
 @@ -211,6 +211,7 @@ obj-$(CONFIG_MFD_AT91_USART)	+= at91-usart.o
@@ -24784,7 +24315,7 @@ index 1780019d2474..992e1895fa41 100644
  obj-$(CONFIG_MFD_INTEL_LPSS_ACPI)	+= intel-lpss-acpi.o
 diff --git a/drivers/mfd/hisi_fmc.c b/drivers/mfd/hisi_fmc.c
 new file mode 100644
-index 000000000000..7aa23e56d0c3
+index 000000000..7aa23e56d
 --- /dev/null
 +++ b/drivers/mfd/hisi_fmc.c
 @@ -0,0 +1,134 @@
@@ -24923,7 +24454,7 @@ index 000000000000..7aa23e56d0c3
 +MODULE_LICENSE("GPL v2");
 +MODULE_DESCRIPTION("HiSilicon Flash Memory Controller Driver");
 diff --git a/drivers/mmc/core/block.c b/drivers/mmc/core/block.c
-index 87bac9920702..bbf420a68c79 100644
+index 87bac9920..bbf420a68 100644
 --- a/drivers/mmc/core/block.c
 +++ b/drivers/mmc/core/block.c
 @@ -448,7 +448,7 @@ static int card_busy_detect(struct mmc_card *card, unsigned int timeout_ms,
@@ -24961,7 +24492,7 @@ index 87bac9920702..bbf420a68c79 100644
  
  	if ((MMC_EXTRACT_INDEX_FROM_ARG(cmd.arg) == EXT_CSD_SANITIZE_START) &&
 diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
-index b5f3f160c842..0b0e367bc33e 100644
+index b5f3f160c..0b0e367bc 100644
 --- a/drivers/mmc/core/core.c
 +++ b/drivers/mmc/core/core.c
 @@ -1371,6 +1371,9 @@ void mmc_power_off(struct mmc_host *host)
@@ -25007,7 +24538,7 @@ index b5f3f160c842..0b0e367bc33e 100644
  			break;
  	}
 diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
-index 7494d595035e..416fc67236e3 100644
+index 7494d5950..416fc6723 100644
 --- a/drivers/mmc/core/mmc.c
 +++ b/drivers/mmc/core/mmc.c
 @@ -1414,7 +1414,9 @@ static int mmc_select_hs400es(struct mmc_card *card)
@@ -25040,7 +24571,7 @@ index 7494d595035e..416fc67236e3 100644
  	if (host->ocr_avail_mmc)
  		host->ocr_avail = host->ocr_avail_mmc;
 diff --git a/drivers/mmc/core/sd.c b/drivers/mmc/core/sd.c
-index bac343a8d569..af8bf24cd0a2 100644
+index bac343a8d..af8bf24cd 100644
 --- a/drivers/mmc/core/sd.c
 +++ b/drivers/mmc/core/sd.c
 @@ -1349,6 +1349,7 @@ int mmc_attach_sd(struct mmc_host *host)
@@ -25052,7 +24583,7 @@ index bac343a8d569..af8bf24cd0a2 100644
  	if (host->ocr_avail_sd)
  		host->ocr_avail = host->ocr_avail_sd;
 diff --git a/drivers/mmc/core/sdio.c b/drivers/mmc/core/sdio.c
-index 1b0853a82189..3e452090d67c 100644
+index 1b0853a82..3e452090d 100644
 --- a/drivers/mmc/core/sdio.c
 +++ b/drivers/mmc/core/sdio.c
 @@ -1193,6 +1193,7 @@ int mmc_attach_sdio(struct mmc_host *host)
@@ -25105,7 +24636,7 @@ index 1b0853a82189..3e452090d67c 100644
 +#endif
 +
 diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-index 31481c9fcc2e..299758712390 100644
+index 31481c9fc..299758712 100644
 --- a/drivers/mmc/host/Kconfig
 +++ b/drivers/mmc/host/Kconfig
 @@ -247,6 +247,21 @@ config MMC_SDHCI_CNS3XXX
@@ -25153,7 +24684,7 @@ index 31481c9fcc2e..299758712390 100644
  	tristate "Support for the SDHCI Controller in TI's AM654 SOCs"
  	depends on MMC_SDHCI_PLTFM && OF && REGMAP_MMIO
 diff --git a/drivers/mmc/host/Makefile b/drivers/mmc/host/Makefile
-index 451c25fc2c69..e7ec6250ecda 100644
+index 451c25fc2..e7ec6250e 100644
 --- a/drivers/mmc/host/Makefile
 +++ b/drivers/mmc/host/Makefile
 @@ -94,6 +94,21 @@ obj-$(CONFIG_MMC_SDHCI_OF_AT91)		+= sdhci-of-at91.o
@@ -25185,7 +24716,7 @@ index 451c25fc2c69..e7ec6250ecda 100644
 +
 +obj-$(CONFIG_HIMCI)	+= himci/
 diff --git a/drivers/mmc/host/cqhci.c b/drivers/mmc/host/cqhci.c
-index 697fe40756bf..248fe7ea896d 100644
+index 697fe4075..248fe7ea8 100644
 --- a/drivers/mmc/host/cqhci.c
 +++ b/drivers/mmc/host/cqhci.c
 @@ -46,6 +46,11 @@ static inline u8 *get_link_desc(struct cqhci_host *cq_host, u8 tag)
@@ -25301,7 +24832,7 @@ index 697fe40756bf..248fe7ea896d 100644
  
  static int cqhci_error_from_flags(unsigned int flags)
 diff --git a/drivers/mmc/host/cqhci.h b/drivers/mmc/host/cqhci.h
-index 89bf6adbce8c..05571faf079a 100644
+index 89bf6adbc..05571faf0 100644
 --- a/drivers/mmc/host/cqhci.h
 +++ b/drivers/mmc/host/cqhci.h
 @@ -80,6 +80,12 @@
@@ -25335,7 +24866,7 @@ index 89bf6adbce8c..05571faf079a 100644
  	bool halted;
 diff --git a/drivers/mmc/host/himci/Kconfig b/drivers/mmc/host/himci/Kconfig
 new file mode 100644
-index 000000000000..f3331c86279e
+index 000000000..f3331c862
 --- /dev/null
 +++ b/drivers/mmc/host/himci/Kconfig
 @@ -0,0 +1,23 @@
@@ -25364,7 +24895,7 @@ index 000000000000..f3331c86279e
 +
 diff --git a/drivers/mmc/host/himci/Makefile b/drivers/mmc/host/himci/Makefile
 new file mode 100644
-index 000000000000..6858bfcef463
+index 000000000..6858bfcef
 --- /dev/null
 +++ b/drivers/mmc/host/himci/Makefile
 @@ -0,0 +1,2 @@
@@ -25372,7 +24903,7 @@ index 000000000000..6858bfcef463
 +hisi_mci-y	:= himci.o himci_proc.o
 diff --git a/drivers/mmc/host/himci/himci.c b/drivers/mmc/host/himci/himci.c
 new file mode 100644
-index 000000000000..65aa8d24ea9e
+index 000000000..65aa8d24e
 --- /dev/null
 +++ b/drivers/mmc/host/himci/himci.c
 @@ -0,0 +1,2580 @@
@@ -27958,7 +27489,7 @@ index 000000000000..65aa8d24ea9e
 +#endif
 diff --git a/drivers/mmc/host/himci/himci.h b/drivers/mmc/host/himci/himci.h
 new file mode 100644
-index 000000000000..d882e847f539
+index 000000000..d882e847f
 --- /dev/null
 +++ b/drivers/mmc/host/himci/himci.h
 @@ -0,0 +1,156 @@
@@ -28120,7 +27651,7 @@ index 000000000000..d882e847f539
 +#endif
 diff --git a/drivers/mmc/host/himci/himci_hi3516dv300.c b/drivers/mmc/host/himci/himci_hi3516dv300.c
 new file mode 100644
-index 000000000000..bb312d6013f0
+index 000000000..bb312d601
 --- /dev/null
 +++ b/drivers/mmc/host/himci/himci_hi3516dv300.c
 @@ -0,0 +1,160 @@
@@ -28286,7 +27817,7 @@ index 000000000000..bb312d6013f0
 +}
 diff --git a/drivers/mmc/host/himci/himci_proc.c b/drivers/mmc/host/himci/himci_proc.c
 new file mode 100644
-index 000000000000..ac339c4da288
+index 000000000..ac339c4da
 --- /dev/null
 +++ b/drivers/mmc/host/himci/himci_proc.c
 @@ -0,0 +1,246 @@
@@ -28538,7 +28069,7 @@ index 000000000000..ac339c4da288
 +}
 diff --git a/drivers/mmc/host/himci/himci_proc.h b/drivers/mmc/host/himci/himci_proc.h
 new file mode 100644
-index 000000000000..e6ea9a137bbb
+index 000000000..e6ea9a137
 --- /dev/null
 +++ b/drivers/mmc/host/himci/himci_proc.h
 @@ -0,0 +1,36 @@
@@ -28580,7 +28111,7 @@ index 000000000000..e6ea9a137bbb
 +#endif /*  __MCI_PROC_H__ */
 diff --git a/drivers/mmc/host/himci/himci_reg.h b/drivers/mmc/host/himci/himci_reg.h
 new file mode 100644
-index 000000000000..d1d8f9f9ded5
+index 000000000..d1d8f9f9d
 --- /dev/null
 +++ b/drivers/mmc/host/himci/himci_reg.h
 @@ -0,0 +1,241 @@
@@ -28827,7 +28358,7 @@ index 000000000000..d1d8f9f9ded5
 +#endif
 diff --git a/drivers/mmc/host/mci_proc.c b/drivers/mmc/host/mci_proc.c
 new file mode 100644
-index 000000000000..9465ad3feb44
+index 000000000..9465ad3fe
 --- /dev/null
 +++ b/drivers/mmc/host/mci_proc.c
 @@ -0,0 +1,301 @@
@@ -29134,7 +28665,7 @@ index 000000000000..9465ad3feb44
 +}
 diff --git a/drivers/mmc/host/mci_proc.h b/drivers/mmc/host/mci_proc.h
 new file mode 100644
-index 000000000000..459c5d767086
+index 000000000..459c5d767
 --- /dev/null
 +++ b/drivers/mmc/host/mci_proc.h
 @@ -0,0 +1,50 @@
@@ -29190,7 +28721,7 @@ index 000000000000..459c5d767086
 +#endif /*  __MCI_PROC_H__ */
 diff --git a/drivers/mmc/host/sdhci-hisi.c b/drivers/mmc/host/sdhci-hisi.c
 new file mode 100644
-index 000000000000..be2a903acf78
+index 000000000..be2a903ac
 --- /dev/null
 +++ b/drivers/mmc/host/sdhci-hisi.c
 @@ -0,0 +1,783 @@
@@ -29979,7 +29510,7 @@ index 000000000000..be2a903acf78
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/mmc/host/sdhci-hisi.h b/drivers/mmc/host/sdhci-hisi.h
 new file mode 100644
-index 000000000000..19cea6dc594c
+index 000000000..19cea6dc5
 --- /dev/null
 +++ b/drivers/mmc/host/sdhci-hisi.h
 @@ -0,0 +1,126 @@
@@ -30110,7 +29641,7 @@ index 000000000000..19cea6dc594c
 +
 +#endif /* _DRIVERS_MMC_SDHCI_HISI_H */
 diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
-index 6cdadbb3accd..94311a91486c 100644
+index 6cdadbb3a..94311a914 100644
 --- a/drivers/mmc/host/sdhci.c
 +++ b/drivers/mmc/host/sdhci.c
 @@ -261,7 +261,7 @@ static void sdhci_set_default_irqs(struct sdhci_host *host)
@@ -30657,7 +30188,7 @@ index 6cdadbb3accd..94311a91486c 100644
  
  EXPORT_SYMBOL_GPL(sdhci_remove_host);
 diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
-index 960fed78529e..4688a612b698 100644
+index 960fed785..4688a612b 100644
 --- a/drivers/mmc/host/sdhci.h
 +++ b/drivers/mmc/host/sdhci.h
 @@ -140,6 +140,7 @@
@@ -30830,7 +30361,7 @@ index 960fed78529e..4688a612b698 100644
  				   dma_addr_t addr, int len, unsigned int cmd);
  	void	(*copy_to_bounce_buffer)(struct sdhci_host *host,
 diff --git a/drivers/mtd/Makefile b/drivers/mtd/Makefile
-index 593d0593a038..cdf3ff323c9f 100644
+index 593d0593a..cdf3ff323 100644
 --- a/drivers/mtd/Makefile
 +++ b/drivers/mtd/Makefile
 @@ -26,8 +26,9 @@ obj-$(CONFIG_MTD_SWAP)		+= mtdswap.o
@@ -30845,7 +30376,7 @@ index 593d0593a038..cdf3ff323c9f 100644
  obj-$(CONFIG_MTD_UBI)		+= ubi/
  obj-$(CONFIG_MTD_HYPERBUS)	+= hyperbus/
 diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-index 4a9aed4f0104..5c3e95668fc8 100644
+index 4a9aed4f0..5c3e95668 100644
 --- a/drivers/mtd/nand/Kconfig
 +++ b/drivers/mtd/nand/Kconfig
 @@ -6,7 +6,32 @@ config MTD_NAND_CORE
@@ -30882,7 +30413,7 @@ index 4a9aed4f0104..5c3e95668fc8 100644
  
  menu "ECC engine support"
 diff --git a/drivers/mtd/nand/Makefile b/drivers/mtd/nand/Makefile
-index 981372953b56..4fb87a5c3552 100644
+index 981372953..4fb87a5c3 100644
 --- a/drivers/mtd/nand/Makefile
 +++ b/drivers/mtd/nand/Makefile
 @@ -1,6 +1,8 @@
@@ -30896,7 +30427,7 @@ index 981372953b56..4fb87a5c3552 100644
  obj-y	+= onenand/
 diff --git a/drivers/mtd/nand/hifmc100/Kconfig b/drivers/mtd/nand/hifmc100/Kconfig
 new file mode 100644
-index 000000000000..5b15bc8b994d
+index 000000000..5b15bc8b9
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100/Kconfig
 @@ -0,0 +1,17 @@
@@ -30919,7 +30450,7 @@ index 000000000000..5b15bc8b994d
 +	  while reading or writing the SPI nand flash.
 diff --git a/drivers/mtd/nand/hifmc100/Makefile b/drivers/mtd/nand/hifmc100/Makefile
 new file mode 100644
-index 000000000000..b1fda5de8ff0
+index 000000000..b1fda5de8
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100/Makefile
 @@ -0,0 +1,26 @@
@@ -30951,7 +30482,7 @@ index 000000000000..b1fda5de8ff0
 +obj-y	+= hifmc100.o hifmc100_os.o
 diff --git a/drivers/mtd/nand/hifmc100/hifmc100.c b/drivers/mtd/nand/hifmc100/hifmc100.c
 new file mode 100644
-index 000000000000..6cb12d3b6985
+index 000000000..6cb12d3b6
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100/hifmc100.c
 @@ -0,0 +1,1218 @@
@@ -32175,7 +31706,7 @@ index 000000000000..6cb12d3b6985
 +#endif
 diff --git a/drivers/mtd/nand/hifmc100/hifmc100.h b/drivers/mtd/nand/hifmc100/hifmc100.h
 new file mode 100644
-index 000000000000..9f169f3d5966
+index 000000000..9f169f3d5
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100/hifmc100.h
 @@ -0,0 +1,354 @@
@@ -32535,7 +32066,7 @@ index 000000000000..9f169f3d5966
 +#endif /* End of __HIFMC100_H__ */
 diff --git a/drivers/mtd/nand/hifmc100/hifmc100_os.c b/drivers/mtd/nand/hifmc100/hifmc100_os.c
 new file mode 100644
-index 000000000000..980bfb8f6055
+index 000000000..980bfb8f6
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100/hifmc100_os.c
 @@ -0,0 +1,247 @@
@@ -32788,7 +32319,7 @@ index 000000000000..980bfb8f6055
 +MODULE_DESCRIPTION("Hisilicon Flash Memory Controller V100 SPI Nand Driver");
 diff --git a/drivers/mtd/nand/hifmc100/hifmc100_spi_general.c b/drivers/mtd/nand/hifmc100/hifmc100_spi_general.c
 new file mode 100644
-index 000000000000..3b46205f353b
+index 000000000..3b46205f3
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100/hifmc100_spi_general.c
 @@ -0,0 +1,313 @@
@@ -33107,7 +32638,7 @@ index 000000000000..3b46205f353b
 +}
 diff --git a/drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c b/drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c
 new file mode 100644
-index 000000000000..bf963d146cd0
+index 000000000..bf963d146
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c
 @@ -0,0 +1,2457 @@
@@ -35570,7 +35101,7 @@ index 000000000000..bf963d146cd0
 +#endif /* CONFIG_PM */
 diff --git a/drivers/mtd/nand/hifmc100_nand/Kconfig b/drivers/mtd/nand/hifmc100_nand/Kconfig
 new file mode 100644
-index 000000000000..188c9a77a651
+index 000000000..188c9a77a
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100_nand/Kconfig
 @@ -0,0 +1,50 @@
@@ -35626,7 +35157,7 @@ index 000000000000..188c9a77a651
 +endif # End of MTD_NAND_HIFMC100
 diff --git a/drivers/mtd/nand/hifmc100_nand/Makefile b/drivers/mtd/nand/hifmc100_nand/Makefile
 new file mode 100644
-index 000000000000..623363cfc084
+index 000000000..623363cfc
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100_nand/Makefile
 @@ -0,0 +1,26 @@
@@ -35658,7 +35189,7 @@ index 000000000000..623363cfc084
 +obj-y	+= hifmc100_nand.o hifmc100_nand_os.o
 diff --git a/drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c b/drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c
 new file mode 100644
-index 000000000000..5c08d4beb807
+index 000000000..5c08d4beb
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c
 @@ -0,0 +1,1170 @@
@@ -36834,7 +36365,7 @@ index 000000000000..5c08d4beb807
 +#endif  /* CONFIG_PM */
 diff --git a/drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h b/drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h
 new file mode 100644
-index 000000000000..fba2f43ba0d4
+index 000000000..fba2f43ba
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h
 @@ -0,0 +1,151 @@
@@ -36991,7 +36522,7 @@ index 000000000000..fba2f43ba0d4
 +#endif /* End of __HIFMC100_NAND_H__ */
 diff --git a/drivers/mtd/nand/hifmc100_nand/hifmc100_nand_os.c b/drivers/mtd/nand/hifmc100_nand/hifmc100_nand_os.c
 new file mode 100644
-index 000000000000..0849cd3cbd95
+index 000000000..0849cd3cb
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100_nand/hifmc100_nand_os.c
 @@ -0,0 +1,180 @@
@@ -37177,7 +36708,7 @@ index 000000000000..0849cd3cbd95
 +MODULE_DESCRIPTION("Hisilicon Flash Memory Controller V100 Nand Driver");
 diff --git a/drivers/mtd/nand/hifmc100_nand/hifmc100_nand_os.h b/drivers/mtd/nand/hifmc100_nand/hifmc100_nand_os.h
 new file mode 100644
-index 000000000000..a27813530277
+index 000000000..a27813530
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100_nand/hifmc100_nand_os.h
 @@ -0,0 +1,72 @@
@@ -37255,7 +36786,7 @@ index 000000000000..a27813530277
 +#endif /* End of __HIFMC100_NAND_OS_H__ */
 diff --git a/drivers/mtd/nand/hifmc100_nand/hifmc_nand_spl_ids.c b/drivers/mtd/nand/hifmc100_nand/hifmc_nand_spl_ids.c
 new file mode 100644
-index 000000000000..b03510a449ec
+index 000000000..b03510a44
 --- /dev/null
 +++ b/drivers/mtd/nand/hifmc100_nand/hifmc_nand_spl_ids.c
 @@ -0,0 +1,982 @@
@@ -38242,7 +37773,7 @@ index 000000000000..b03510a449ec
 +	get_spi_nand_flash_type_hook = hifmc_get_spl_flash_type;
 +}
 diff --git a/drivers/mtd/nand/raw/Makefile b/drivers/mtd/nand/raw/Makefile
-index 2930f5b9015d..7817ec61d403 100644
+index 2930f5b90..7817ec61d 100644
 --- a/drivers/mtd/nand/raw/Makefile
 +++ b/drivers/mtd/nand/raw/Makefile
 @@ -59,7 +59,7 @@ obj-$(CONFIG_MTD_NAND_MESON)		+= meson_nand.o
@@ -38256,7 +37787,7 @@ index 2930f5b9015d..7817ec61d403 100644
  nand-objs += nand_amd.o
 diff --git a/drivers/mtd/nand/raw/hinfc_gen.c b/drivers/mtd/nand/raw/hinfc_gen.c
 new file mode 100644
-index 000000000000..127edd6b4a7d
+index 000000000..127edd6b4
 --- /dev/null
 +++ b/drivers/mtd/nand/raw/hinfc_gen.c
 @@ -0,0 +1,237 @@
@@ -38500,7 +38031,7 @@ index 000000000000..127edd6b4a7d
 \ No newline at end of file
 diff --git a/drivers/mtd/nand/raw/hinfc_gen.h b/drivers/mtd/nand/raw/hinfc_gen.h
 new file mode 100644
-index 000000000000..673ab83610c9
+index 000000000..673ab8361
 --- /dev/null
 +++ b/drivers/mtd/nand/raw/hinfc_gen.h
 @@ -0,0 +1,281 @@
@@ -38788,7 +38319,7 @@ index 000000000000..673ab83610c9
 \ No newline at end of file
 diff --git a/drivers/mtd/nand/raw/hinfc_spl_ids.c b/drivers/mtd/nand/raw/hinfc_spl_ids.c
 new file mode 100644
-index 000000000000..0fd7db974368
+index 000000000..0fd7db974
 --- /dev/null
 +++ b/drivers/mtd/nand/raw/hinfc_spl_ids.c
 @@ -0,0 +1,970 @@
@@ -39763,7 +39294,7 @@ index 000000000000..0fd7db974368
 +{
 +}
 diff --git a/drivers/mtd/nand/raw/internals.h b/drivers/mtd/nand/raw/internals.h
-index 012876e14317..be6bb9c30687 100644
+index 012876e14..be6bb9c30 100644
 --- a/drivers/mtd/nand/raw/internals.h
 +++ b/drivers/mtd/nand/raw/internals.h
 @@ -17,8 +17,12 @@
@@ -39794,7 +39325,7 @@ index 012876e14317..be6bb9c30687 100644
   * struct nand_manufacturer_ops - NAND Manufacturer operations
 diff --git a/drivers/mtd/nand/raw/match_table.c b/drivers/mtd/nand/raw/match_table.c
 new file mode 100644
-index 000000000000..6bad75f979ce
+index 000000000..6bad75f97
 --- /dev/null
 +++ b/drivers/mtd/nand/raw/match_table.c
 @@ -0,0 +1,102 @@
@@ -39902,7 +39433,7 @@ index 000000000000..6bad75f979ce
 +}
 diff --git a/drivers/mtd/nand/raw/match_table.h b/drivers/mtd/nand/raw/match_table.h
 new file mode 100644
-index 000000000000..9c5f0af094b4
+index 000000000..9c5f0af09
 --- /dev/null
 +++ b/drivers/mtd/nand/raw/match_table.h
 @@ -0,0 +1,51 @@
@@ -39958,7 +39489,7 @@ index 000000000000..9c5f0af094b4
 +
 +#endif /* End of __MATCH_TABLE_H__ */
 diff --git a/drivers/mtd/nand/raw/nand_base.c b/drivers/mtd/nand/raw/nand_base.c
-index 1f0d542d5923..3ff778c71798 100644
+index 1f0d542d5..3ff778c71 100644
 --- a/drivers/mtd/nand/raw/nand_base.c
 +++ b/drivers/mtd/nand/raw/nand_base.c
 @@ -44,6 +44,7 @@
@@ -40050,7 +39581,7 @@ index 1f0d542d5923..3ff778c71798 100644
  
  free_detect_allocation:
 diff --git a/drivers/mtd/nand/raw/nand_ids.c b/drivers/mtd/nand/raw/nand_ids.c
-index b9945791a9d7..e59b4f017bd2 100644
+index b9945791a..e59b4f017 100644
 --- a/drivers/mtd/nand/raw/nand_ids.c
 +++ b/drivers/mtd/nand/raw/nand_ids.c
 @@ -172,6 +172,11 @@ static const struct nand_manufacturer_desc nand_manufacturer_descs[] = {
@@ -40078,7 +39609,7 @@ index b9945791a9d7..e59b4f017bd2 100644
  
  /**
 diff --git a/drivers/mtd/spi-nor/controllers/Kconfig b/drivers/mtd/spi-nor/controllers/Kconfig
-index 5c0e0ec2e6d1..bffa9c1a6893 100644
+index 5c0e0ec2e..bffa9c1a6 100644
 --- a/drivers/mtd/spi-nor/controllers/Kconfig
 +++ b/drivers/mtd/spi-nor/controllers/Kconfig
 @@ -10,11 +10,12 @@ config SPI_ASPEED_SMC
@@ -40131,7 +39662,7 @@ index 5c0e0ec2e6d1..bffa9c1a6893 100644
 +	  BOTTOM/TOP bit is setted to BOTTOM, it means the lock area starts
 +	  from 0 address.
 diff --git a/drivers/net/ethernet/hisilicon/Kconfig b/drivers/net/ethernet/hisilicon/Kconfig
-index 44f9279cdde1..cf0b370d0862 100644
+index 44f9279cd..cf0b370d0 100644
 --- a/drivers/net/ethernet/hisilicon/Kconfig
 +++ b/drivers/net/ethernet/hisilicon/Kconfig
 @@ -137,4 +137,6 @@ config HNS3_ENET
@@ -40142,7 +39673,7 @@ index 44f9279cdde1..cf0b370d0862 100644
 +
  endif # NET_VENDOR_HISILICON
 diff --git a/drivers/net/ethernet/hisilicon/Makefile b/drivers/net/ethernet/hisilicon/Makefile
-index 7f76d412047a..95598fffc874 100644
+index 7f76d4120..95598fffc 100644
 --- a/drivers/net/ethernet/hisilicon/Makefile
 +++ b/drivers/net/ethernet/hisilicon/Makefile
 @@ -8,4 +8,5 @@ obj-$(CONFIG_HIP04_ETH) += hip04_eth.o
@@ -40154,7 +39685,7 @@ index 7f76d412047a..95598fffc874 100644
 +obj-$(CONFIG_HIETH_GMAC) += higmac/
 diff --git a/drivers/net/ethernet/hisilicon/higmac/Kconfig b/drivers/net/ethernet/hisilicon/higmac/Kconfig
 new file mode 100644
-index 000000000000..97b173e0073e
+index 000000000..97b173e00
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/Kconfig
 @@ -0,0 +1,106 @@
@@ -40266,7 +39797,7 @@ index 000000000000..97b173e0073e
 +endif # HIETH_GMAC
 diff --git a/drivers/net/ethernet/hisilicon/higmac/Makefile b/drivers/net/ethernet/hisilicon/higmac/Makefile
 new file mode 100644
-index 000000000000..b19e27d42c73
+index 000000000..b19e27d42
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/Makefile
 @@ -0,0 +1,2 @@
@@ -40274,7 +39805,7 @@ index 000000000000..b19e27d42c73
 +hieth-gmac-objs := board.o higmac.o pm.o util.o autoeee/autoeee.o autoeee/phy_id_table.o
 diff --git a/drivers/net/ethernet/hisilicon/higmac/autoeee/autoeee.c b/drivers/net/ethernet/hisilicon/higmac/autoeee/autoeee.c
 new file mode 100644
-index 000000000000..05c2b6205beb
+index 000000000..05c2b6205
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/autoeee/autoeee.c
 @@ -0,0 +1,162 @@
@@ -40442,7 +39973,7 @@ index 000000000000..05c2b6205beb
 +}
 diff --git a/drivers/net/ethernet/hisilicon/higmac/autoeee/autoeee.h b/drivers/net/ethernet/hisilicon/higmac/autoeee/autoeee.h
 new file mode 100644
-index 000000000000..30cbb9799a9e
+index 000000000..30cbb9799
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/autoeee/autoeee.h
 @@ -0,0 +1,52 @@
@@ -40500,7 +40031,7 @@ index 000000000000..30cbb9799a9e
 +#endif
 diff --git a/drivers/net/ethernet/hisilicon/higmac/autoeee/phy_id_table.c b/drivers/net/ethernet/hisilicon/higmac/autoeee/phy_id_table.c
 new file mode 100644
-index 000000000000..d98bbf1f0758
+index 000000000..d98bbf1f0
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/autoeee/phy_id_table.c
 @@ -0,0 +1,184 @@
@@ -40690,7 +40221,7 @@ index 000000000000..d98bbf1f0758
 +};
 diff --git a/drivers/net/ethernet/hisilicon/higmac/board.c b/drivers/net/ethernet/hisilicon/higmac/board.c
 new file mode 100644
-index 000000000000..b7a1d879df03
+index 000000000..b7a1d879d
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/board.c
 @@ -0,0 +1,118 @@
@@ -40814,7 +40345,7 @@ index 000000000000..b7a1d879df03
 +}
 diff --git a/drivers/net/ethernet/hisilicon/higmac/higmac.c b/drivers/net/ethernet/hisilicon/higmac/higmac.c
 new file mode 100644
-index 000000000000..e777123440c4
+index 000000000..e77712344
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/higmac.c
 @@ -0,0 +1,2645 @@
@@ -43465,7 +42996,7 @@ index 000000000000..e777123440c4
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/net/ethernet/hisilicon/higmac/higmac.h b/drivers/net/ethernet/hisilicon/higmac/higmac.h
 new file mode 100644
-index 000000000000..2e26d8064dbd
+index 000000000..2e26d8064
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/higmac.h
 @@ -0,0 +1,603 @@
@@ -44074,7 +43605,7 @@ index 000000000000..2e26d8064dbd
 +#endif
 diff --git a/drivers/net/ethernet/hisilicon/higmac/pm.c b/drivers/net/ethernet/hisilicon/higmac/pm.c
 new file mode 100644
-index 000000000000..4ad8e7c0c15d
+index 000000000..4ad8e7c0c
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/pm.c
 @@ -0,0 +1,341 @@
@@ -44421,7 +43952,7 @@ index 000000000000..4ad8e7c0c15d
 +}
 diff --git a/drivers/net/ethernet/hisilicon/higmac/pm.h b/drivers/net/ethernet/hisilicon/higmac/pm.h
 new file mode 100644
-index 000000000000..e54ced46c903
+index 000000000..e54ced46c
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/pm.h
 @@ -0,0 +1,59 @@
@@ -44487,7 +44018,7 @@ index 000000000000..e54ced46c903
 \ No newline at end of file
 diff --git a/drivers/net/ethernet/hisilicon/higmac/proc_dev.c b/drivers/net/ethernet/hisilicon/higmac/proc_dev.c
 new file mode 100644
-index 000000000000..efb654fb4851
+index 000000000..efb654fb4
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/proc_dev.c
 @@ -0,0 +1,119 @@
@@ -44612,7 +44143,7 @@ index 000000000000..efb654fb4851
 +}
 diff --git a/drivers/net/ethernet/hisilicon/higmac/sockioctl.h b/drivers/net/ethernet/hisilicon/higmac/sockioctl.h
 new file mode 100644
-index 000000000000..349f0f215506
+index 000000000..349f0f215
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/sockioctl.h
 @@ -0,0 +1,19 @@
@@ -44637,7 +44168,7 @@ index 000000000000..349f0f215506
 +#endif
 diff --git a/drivers/net/ethernet/hisilicon/higmac/tso.h b/drivers/net/ethernet/hisilicon/higmac/tso.h
 new file mode 100644
-index 000000000000..6c78d1d45e2e
+index 000000000..6c78d1d45
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/tso.h
 @@ -0,0 +1,59 @@
@@ -44702,7 +44233,7 @@ index 000000000000..6c78d1d45e2e
 +#endif
 diff --git a/drivers/net/ethernet/hisilicon/higmac/util.c b/drivers/net/ethernet/hisilicon/higmac/util.c
 new file mode 100644
-index 000000000000..eae79af525a5
+index 000000000..eae79af52
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/util.c
 @@ -0,0 +1,975 @@
@@ -45683,7 +45214,7 @@ index 000000000000..eae79af525a5
 +}
 diff --git a/drivers/net/ethernet/hisilicon/higmac/util.h b/drivers/net/ethernet/hisilicon/higmac/util.h
 new file mode 100644
-index 000000000000..ca1c99bb55e2
+index 000000000..ca1c99bb5
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/higmac/util.h
 @@ -0,0 +1,102 @@
@@ -45791,7 +45322,7 @@ index 000000000000..ca1c99bb55e2
 +#endif
 diff --git a/drivers/net/ethernet/hisilicon/hisi-femac/Makefile b/drivers/net/ethernet/hisilicon/hisi-femac/Makefile
 new file mode 100644
-index 000000000000..bfad94751c3a
+index 000000000..bfad94751
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hisi-femac/Makefile
 @@ -0,0 +1,6 @@
@@ -45803,7 +45334,7 @@ index 000000000000..bfad94751c3a
 +hisi-femac-objs := hisi_femac.o phy_fix.o util.o
 diff --git a/drivers/net/ethernet/hisilicon/hisi-femac/festa_s28v115_2c02.h b/drivers/net/ethernet/hisilicon/hisi-femac/festa_s28v115_2c02.h
 new file mode 100644
-index 000000000000..6c00c71a0014
+index 000000000..6c00c71a0
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hisi-femac/festa_s28v115_2c02.h
 @@ -0,0 +1,191 @@
@@ -46001,7 +45532,7 @@ index 000000000000..6c00c71a0014
 \ No newline at end of file
 diff --git a/drivers/net/ethernet/hisilicon/hisi-femac/festa_s28v202_2e01.h b/drivers/net/ethernet/hisilicon/hisi-femac/festa_s28v202_2e01.h
 new file mode 100644
-index 000000000000..758d7968874b
+index 000000000..758d79688
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hisi-femac/festa_s28v202_2e01.h
 @@ -0,0 +1,84 @@
@@ -46091,7 +45622,7 @@ index 000000000000..758d7968874b
 +#endif
 diff --git a/drivers/net/ethernet/hisilicon/hisi-femac/festa_v272_2723.h b/drivers/net/ethernet/hisilicon/hisi-femac/festa_v272_2723.h
 new file mode 100644
-index 000000000000..edb9d53bb7f9
+index 000000000..edb9d53bb
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hisi-femac/festa_v272_2723.h
 @@ -0,0 +1,44 @@
@@ -46142,7 +45673,7 @@ index 000000000000..edb9d53bb7f9
 \ No newline at end of file
 diff --git a/drivers/net/ethernet/hisilicon/hisi-femac/hisi_femac.c b/drivers/net/ethernet/hisilicon/hisi-femac/hisi_femac.c
 new file mode 100644
-index 000000000000..48815a2d67be
+index 000000000..48815a2d6
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hisi-femac/hisi_femac.c
 @@ -0,0 +1,1588 @@
@@ -47736,7 +47267,7 @@ index 000000000000..48815a2d67be
 +MODULE_ALIAS("platform:hisi-femac");
 diff --git a/drivers/net/ethernet/hisilicon/hisi-femac/hisi_femac.h b/drivers/net/ethernet/hisilicon/hisi-femac/hisi_femac.h
 new file mode 100644
-index 000000000000..5e260ad18169
+index 000000000..5e260ad18
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hisi-femac/hisi_femac.h
 @@ -0,0 +1,269 @@
@@ -48011,7 +47542,7 @@ index 000000000000..5e260ad18169
 +#endif
 diff --git a/drivers/net/ethernet/hisilicon/hisi-femac/phy_fix.c b/drivers/net/ethernet/hisilicon/hisi-femac/phy_fix.c
 new file mode 100644
-index 000000000000..e7a3989b82ce
+index 000000000..e7a3989b8
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hisi-femac/phy_fix.c
 @@ -0,0 +1,109 @@
@@ -48126,7 +47657,7 @@ index 000000000000..e7a3989b82ce
 +}
 diff --git a/drivers/net/ethernet/hisilicon/hisi-femac/phy_fix.h b/drivers/net/ethernet/hisilicon/hisi-femac/phy_fix.h
 new file mode 100644
-index 000000000000..b7a725090dab
+index 000000000..b7a725090
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hisi-femac/phy_fix.h
 @@ -0,0 +1,22 @@
@@ -48154,7 +47685,7 @@ index 000000000000..b7a725090dab
 +#endif
 diff --git a/drivers/net/ethernet/hisilicon/hisi-femac/util.c b/drivers/net/ethernet/hisilicon/hisi-femac/util.c
 new file mode 100644
-index 000000000000..4f803784e9ff
+index 000000000..4f803784e
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hisi-femac/util.c
 @@ -0,0 +1,318 @@
@@ -48478,7 +48009,7 @@ index 000000000000..4f803784e9ff
 +}
 diff --git a/drivers/net/ethernet/hisilicon/hisi-femac/util.h b/drivers/net/ethernet/hisilicon/hisi-femac/util.h
 new file mode 100644
-index 000000000000..0094248570a1
+index 000000000..009424857
 --- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hisi-femac/util.h
 @@ -0,0 +1,25 @@
@@ -48509,7 +48040,7 @@ index 000000000000..0094248570a1
 +#endif
 \ No newline at end of file
 diff --git a/drivers/net/ethernet/hisilicon/hisi_femac.c b/drivers/net/ethernet/hisilicon/hisi_femac.c
-index 57c3bc4f7089..18080565612d 100644
+index 57c3bc4f7..180805656 100644
 --- a/drivers/net/ethernet/hisilicon/hisi_femac.c
 +++ b/drivers/net/ethernet/hisilicon/hisi_femac.c
 @@ -86,7 +86,7 @@
@@ -48530,7 +48061,7 @@ index 57c3bc4f7089..18080565612d 100644
  MODULE_LICENSE("GPL v2");
  MODULE_ALIAS("platform:hisi-femac");
 diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_gmac.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_gmac.c
-index 7fb7a419607d..1a357516b027 100644
+index 7fb7a4196..1a357516b 100644
 --- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_gmac.c
 +++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_gmac.c
 @@ -702,7 +702,7 @@ static void hns_gmac_get_strings(u32 stringset, u8 *data)
@@ -48543,7 +48074,7 @@ index 7fb7a419607d..1a357516b027 100644
  
  	return 0;
 diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_ppe.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_ppe.c
-index d0f8b1fff333..c5176565f783 100644
+index d0f8b1fff..c5176565f 100644
 --- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_ppe.c
 +++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_ppe.c
 @@ -444,7 +444,7 @@ void hns_ppe_update_stats(struct hns_ppe_cb *ppe_cb)
@@ -48556,7 +48087,7 @@ index d0f8b1fff333..c5176565f783 100644
  	return 0;
  }
 diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c
-index b6c8910cf7ba..4cda44494842 100644
+index b6c8910cf..4cda44494 100644
 --- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c
 +++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c
 @@ -897,7 +897,7 @@ void hns_rcb_get_stats(struct hnae_queue *queue, u64 *data)
@@ -48569,7 +48100,7 @@ index b6c8910cf7ba..4cda44494842 100644
  
  	return 0;
 diff --git a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-index 3616b77caa0a..883c5f5db15c 100644
+index 3616b77ca..883c5f5db 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
 @@ -2092,14 +2092,17 @@ static int mlx4_en_get_module_eeprom(struct net_device *dev,
@@ -48593,7 +48124,7 @@ index 3616b77caa0a..883c5f5db15c 100644
  
  		i += ret;
 diff --git a/drivers/net/mdio/Kconfig b/drivers/net/mdio/Kconfig
-index a10cc460d7cf..42603264ab35 100644
+index a10cc460d..42603264a 100644
 --- a/drivers/net/mdio/Kconfig
 +++ b/drivers/net/mdio/Kconfig
 @@ -107,6 +107,13 @@ config MDIO_HISI_FEMAC
@@ -48611,7 +48142,7 @@ index a10cc460d7cf..42603264ab35 100644
  	tristate
  	depends on I2C
 diff --git a/drivers/net/mdio/Makefile b/drivers/net/mdio/Makefile
-index 5c498dde463f..67b74ed9d0a3 100644
+index 5c498dde4..67b74ed9d 100644
 --- a/drivers/net/mdio/Makefile
 +++ b/drivers/net/mdio/Makefile
 @@ -9,7 +9,10 @@ obj-$(CONFIG_MDIO_BCM_UNIMAC)		+= mdio-bcm-unimac.o
@@ -48627,7 +48158,7 @@ index 5c498dde463f..67b74ed9d0a3 100644
  obj-$(CONFIG_MDIO_IPQ8064)		+= mdio-ipq8064.o
 diff --git a/drivers/net/phy/mdio_hisi_femac.c b/drivers/net/phy/mdio_hisi_femac.c
 new file mode 100644
-index 000000000000..25f187574ab9
+index 000000000..25f187574
 --- /dev/null
 +++ b/drivers/net/phy/mdio_hisi_femac.c
 @@ -0,0 +1,489 @@
@@ -49122,7 +48653,7 @@ index 000000000000..25f187574ab9
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/net/phy/mdio_hisi_gemac.c b/drivers/net/phy/mdio_hisi_gemac.c
 new file mode 100644
-index 000000000000..79ebfa400c09
+index 000000000..79ebfa400
 --- /dev/null
 +++ b/drivers/net/phy/mdio_hisi_gemac.c
 @@ -0,0 +1,256 @@
@@ -49384,7 +48915,7 @@ index 000000000000..79ebfa400c09
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/net/phy/mdio_hisi_gemac.h b/drivers/net/phy/mdio_hisi_gemac.h
 new file mode 100644
-index 000000000000..5eefc01e526f
+index 000000000..5eefc01e5
 --- /dev/null
 +++ b/drivers/net/phy/mdio_hisi_gemac.h
 @@ -0,0 +1,32 @@
@@ -49421,7 +48952,7 @@ index 000000000000..5eefc01e526f
 +
 +#endif /* __MDIO_HISI_GEMAC_H__ */
 diff --git a/drivers/net/phy/phy.c b/drivers/net/phy/phy.c
-index 28ddaad721ed..0c53683fc3a8 100644
+index 28ddaad72..0c53683fc 100644
 --- a/drivers/net/phy/phy.c
 +++ b/drivers/net/phy/phy.c
 @@ -313,6 +313,28 @@ int phy_ethtool_ksettings_set(struct phy_device *phydev,
@@ -49454,7 +48985,7 @@ index 28ddaad721ed..0c53683fc3a8 100644
  			       struct ethtool_link_ksettings *cmd)
  {
 diff --git a/drivers/net/phy/realtek.c b/drivers/net/phy/realtek.c
-index b4879306bb8a..cb7b1635cce6 100644
+index b4879306b..cb7b1635c 100644
 --- a/drivers/net/phy/realtek.c
 +++ b/drivers/net/phy/realtek.c
 @@ -29,6 +29,12 @@
@@ -49482,7 +49013,7 @@ index b4879306bb8a..cb7b1635cce6 100644
  	phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR1, val, val);
  
 diff --git a/drivers/net/wireless/realtek/rtl8xxxu/rtl8xxxu_core.c b/drivers/net/wireless/realtek/rtl8xxxu/rtl8xxxu_core.c
-index 5cd7ef3625c5..3213963444c4 100644
+index 5cd7ef362..321396344 100644
 --- a/drivers/net/wireless/realtek/rtl8xxxu/rtl8xxxu_core.c
 +++ b/drivers/net/wireless/realtek/rtl8xxxu/rtl8xxxu_core.c
 @@ -5795,6 +5795,7 @@ static int rtl8xxxu_submit_int_urb(struct ieee80211_hw *hw)
@@ -49494,7 +49025,7 @@ index 5cd7ef3625c5..3213963444c4 100644
  	}
  
 diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index 0c473d75e625..cb9f492fd683 100644
+index 0c473d75e..cb9f492fd 100644
 --- a/drivers/pci/Kconfig
 +++ b/drivers/pci/Kconfig
 @@ -256,5 +256,6 @@ source "drivers/pci/hotplug/Kconfig"
@@ -49505,7 +49036,7 @@ index 0c473d75e625..cb9f492fd683 100644
  
  endif
 diff --git a/drivers/pci/Makefile b/drivers/pci/Makefile
-index 522d2b974e91..2b9167379284 100644
+index 522d2b974..2b9167379 100644
 --- a/drivers/pci/Makefile
 +++ b/drivers/pci/Makefile
 @@ -36,5 +36,6 @@ obj-$(CONFIG_PCI_ENDPOINT)	+= endpoint/
@@ -49517,7 +49048,7 @@ index 522d2b974e91..2b9167379284 100644
  ccflags-$(CONFIG_PCI_DEBUG) := -DDEBUG
 diff --git a/drivers/pci/hipcie/Kconfig b/drivers/pci/hipcie/Kconfig
 new file mode 100644
-index 000000000000..c8d88ef66a08
+index 000000000..c8d88ef66
 --- /dev/null
 +++ b/drivers/pci/hipcie/Kconfig
 @@ -0,0 +1,27 @@
@@ -49550,7 +49081,7 @@ index 000000000000..c8d88ef66a08
 +endif
 diff --git a/drivers/pci/hipcie/Makefile b/drivers/pci/hipcie/Makefile
 new file mode 100644
-index 000000000000..04554201e991
+index 000000000..04554201e
 --- /dev/null
 +++ b/drivers/pci/hipcie/Makefile
 @@ -0,0 +1,8 @@
@@ -49564,7 +49095,7 @@ index 000000000000..04554201e991
 +endif
 diff --git a/drivers/pci/hipcie/pci.h b/drivers/pci/hipcie/pci.h
 new file mode 100644
-index 000000000000..daefc0fafa2d
+index 000000000..daefc0faf
 --- /dev/null
 +++ b/drivers/pci/hipcie/pci.h
 @@ -0,0 +1,96 @@
@@ -49666,7 +49197,7 @@ index 000000000000..daefc0fafa2d
 +#endif /* __ASM_MACH_PCI_H */
 diff --git a/drivers/pci/hipcie/pcie.c b/drivers/pci/hipcie/pcie.c
 new file mode 100644
-index 000000000000..4c44b6b44aaa
+index 000000000..4c44b6b44
 --- /dev/null
 +++ b/drivers/pci/hipcie/pcie.c
 @@ -0,0 +1,985 @@
@@ -50656,7 +50187,7 @@ index 000000000000..4c44b6b44aaa
 +MODULE_DESCRIPTION("Hisilicon PCI-Express Root Complex driver");
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
-index 8b587fc97f7b..07482a5096d4 100644
+index 8b587fc97..07482a509 100644
 --- a/drivers/pci/pci-driver.c
 +++ b/drivers/pci/pci-driver.c
 @@ -19,6 +19,7 @@
@@ -50678,7 +50209,7 @@ index 8b587fc97f7b..07482a5096d4 100644
  }
  
 diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index 9ed5f167a9f3..533d43e77503 100644
+index 9ed5f167a..533d43e77 100644
 --- a/drivers/phy/Kconfig
 +++ b/drivers/phy/Kconfig
 @@ -83,5 +83,6 @@ source "drivers/phy/tegra/Kconfig"
@@ -50689,7 +50220,7 @@ index 9ed5f167a9f3..533d43e77503 100644
  
  endmenu
 diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-index 6eb2916773c5..38a096b295b6 100644
+index 6eb291677..38a096b29 100644
 --- a/drivers/phy/Makefile
 +++ b/drivers/phy/Makefile
 @@ -9,6 +9,7 @@ obj-$(CONFIG_PHY_LPC18XX_USB_OTG)	+= phy-lpc18xx-usb-otg.o
@@ -50702,7 +50233,7 @@ index 6eb2916773c5..38a096b295b6 100644
  					   broadcom/	\
 diff --git a/drivers/phy/hibvt/Kconfig b/drivers/phy/hibvt/Kconfig
 new file mode 100644
-index 000000000000..9fcb56c1c4ed
+index 000000000..9fcb56c1c
 --- /dev/null
 +++ b/drivers/phy/hibvt/Kconfig
 @@ -0,0 +1,23 @@
@@ -50731,7 +50262,7 @@ index 000000000000..9fcb56c1c4ed
 +endif # HI_USB_PHY
 diff --git a/drivers/phy/hibvt/Makefile b/drivers/phy/hibvt/Makefile
 new file mode 100644
-index 000000000000..7b038f48e38f
+index 000000000..7b038f48e
 --- /dev/null
 +++ b/drivers/phy/hibvt/Makefile
 @@ -0,0 +1,5 @@
@@ -50742,7 +50273,7 @@ index 000000000000..7b038f48e38f
 +obj-y	+= usb/
 diff --git a/drivers/phy/hibvt/phy-hisi-sata.c b/drivers/phy/hibvt/phy-hisi-sata.c
 new file mode 100644
-index 000000000000..d7384fec3bcb
+index 000000000..d7384fec3
 --- /dev/null
 +++ b/drivers/phy/hibvt/phy-hisi-sata.c
 @@ -0,0 +1,175 @@
@@ -50923,7 +50454,7 @@ index 000000000000..d7384fec3bcb
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/phy/hibvt/phy-hisi-sata.h b/drivers/phy/hibvt/phy-hisi-sata.h
 new file mode 100644
-index 000000000000..44730c519a2b
+index 000000000..44730c519
 --- /dev/null
 +++ b/drivers/phy/hibvt/phy-hisi-sata.h
 @@ -0,0 +1,39 @@
@@ -50968,7 +50499,7 @@ index 000000000000..44730c519a2b
 +};
 diff --git a/drivers/phy/hibvt/usb/Kconfig b/drivers/phy/hibvt/usb/Kconfig
 new file mode 100644
-index 000000000000..c7b5ab6e77d5
+index 000000000..c7b5ab6e7
 --- /dev/null
 +++ b/drivers/phy/hibvt/usb/Kconfig
 @@ -0,0 +1,85 @@
@@ -51059,7 +50590,7 @@ index 000000000000..c7b5ab6e77d5
 +endif # USB_MODE_OPTION
 diff --git a/drivers/phy/hibvt/usb/Makefile b/drivers/phy/hibvt/usb/Makefile
 new file mode 100644
-index 000000000000..dc9e8d71f93b
+index 000000000..dc9e8d71f
 --- /dev/null
 +++ b/drivers/phy/hibvt/usb/Makefile
 @@ -0,0 +1,17 @@
@@ -51082,7 +50613,7 @@ index 000000000000..dc9e8d71f93b
 +obj-$(CONFIG_PHY_HISI_XVP_USB2)		+= phy-hixvp-hisi-usb.o
 diff --git a/drivers/phy/hibvt/usb/phy-hi3516dv300-usb.c b/drivers/phy/hibvt/usb/phy-hi3516dv300-usb.c
 new file mode 100644
-index 000000000000..ba232b259122
+index 000000000..ba232b259
 --- /dev/null
 +++ b/drivers/phy/hibvt/usb/phy-hi3516dv300-usb.c
 @@ -0,0 +1,310 @@
@@ -51398,7 +50929,7 @@ index 000000000000..ba232b259122
 +EXPORT_SYMBOL(hisi_usb_phy_off);
 diff --git a/drivers/phy/hibvt/usb/phy-hisi-usb.c b/drivers/phy/hibvt/usb/phy-hisi-usb.c
 new file mode 100644
-index 000000000000..da83abdf9b45
+index 000000000..da83abdf9
 --- /dev/null
 +++ b/drivers/phy/hibvt/usb/phy-hisi-usb.c
 @@ -0,0 +1,149 @@
@@ -51553,7 +51084,7 @@ index 000000000000..da83abdf9b45
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/phy/hibvt/usb/phy-hisi-usb.h b/drivers/phy/hibvt/usb/phy-hisi-usb.h
 new file mode 100644
-index 000000000000..5e20e6e4a767
+index 000000000..5e20e6e4a
 --- /dev/null
 +++ b/drivers/phy/hibvt/usb/phy-hisi-usb.h
 @@ -0,0 +1,72 @@
@@ -51631,7 +51162,7 @@ index 000000000000..5e20e6e4a767
 +#endif /* USB2_INCLUDE_PHY_H */
 diff --git a/drivers/phy/hibvt/usb/phy-hixvp-hisi-usb.c b/drivers/phy/hibvt/usb/phy-hixvp-hisi-usb.c
 new file mode 100644
-index 000000000000..be68319470cd
+index 000000000..be6831947
 --- /dev/null
 +++ b/drivers/phy/hibvt/usb/phy-hixvp-hisi-usb.c
 @@ -0,0 +1,803 @@
@@ -52439,7 +51970,7 @@ index 000000000000..be68319470cd
 +MODULE_ALIAS("platform:hisi-usb-hixvp-phy");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/power/reset/Kconfig b/drivers/power/reset/Kconfig
-index d55b3727e00e..6d73fab251b4 100644
+index d55b3727e..6d73fab25 100644
 --- a/drivers/power/reset/Kconfig
 +++ b/drivers/power/reset/Kconfig
 @@ -95,7 +95,7 @@ config POWER_RESET_GPIO_RESTART
@@ -52452,7 +51983,7 @@ index d55b3727e00e..6d73fab251b4 100644
  	  Reboot support for Hisilicon boards.
  
 diff --git a/drivers/ras/Kconfig b/drivers/ras/Kconfig
-index c2a236f2e846..fa3951a03e82 100644
+index c2a236f2e..fa3951a03 100644
 --- a/drivers/ras/Kconfig
 +++ b/drivers/ras/Kconfig
 @@ -29,8 +29,8 @@ menuconfig RAS
@@ -52468,7 +51999,7 @@ index c2a236f2e846..fa3951a03e82 100644
 -endif
 +#endif
 diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-index 33e4ecd6c665..8dd36dd187b0 100644
+index 33e4ecd6c..8dd36dd18 100644
 --- a/drivers/rtc/Kconfig
 +++ b/drivers/rtc/Kconfig
 @@ -943,6 +943,14 @@ comment "Platform RTC drivers"
@@ -52487,7 +52018,7 @@ index 33e4ecd6c665..8dd36dd187b0 100644
  	tristate "PC-style 'CMOS'"
  	depends on X86 || ARM || PPC || MIPS || SPARC64
 diff --git a/drivers/rtc/Makefile b/drivers/rtc/Makefile
-index bfb57464118d..41f5ad4f97fa 100644
+index bfb574641..41f5ad4f9 100644
 --- a/drivers/rtc/Makefile
 +++ b/drivers/rtc/Makefile
 @@ -18,6 +18,7 @@ rtc-core-$(CONFIG_RTC_INTF_SYSFS)	+= sysfs.o
@@ -52500,7 +52031,7 @@ index bfb57464118d..41f5ad4f97fa 100644
  obj-$(CONFIG_RTC_DRV_AB3100)	+= rtc-ab3100.o
 diff --git a/drivers/rtc/rtc-hibvt.c b/drivers/rtc/rtc-hibvt.c
 new file mode 100644
-index 000000000000..2ad9e970ea02
+index 000000000..2ad9e970e
 --- /dev/null
 +++ b/drivers/rtc/rtc-hibvt.c
 @@ -0,0 +1,663 @@
@@ -53168,7 +52699,7 @@ index 000000000000..2ad9e970ea02
 +MODULE_LICENSE("GPL v2");
 +MODULE_VERSION("HI_VERSION=" OSDRV_MODULE_VERSION_STRING);
 diff --git a/drivers/scsi/ufs/Kconfig b/drivers/scsi/ufs/Kconfig
-index c339517b7a09..4ff8f3de5a8f 100644
+index c339517b7..4ff8f3de5 100644
 --- a/drivers/scsi/ufs/Kconfig
 +++ b/drivers/scsi/ufs/Kconfig
 @@ -182,3 +182,12 @@ config SCSI_UFS_CRYPTO
@@ -53185,7 +52716,7 @@ index c339517b7a09..4ff8f3de5a8f 100644
 +	  Select this if you have UFS controller on Hi3751v810 chipset.
 +	  If unsure, say N.
 diff --git a/drivers/scsi/ufs/Makefile b/drivers/scsi/ufs/Makefile
-index 4679af1b564e..8042bf7c6876 100644
+index 4679af1b5..8042bf7c6 100644
 --- a/drivers/scsi/ufs/Makefile
 +++ b/drivers/scsi/ufs/Makefile
 @@ -16,3 +16,4 @@ obj-$(CONFIG_SCSI_UFSHCD_PLATFORM) += ufshcd-pltfrm.o
@@ -53194,7 +52725,7 @@ index 4679af1b564e..8042bf7c6876 100644
  obj-$(CONFIG_SCSI_UFS_TI_J721E) += ti-j721e-ufs.o
 +obj-$(CONFIG_SCSI_UFS_HI3559AV100) += hi3559av100.o
 diff --git a/drivers/scsi/ufs/ufshcd-pltfrm.c b/drivers/scsi/ufs/ufshcd-pltfrm.c
-index 24927cf485b4..ccf04e4f1bed 100644
+index 24927cf48..ccf04e4f1 100644
 --- a/drivers/scsi/ufs/ufshcd-pltfrm.c
 +++ b/drivers/scsi/ufs/ufshcd-pltfrm.c
 @@ -17,6 +17,9 @@
@@ -53289,7 +52820,7 @@ index 24927cf485b4..ccf04e4f1bed 100644
  
  	err = ufshcd_init(hba, mmio_base, irq);
 diff --git a/drivers/scsi/ufs/ufshcd.c b/drivers/scsi/ufs/ufshcd.c
-index 854c96e63007..f590a52fc71f 100644
+index 854c96e63..f590a52fc 100644
 --- a/drivers/scsi/ufs/ufshcd.c
 +++ b/drivers/scsi/ufs/ufshcd.c
 @@ -6230,6 +6230,40 @@ static irqreturn_t ufshcd_intr(int irq, void *__hba)
@@ -53575,7 +53106,7 @@ index 854c96e63007..f590a52fc71f 100644
  
  	return 0;
 diff --git a/drivers/scsi/ufs/ufshcd.h b/drivers/scsi/ufs/ufshcd.h
-index 812aa348751e..c2fe83d27f36 100644
+index 812aa3487..c2fe83d27 100644
 --- a/drivers/scsi/ufs/ufshcd.h
 +++ b/drivers/scsi/ufs/ufshcd.h
 @@ -50,6 +50,7 @@
@@ -53665,7 +53196,7 @@ index 812aa348751e..c2fe83d27f36 100644
 +}
  #endif /* End of Header */
 diff --git a/drivers/spi/spi-gpio.c b/drivers/spi/spi-gpio.c
-index 0584f4d2fde2..d035d4995432 100644
+index 0584f4d2f..d035d4995 100644
 --- a/drivers/spi/spi-gpio.c
 +++ b/drivers/spi/spi-gpio.c
 @@ -367,8 +367,10 @@ static int spi_gpio_probe(struct platform_device *pdev)
@@ -53681,7 +53212,7 @@ index 0584f4d2fde2..d035d4995432 100644
  	spi_gpio = spi_master_get_devdata(master);
  
 diff --git a/drivers/spi/spi-pl022.c b/drivers/spi/spi-pl022.c
-index d1776fea287e..0534a53ab1e4 100644
+index d1776fea2..0534a53ab 100644
 --- a/drivers/spi/spi-pl022.c
 +++ b/drivers/spi/spi-pl022.c
 @@ -34,6 +34,7 @@
@@ -54050,7 +53581,7 @@ index d1776fea287e..0534a53ab1e4 100644
  };
  
 diff --git a/drivers/tty/vt/vc_screen.c b/drivers/tty/vt/vc_screen.c
-index 1850bacdb5b0..d3934eb8fffe 100644
+index 1850bacdb..d3934eb8f 100644
 --- a/drivers/tty/vt/vc_screen.c
 +++ b/drivers/tty/vt/vc_screen.c
 @@ -373,6 +373,9 @@ vcs_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
@@ -54064,7 +53595,7 @@ index 1850bacdb5b0..d3934eb8fffe 100644
  	if (!con_buf)
  		return -ENOMEM;
 diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 95a9bae72f13..ad951a1a1cf9 100644
+index 95a9bae72..ad951a1a1 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
 @@ -1419,6 +1419,10 @@ static int hub_configure(struct usb_hub *hub,
@@ -54079,7 +53610,7 @@ index 95a9bae72f13..ad951a1a1cf9 100644
  		ret = -ENODEV;
  		goto fail;
 diff --git a/drivers/usb/dwc3/Makefile b/drivers/usb/dwc3/Makefile
-index ae86da0dc5bd..9abca9a8a908 100644
+index ae86da0dc..9abca9a8a 100644
 --- a/drivers/usb/dwc3/Makefile
 +++ b/drivers/usb/dwc3/Makefile
 @@ -2,10 +2,9 @@
@@ -54096,7 +53627,7 @@ index ae86da0dc5bd..9abca9a8a908 100644
  	dwc3-y				+= trace.o
  endif
 diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index bfb72902f3a6..f630a768f66f 100644
+index bfb72902f..f630a768f 100644
 --- a/drivers/usb/dwc3/core.c
 +++ b/drivers/usb/dwc3/core.c
 @@ -37,9 +37,25 @@
@@ -54194,7 +53725,7 @@ index bfb72902f3a6..f630a768f66f 100644
  }
  
 diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index 79e1b82e5e05..ace408a7e71a 100644
+index 79e1b82e5..ace408a7e 100644
 --- a/drivers/usb/dwc3/core.h
 +++ b/drivers/usb/dwc3/core.h
 @@ -32,6 +32,8 @@
@@ -54295,7 +53826,7 @@ index 79e1b82e5e05..ace408a7e71a 100644
  int dwc3_gadget_suspend(struct dwc3 *dwc);
 diff --git a/drivers/usb/dwc3/dwc3-hisi.c b/drivers/usb/dwc3/dwc3-hisi.c
 new file mode 100644
-index 000000000000..d8d3e83775ce
+index 000000000..d8d3e8377
 --- /dev/null
 +++ b/drivers/usb/dwc3/dwc3-hisi.c
 @@ -0,0 +1,446 @@
@@ -54747,7 +54278,7 @@ index 000000000000..d8d3e83775ce
 +MODULE_AUTHOR("Hisilicon Technologies Co., Ltd..>");
 diff --git a/drivers/usb/dwc3/dwc3-hisi.h b/drivers/usb/dwc3/dwc3-hisi.h
 new file mode 100644
-index 000000000000..606cf0507f6d
+index 000000000..606cf0507
 --- /dev/null
 +++ b/drivers/usb/dwc3/dwc3-hisi.h
 @@ -0,0 +1,54 @@
@@ -54806,7 +54337,7 @@ index 000000000000..606cf0507f6d
 +
 +#endif
 diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
-index 3cd294264372..edf3f9b5960f 100644
+index 3cd294264..edf3f9b59 100644
 --- a/drivers/usb/dwc3/ep0.c
 +++ b/drivers/usb/dwc3/ep0.c
 @@ -281,6 +281,24 @@ void dwc3_ep0_out_start(struct dwc3 *dwc)
@@ -54884,7 +54415,7 @@ index 3cd294264372..edf3f9b5960f 100644
 diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
 old mode 100644
 new mode 100755
-index 14a7c05abfe8..77b1a5236a6a
+index 14a7c05ab..77b1a5236
 --- a/drivers/usb/dwc3/gadget.c
 +++ b/drivers/usb/dwc3/gadget.c
 @@ -27,6 +27,8 @@
@@ -55182,7 +54713,7 @@ index 14a7c05abfe8..77b1a5236a6a
  	dev				= &dwc->gadget->dev;
 diff --git a/drivers/usb/dwc3/proc.c b/drivers/usb/dwc3/proc.c
 new file mode 100755
-index 000000000000..7425e0eb9311
+index 000000000..7425e0eb9
 --- /dev/null
 +++ b/drivers/usb/dwc3/proc.c
 @@ -0,0 +1,138 @@
@@ -55325,7 +54856,7 @@ index 000000000000..7425e0eb9311
 +	return 0;
 +}
 diff --git a/drivers/usb/gadget/composite.c b/drivers/usb/gadget/composite.c
-index 1a556a628971..f637b0cdc440 100644
+index 7f963bb1c..c8fd04657 100644
 --- a/drivers/usb/gadget/composite.c
 +++ b/drivers/usb/gadget/composite.c
 @@ -705,8 +705,7 @@ static int bos_desc(struct usb_composite_dev *cdev)
@@ -55341,7 +54872,7 @@ index 1a556a628971..f637b0cdc440 100644
 diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
 old mode 100644
 new mode 100755
-index 1eb4fa2e623f..02be1969bac7
+index 1eb4fa2e6..02be1969b
 --- a/drivers/usb/gadget/epautoconf.c
 +++ b/drivers/usb/gadget/epautoconf.c
 @@ -67,6 +67,9 @@ struct usb_ep *usb_ep_autoconfig_ss(
@@ -55375,7 +54906,7 @@ index 1eb4fa2e623f..02be1969bac7
  
  	/* Fail */
 diff --git a/drivers/usb/gadget/function/f_mass_storage.c b/drivers/usb/gadget/function/f_mass_storage.c
-index 950c9435beec..a92694ff6357 100644
+index 950c9435b..a92694ff6 100644
 --- a/drivers/usb/gadget/function/f_mass_storage.c
 +++ b/drivers/usb/gadget/function/f_mass_storage.c
 @@ -307,6 +307,7 @@ struct fsg_common {
@@ -55422,7 +54953,7 @@ index 950c9435beec..a92694ff6357 100644
  	for (i = 0; i < ARRAY_SIZE(common->luns); ++i)
  		if (common->luns[i])
 diff --git a/drivers/usb/gadget/function/f_uac1.c b/drivers/usb/gadget/function/f_uac1.c
-index e65f474ad7b3..5bb7ce3eb4c9 100644
+index e65f474ad..5bb7ce3eb 100644
 --- a/drivers/usb/gadget/function/f_uac1.c
 +++ b/drivers/usb/gadget/function/f_uac1.c
 @@ -56,6 +56,16 @@ static inline struct f_uac1_opts *g_audio_to_uac1_opts(struct g_audio *audio)
@@ -55533,7 +55064,7 @@ index e65f474ad7b3..5bb7ce3eb4c9 100644
  		goto fail;
  
 diff --git a/drivers/usb/gadget/function/f_uvc.c b/drivers/usb/gadget/function/f_uvc.c
-index f48a00e49794..b6b9a69c27ad 100644
+index f48a00e49..b6b9a69c2 100644
 --- a/drivers/usb/gadget/function/f_uvc.c
 +++ b/drivers/usb/gadget/function/f_uvc.c
 @@ -642,7 +642,7 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
@@ -55601,7 +55132,7 @@ index f48a00e49794..b6b9a69c27ad 100644
  	ret = uvcg_attach_configfs(opts);
  	if (ret < 0) {
 diff --git a/drivers/usb/gadget/function/u_uvc.h b/drivers/usb/gadget/function/u_uvc.h
-index 9a01a7d4f17f..392ae14dcb41 100644
+index 9a01a7d4f..392ae14dc 100644
 --- a/drivers/usb/gadget/function/u_uvc.h
 +++ b/drivers/usb/gadget/function/u_uvc.h
 @@ -52,6 +52,7 @@ struct f_uvc_opts {
@@ -55624,7 +55155,7 @@ index 9a01a7d4f17f..392ae14dcb41 100644
  	/*
  	 * Streaming descriptors for full-speed, high-speed and super-speed.
 diff --git a/drivers/usb/gadget/function/uvc.h b/drivers/usb/gadget/function/uvc.h
-index 23ee25383c1f..f2936f63738c 100644
+index 23ee25383..f2936f637 100644
 --- a/drivers/usb/gadget/function/uvc.h
 +++ b/drivers/usb/gadget/function/uvc.h
 @@ -64,8 +64,11 @@ extern unsigned int uvc_gadget_trace_param;
@@ -55654,7 +55185,7 @@ index 23ee25383c1f..f2936f63738c 100644
 diff --git a/drivers/usb/gadget/function/uvc_configfs.c b/drivers/usb/gadget/function/uvc_configfs.c
 old mode 100644
 new mode 100755
-index 00fb58e50a15..604e8778821d
+index 00fb58e50..604e87788
 --- a/drivers/usb/gadget/function/uvc_configfs.c
 +++ b/drivers/usb/gadget/function/uvc_configfs.c
 @@ -319,7 +319,49 @@ static ssize_t uvcg_default_processing_bm_controls_show(
@@ -56470,7 +56001,7 @@ index 00fb58e50a15..604e8778821d
  		memcpy(*dest, &frm->frame, sz);
  		*dest += sz;
 diff --git a/drivers/usb/gadget/function/uvc_v4l2.c b/drivers/usb/gadget/function/uvc_v4l2.c
-index 4ca89eab6159..1272038be7d1 100644
+index 4ca89eab6..1272038be 100644
 --- a/drivers/usb/gadget/function/uvc_v4l2.c
 +++ b/drivers/usb/gadget/function/uvc_v4l2.c
 @@ -56,8 +56,13 @@ struct uvc_format {
@@ -56488,7 +56019,7 @@ index 4ca89eab6159..1272038be7d1 100644
  
  static int
 diff --git a/drivers/usb/gadget/function/uvc_video.c b/drivers/usb/gadget/function/uvc_video.c
-index 633e23d58d86..835f5f048aae 100644
+index 633e23d58..835f5f048 100644
 --- a/drivers/usb/gadget/function/uvc_video.c
 +++ b/drivers/usb/gadget/function/uvc_video.c
 @@ -12,13 +12,15 @@
@@ -56699,7 +56230,7 @@ index 633e23d58d86..835f5f048aae 100644
  	/* Initialize the video buffers queue. */
  	uvcg_queue_init(&video->queue, V4L2_BUF_TYPE_VIDEO_OUTPUT,
 diff --git a/drivers/vfio/pci/vfio_pci_intrs.c b/drivers/vfio/pci/vfio_pci_intrs.c
-index 869dce5f134d..3807bb16399c 100644
+index 869dce5f1..3807bb163 100644
 --- a/drivers/vfio/pci/vfio_pci_intrs.c
 +++ b/drivers/vfio/pci/vfio_pci_intrs.c
 @@ -642,6 +642,8 @@ int vfio_pci_set_irqs_ioctl(struct vfio_pci_device *vdev, uint32_t flags,
@@ -56733,7 +56264,7 @@ index 869dce5f134d..3807bb16399c 100644
 +	return ret;
  }
 diff --git a/drivers/vfio/vfio_iommu_spapr_tce.c b/drivers/vfio/vfio_iommu_spapr_tce.c
-index fe888b5dcc00..5a0791e56c8c 100644
+index fe888b5dc..5a0791e56 100644
 --- a/drivers/vfio/vfio_iommu_spapr_tce.c
 +++ b/drivers/vfio/vfio_iommu_spapr_tce.c
 @@ -21,9 +21,9 @@
@@ -56750,7 +56281,7 @@ index fe888b5dcc00..5a0791e56c8c 100644
  #define DRIVER_VERSION  "0.1"
  #define DRIVER_AUTHOR   "aik@ozlabs.ru"
 diff --git a/drivers/vfio/vfio_iommu_type1.c b/drivers/vfio/vfio_iommu_type1.c
-index fbd438e9b9b0..64431a1a970b 100644
+index fbd438e9b..64431a1a9 100644
 --- a/drivers/vfio/vfio_iommu_type1.c
 +++ b/drivers/vfio/vfio_iommu_type1.c
 @@ -28,6 +28,7 @@
@@ -56785,7 +56316,7 @@ index fbd438e9b9b0..64431a1a970b 100644
  
  struct vfio_iova {
 diff --git a/fs/9p/vfs_inode.c b/fs/9p/vfs_inode.c
-index ae0c38ad1fcb..bf3b0950ae93 100644
+index ae0c38ad1..bf3b0950a 100644
 --- a/fs/9p/vfs_inode.c
 +++ b/fs/9p/vfs_inode.c
 @@ -999,6 +999,7 @@ v9fs_vfs_getattr(const struct path *path, struct kstat *stat,
@@ -56819,7 +56350,7 @@ index ae0c38ad1fcb..bf3b0950ae93 100644
  	p9stat_free(st);
  	kfree(st);
 diff --git a/fs/9p/vfs_inode_dotl.c b/fs/9p/vfs_inode_dotl.c
-index 0028eccb665a..a227a76d5ca3 100644
+index 0028eccb6..a227a76d5 100644
 --- a/fs/9p/vfs_inode_dotl.c
 +++ b/fs/9p/vfs_inode_dotl.c
 @@ -459,6 +459,7 @@ v9fs_vfs_getattr_dotl(const struct path *path, struct kstat *stat,
@@ -56853,7 +56384,7 @@ index 0028eccb665a..a227a76d5ca3 100644
  	stat->blksize = st->st_blksize;
  
 diff --git a/fs/aio.c b/fs/aio.c
-index bd182bcca23a..425db15b59d9 100644
+index bd182bcca..425db15b5 100644
 --- a/fs/aio.c
 +++ b/fs/aio.c
 @@ -1764,6 +1764,12 @@ static int aio_poll(struct aio_kiocb *aiocb, const struct iocb *iocb)
@@ -56879,7 +56410,7 @@ index bd182bcca23a..425db15b59d9 100644
  }
  
 diff --git a/fs/btrfs/block-group.c b/fs/btrfs/block-group.c
-index c99e293b50f5..9a28616040a1 100644
+index c99e293b5..9a2861604 100644
 --- a/fs/btrfs/block-group.c
 +++ b/fs/btrfs/block-group.c
 @@ -1824,6 +1824,41 @@ static struct btrfs_block_group *btrfs_create_block_group_cache(
@@ -56935,7 +56466,7 @@ index c99e293b50f5..9a28616040a1 100644
  		if (ret > 0)
  			break;
 diff --git a/fs/fat/dir.c b/fs/fat/dir.c
-index c4a274285858..5972b82ded95 100644
+index c4a274285..5972b82de 100644
 --- a/fs/fat/dir.c
 +++ b/fs/fat/dir.c
 @@ -565,7 +565,8 @@ static int __fat_readdir(struct inode *inode, struct file *file,
@@ -57431,7 +56962,7 @@ index c4a274285858..5972b82ded95 100644
  			slots += copy;
  			size -= copy;
 diff --git a/fs/fat/fat.h b/fs/fat/fat.h
-index 922a0c6ba46c..a84663246ffa 100644
+index 922a0c6ba..a84663246 100644
 --- a/fs/fat/fat.h
 +++ b/fs/fat/fat.h
 @@ -444,6 +444,10 @@ extern void fat_time_fat2unix(struct msdos_sb_info *sbi, struct timespec64 *ts,
@@ -57446,7 +56977,7 @@ index 922a0c6ba46c..a84663246ffa 100644
  			     int flags);
  extern int fat_update_time(struct inode *inode, struct timespec64 *now,
 diff --git a/fs/fat/fatent.c b/fs/fat/fatent.c
-index f7e3304b7802..4351eaa8bcf5 100644
+index f7e3304b7..4351eaa8b 100644
 --- a/fs/fat/fatent.c
 +++ b/fs/fat/fatent.c
 @@ -379,6 +379,9 @@ static int fat_mirror_bhs(struct super_block *sb, struct buffer_head **bhs,
@@ -57476,7 +57007,7 @@ index f7e3304b7802..4351eaa8bcf5 100644
  			if (sb->s_flags & SB_SYNCHRONOUS)
  				err = sync_dirty_buffer(c_bh);
 diff --git a/fs/fat/file.c b/fs/fat/file.c
-index f9ee27cf4d7c..f424520d7c65 100644
+index f9ee27cf4..f424520d7 100644
 --- a/fs/fat/file.c
 +++ b/fs/fat/file.c
 @@ -198,6 +198,17 @@ int fat_file_fsync(struct file *filp, loff_t start, loff_t end, int datasync)
@@ -57550,7 +57081,7 @@ index f9ee27cf4d7c..f424520d7c65 100644
  		up_write(&MSDOS_I(inode)->truncate_lock);
  	}
 diff --git a/fs/fat/inode.c b/fs/fat/inode.c
-index bab9b202b496..769444c64833 100644
+index bab9b202b..769444c64 100644
 --- a/fs/fat/inode.c
 +++ b/fs/fat/inode.c
 @@ -628,8 +628,9 @@ static void fat_free_eofblocks(struct inode *inode)
@@ -57656,7 +57187,7 @@ index bab9b202b496..769444c64833 100644
  	return err;
  }
 diff --git a/fs/fat/misc.c b/fs/fat/misc.c
-index f1b2a1fc2a6a..ddb5cf98a1d2 100644
+index f1b2a1fc2..ddb5cf98a 100644
 --- a/fs/fat/misc.c
 +++ b/fs/fat/misc.c
 @@ -198,7 +198,8 @@ static inline int fat_tz_offset(struct msdos_sb_info *sbi)
@@ -57706,7 +57237,7 @@ index f1b2a1fc2a6a..ddb5cf98a1d2 100644
  {
  	return (struct timespec64){ ts.tv_sec & ~1ULL, 0 };
 diff --git a/fs/jffs2/compr.h b/fs/jffs2/compr.h
-index 5e91d578f4ed..01116b8eafdf 100644
+index 5e91d578f..01116b8ea 100644
 --- a/fs/jffs2/compr.h
 +++ b/fs/jffs2/compr.h
 @@ -29,9 +29,15 @@
@@ -57727,7 +57258,7 @@ index 5e91d578f4ed..01116b8eafdf 100644
  #define JFFS2_RUBINMIPS_DISABLED /* RUBINs will be used only */
  #define JFFS2_DYNRUBIN_DISABLED  /*	   for decompression */
 diff --git a/fs/ubifs/file.c b/fs/ubifs/file.c
-index b77d1637bbbc..413f11034aab 100644
+index b77d1637b..413f11034 100644
 --- a/fs/ubifs/file.c
 +++ b/fs/ubifs/file.c
 @@ -1493,6 +1493,9 @@ static int ubifs_releasepage(struct page *page, gfp_t unused_gfp_flags)
@@ -57742,7 +57273,7 @@ index b77d1637bbbc..413f11034aab 100644
  	ClearPagePrivate(page);
 diff --git a/include/dt-bindings/clock/hi3516dv300-clock.h b/include/dt-bindings/clock/hi3516dv300-clock.h
 new file mode 100644
-index 000000000000..408c9b09df9c
+index 000000000..408c9b09d
 --- /dev/null
 +++ b/include/dt-bindings/clock/hi3516dv300-clock.h
 @@ -0,0 +1,100 @@
@@ -57847,7 +57378,7 @@ index 000000000000..408c9b09df9c
 +
 +#endif  /* __DTS_HI3516DV300_CLOCK_H */
 diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 542471b76f41..5a4c1cc8d067 100644
+index 542471b76..5a4c1cc8d 100644
 --- a/include/linux/blkdev.h
 +++ b/include/linux/blkdev.h
 @@ -1381,7 +1381,11 @@ static inline bool bdev_is_partition(struct block_device *bdev)
@@ -57863,7 +57394,7 @@ index 542471b76f41..5a4c1cc8d067 100644
  	BLK_SEG_BOUNDARY_MASK	= 0xFFFFFFFFUL,
  };
 diff --git a/include/linux/cpu.h b/include/linux/cpu.h
-index d6428aaf67e7..a8d659c9a940 100644
+index d6428aaf6..a8d659c9a 100644
 --- a/include/linux/cpu.h
 +++ b/include/linux/cpu.h
 @@ -41,6 +41,7 @@ extern bool arch_match_cpu_phys_id(int cpu, u64 phys_id);
@@ -57875,7 +57406,7 @@ index d6428aaf67e7..a8d659c9a940 100644
  extern void cpu_remove_dev_attr(struct device_attribute *attr);
  
 diff --git a/include/linux/fb.h b/include/linux/fb.h
-index ecfbcc0553a5..b8567818b015 100644
+index ecfbcc055..b8567818b 100644
 --- a/include/linux/fb.h
 +++ b/include/linux/fb.h
 @@ -293,6 +293,12 @@ struct fb_ops {
@@ -57893,7 +57424,7 @@ index ecfbcc0553a5..b8567818b015 100644
  #ifdef CONFIG_FB_TILEBLITTING
 diff --git a/include/linux/hi_cma.h b/include/linux/hi_cma.h
 new file mode 100644
-index 000000000000..38444524f392
+index 000000000..38444524f
 --- /dev/null
 +++ b/include/linux/hi_cma.h
 @@ -0,0 +1,54 @@
@@ -57952,7 +57483,7 @@ index 000000000000..38444524f392
 +
 +#endif
 diff --git a/include/linux/hid.h b/include/linux/hid.h
-index 6ed2a97eb55f..1d1445a23967 100644
+index 6ed2a97eb..1d1445a23 100644
 --- a/include/linux/hid.h
 +++ b/include/linux/hid.h
 @@ -622,6 +622,7 @@ struct hid_device {							/* device report descriptor */
@@ -57965,7 +57496,7 @@ index 6ed2a97eb55f..1d1445a23967 100644
  #define to_hid_device(pdev) \
 diff --git a/include/linux/hiedmac.h b/include/linux/hiedmac.h
 new file mode 100644
-index 000000000000..26157899aec8
+index 000000000..26157899a
 --- /dev/null
 +++ b/include/linux/hiedmac.h
 @@ -0,0 +1,65 @@
@@ -58035,7 +57566,7 @@ index 000000000000..26157899aec8
 +} dmac_lli;
 +#endif
 diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index a670ae129f4b..815f52046644 100644
+index a670ae129..815f52046 100644
 --- a/include/linux/i2c.h
 +++ b/include/linux/i2c.h
 @@ -124,6 +124,23 @@ static inline int i2c_master_send_dmasafe(const struct i2c_client *client,
@@ -58064,7 +57595,7 @@ index a670ae129f4b..815f52046644 100644
  
 diff --git a/include/linux/mfd/hisi_fmc.h b/include/linux/mfd/hisi_fmc.h
 new file mode 100644
-index 000000000000..28ce459085a5
+index 000000000..28ce45908
 --- /dev/null
 +++ b/include/linux/mfd/hisi_fmc.h
 @@ -0,0 +1,477 @@
@@ -58546,7 +58077,7 @@ index 000000000000..28ce459085a5
 +
 +#endif /* __HISI_FMC_H */
 diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
-index 40d7e98fc990..5b77c8cda77f 100644
+index 40d7e98fc..5b77c8cda 100644
 --- a/include/linux/mmc/host.h
 +++ b/include/linux/mmc/host.h
 @@ -173,6 +173,7 @@ struct mmc_host_ops {
@@ -58583,7 +58114,7 @@ index 40d7e98fc990..5b77c8cda77f 100644
  
  	const struct mmc_bus_ops *bus_ops;	/* current bus driver */
 diff --git a/include/linux/mtd/mtd.h b/include/linux/mtd/mtd.h
-index 157357ec1441..3588dc165324 100644
+index 157357ec1..3588dc165 100644
 --- a/include/linux/mtd/mtd.h
 +++ b/include/linux/mtd/mtd.h
 @@ -18,6 +18,12 @@
@@ -58716,7 +58247,7 @@ index 157357ec1441..3588dc165324 100644
  	return err == -EUCLEAN;
  }
 diff --git a/include/linux/mtd/spi-nor.h b/include/linux/mtd/spi-nor.h
-index 60bac2c0ec45..04e292e88d40 100644
+index 60bac2c0e..04e292e88 100644
 --- a/include/linux/mtd/spi-nor.h
 +++ b/include/linux/mtd/spi-nor.h
 @@ -11,6 +11,44 @@
@@ -58837,7 +58368,7 @@ index 60bac2c0ec45..04e292e88d40 100644
  		 const struct spi_nor_hwcaps *hwcaps);
  
 diff --git a/include/linux/netdev_features.h b/include/linux/netdev_features.h
-index f96b7f8d82e5..11911795d789 100644
+index f96b7f8d8..11911795d 100644
 --- a/include/linux/netdev_features.h
 +++ b/include/linux/netdev_features.h
 @@ -30,6 +30,7 @@ enum {
@@ -58866,7 +58397,7 @@ index f96b7f8d82e5..11911795d789 100644
  
  /*
 diff --git a/include/linux/phy.h b/include/linux/phy.h
-index 08725a262f32..45c717bc1f9e 100644
+index 08725a262..45c717bc1 100644
 --- a/include/linux/phy.h
 +++ b/include/linux/phy.h
 @@ -1547,6 +1547,7 @@ void phy_queue_state_machine(struct phy_device *phydev, unsigned long jiffies);
@@ -58878,7 +58409,7 @@ index 08725a262f32..45c717bc1f9e 100644
  			       struct ethtool_link_ksettings *cmd);
  int phy_ethtool_ksettings_set(struct phy_device *phydev,
 diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 2d01b2bbb746..00dbb9429983 100644
+index 2d01b2bbb..00dbb9429 100644
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
 @@ -521,6 +521,7 @@ struct skb_shared_info {
@@ -58890,7 +58421,7 @@ index 2d01b2bbb746..00dbb9429983 100644
  	/*
  	 * Warning : all fields before dataref are cleared in __alloc_skb()
 diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
-index cad1fa2b6baa..e936f167ae94 100644
+index cad1fa2b6..e936f167a 100644
 --- a/include/linux/sunrpc/xprt.h
 +++ b/include/linux/sunrpc/xprt.h
 @@ -156,6 +156,7 @@ struct rpc_xprt_ops {
@@ -58902,7 +58433,7 @@ index cad1fa2b6baa..e936f167ae94 100644
  	unsigned int	(*bc_num_slots)(struct rpc_xprt *xprt);
  	void		(*bc_free_rqst)(struct rpc_rqst *rqst);
 diff --git a/include/linux/types.h b/include/linux/types.h
-index a147977602b5..2c35430e2364 100644
+index a14797760..2c35430e2 100644
 --- a/include/linux/types.h
 +++ b/include/linux/types.h
 @@ -227,5 +227,8 @@ typedef void (*swap_func_t)(void *a, void *b, int size);
@@ -58915,7 +58446,7 @@ index a147977602b5..2c35430e2364 100644
  #endif /*  __ASSEMBLY__ */
  #endif /* _LINUX_TYPES_H */
 diff --git a/include/uapi/linux/i2c-dev.h b/include/uapi/linux/i2c-dev.h
-index 85f8047afcf2..3f50287f3289 100644
+index 85f8047af..3f50287f3 100644
 --- a/include/uapi/linux/i2c-dev.h
 +++ b/include/uapi/linux/i2c-dev.h
 @@ -52,6 +52,8 @@
@@ -58928,7 +58459,7 @@ index 85f8047afcf2..3f50287f3289 100644
  /* This is the structure as used in the I2C_SMBUS ioctl call */
  struct i2c_smbus_ioctl_data {
 diff --git a/include/uapi/linux/i2c.h b/include/uapi/linux/i2c.h
-index f71a1751cacf..f85deb485513 100644
+index f71a1751c..f85deb485 100644
 --- a/include/uapi/linux/i2c.h
 +++ b/include/uapi/linux/i2c.h
 @@ -22,7 +22,7 @@
@@ -58956,7 +58487,7 @@ index f71a1751cacf..f85deb485513 100644
  
  /* To determine what functionality is present */
 diff --git a/include/uapi/linux/msdos_fs.h b/include/uapi/linux/msdos_fs.h
-index a5773899f4d9..89a461a27261 100644
+index a5773899f..89a461a27 100644
 --- a/include/uapi/linux/msdos_fs.h
 +++ b/include/uapi/linux/msdos_fs.h
 @@ -93,7 +93,23 @@ struct __fat_dirent {
@@ -58995,7 +58526,7 @@ index a5773899f4d9..89a461a27261 100644
  	__u8	ignored[3];	/* Boot strap short or near jump */
  	__u8	system_id[8];	/* Name - can be used to special case
 diff --git a/include/uapi/linux/usb/g_uvc.h b/include/uapi/linux/usb/g_uvc.h
-index 652f169a019e..8addd4f94779 100644
+index 652f169a0..8addd4f94 100644
 --- a/include/uapi/linux/usb/g_uvc.h
 +++ b/include/uapi/linux/usb/g_uvc.h
 @@ -12,6 +12,7 @@
@@ -59007,7 +58538,7 @@ index 652f169a019e..8addd4f94779 100644
  #define UVC_EVENT_CONNECT		(V4L2_EVENT_PRIVATE_START + 0)
  #define UVC_EVENT_DISCONNECT		(V4L2_EVENT_PRIVATE_START + 1)
 diff --git a/include/uapi/linux/usb/video.h b/include/uapi/linux/usb/video.h
-index bfdae12cdacf..2d33002e9510 100644
+index bfdae12cd..2d33002e9 100644
 --- a/include/uapi/linux/usb/video.h
 +++ b/include/uapi/linux/usb/video.h
 @@ -342,6 +342,8 @@ struct UVC_EXTENSION_UNIT_DESCRIPTOR(p, n) {		\
@@ -59084,7 +58615,7 @@ index bfdae12cdacf..2d33002e9510 100644
  #endif /* __LINUX_USB_VIDEO_H */
  
 diff --git a/init/main.c b/init/main.c
-index dd26a42e80a8..053b794d5f44 100644
+index dd26a42e8..053b794d5 100644
 --- a/init/main.c
 +++ b/init/main.c
 @@ -840,6 +840,34 @@ static void __init mm_init(void)
@@ -59134,7 +58665,7 @@ index dd26a42e80a8..053b794d5f44 100644
  	 * These use large bootmem allocations and must precede
  	 * kmem_cache_init()
 diff --git a/kernel/cpu.c b/kernel/cpu.c
-index 67c22941b5f2..dfbd3887e8cd 100644
+index 67c22941b..dfbd3887e 100644
 --- a/kernel/cpu.c
 +++ b/kernel/cpu.c
 @@ -331,6 +331,19 @@ void lockdep_assert_cpus_held(void)
@@ -59158,7 +58689,7 @@ index 67c22941b5f2..dfbd3887e8cd 100644
  {
  	rwsem_acquire(&cpu_hotplug_lock.dep_map, 0, 0, _THIS_IP_);
 diff --git a/kernel/dma/contiguous.c b/kernel/dma/contiguous.c
-index 16b95ff12e4d..90f379978592 100644
+index 16b95ff12..90f379978 100644
 --- a/kernel/dma/contiguous.c
 +++ b/kernel/dma/contiguous.c
 @@ -164,6 +164,11 @@ void __init dma_pernuma_cma_reserve(void)
@@ -59207,7 +58738,7 @@ index 16b95ff12e4d..90f379978592 100644
  static struct page *cma_alloc_aligned(struct cma *cma, size_t size, gfp_t gfp)
  {
 diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index d0df95346ab3..1a171eca55a1 100644
+index d0df95346..1a171eca5 100644
 --- a/kernel/printk/printk.c
 +++ b/kernel/printk/printk.c
 @@ -1475,7 +1475,7 @@ static int syslog_print(char __user *buf, int size)
@@ -59220,7 +58751,7 @@ index d0df95346ab3..1a171eca55a1 100644
  		return -ENOMEM;
  
 diff --git a/kernel/relay.c b/kernel/relay.c
-index b08d936d5fa7..1a62975c6a64 100644
+index b08d936d5..1a62975c6 100644
 --- a/kernel/relay.c
 +++ b/kernel/relay.c
 @@ -581,7 +581,8 @@ struct rchan *relay_open(const char *base_filename,
@@ -59234,7 +58765,7 @@ index b08d936d5fa7..1a62975c6a64 100644
  		kfree(chan);
  		return NULL;
 diff --git a/mm/init-mm.c b/mm/init-mm.c
-index 153162669f80..6382b3b6ba39 100644
+index 153162669..6382b3b6b 100644
 --- a/mm/init-mm.c
 +++ b/mm/init-mm.c
 @@ -40,3 +40,4 @@ struct mm_struct init_mm = {
@@ -59243,7 +58774,7 @@ index 153162669f80..6382b3b6ba39 100644
  };
 +EXPORT_SYMBOL(init_mm);
 diff --git a/mm/madvise.c b/mm/madvise.c
-index 24abc79f8914..8a139fcbd0d6 100644
+index 24abc79f8..8a139fcbd 100644
 --- a/mm/madvise.c
 +++ b/mm/madvise.c
 @@ -29,6 +29,7 @@
@@ -59255,7 +58786,7 @@ index 24abc79f8914..8a139fcbd0d6 100644
  #include <asm/tlb.h>
  
 diff --git a/mm/mincore.c b/mm/mincore.c
-index 02db1a834021..9a2c1208d10c 100644
+index 02db1a834..9a2c1208d 100644
 --- a/mm/mincore.c
 +++ b/mm/mincore.c
 @@ -42,57 +42,15 @@ static int mincore_hugetlb(pte_t *pte, unsigned long hmask, unsigned long addr,
@@ -59368,7 +58899,7 @@ index 02db1a834021..9a2c1208d10c 100644
  		vec++;
  	}
 diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index fff03a331314..ea2fae034bf4 100644
+index f98801428..1a565eaad 100644
 --- a/mm/vmalloc.c
 +++ b/mm/vmalloc.c
 @@ -326,6 +326,7 @@ int map_kernel_range(unsigned long start, unsigned long size, pgprot_t prot,
@@ -59388,7 +58919,7 @@ index fff03a331314..ea2fae034bf4 100644
  /**
   * get_vm_area - reserve a contiguous kernel virtual area
 diff --git a/net/bluetooth/hci_event.c b/net/bluetooth/hci_event.c
-index e59ae24a8f17..5ec67b6302ec 100644
+index e59ae24a8..5ec67b630 100644
 --- a/net/bluetooth/hci_event.c
 +++ b/net/bluetooth/hci_event.c
 @@ -5547,7 +5547,8 @@ static void process_adv_report(struct hci_dev *hdev, u8 type, bdaddr_t *bdaddr,
@@ -59402,7 +58933,7 @@ index e59ae24a8f17..5ec67b6302ec 100644
  						 rssi, flags, data, len);
  			return;
 diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index 19ef4577b70d..bebc833f4c82 100644
+index 19ef4577b..bebc833f4 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
 @@ -1561,6 +1561,11 @@ int tcp_fragment(struct sock *sk, enum tcp_queue tcp_queue,
@@ -59418,7 +58949,7 @@ index 19ef4577b70d..bebc833f4c82 100644
  		return -ENOMEM;
  
 diff --git a/net/sunrpc/auth_gss/gss_mech_switch.c b/net/sunrpc/auth_gss/gss_mech_switch.c
-index fae632da1058..d6b8d6f61b96 100644
+index fae632da1..d6b8d6f61 100644
 --- a/net/sunrpc/auth_gss/gss_mech_switch.c
 +++ b/net/sunrpc/auth_gss/gss_mech_switch.c
 @@ -34,11 +34,14 @@ gss_mech_free(struct gss_api_mech *gm)
@@ -59439,7 +58970,7 @@ index fae632da1058..d6b8d6f61b96 100644
  		pf->auth_domain_name = NULL;
  	}
 diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
-index d38788cd9433..f526b67d5759 100644
+index d38788cd9..f526b67d5 100644
 --- a/net/sunrpc/svc.c
 +++ b/net/sunrpc/svc.c
 @@ -1539,15 +1539,22 @@ int
@@ -59479,7 +59010,7 @@ index d38788cd9433..f526b67d5759 100644
  EXPORT_SYMBOL_GPL(bc_svc_process);
  #endif /* CONFIG_SUNRPC_BACKCHANNEL */
 diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
-index c92c1aac270a..9d1a966bacc6 100644
+index c92c1aac2..9d1a966ba 100644
 --- a/net/sunrpc/xprtrdma/backchannel.c
 +++ b/net/sunrpc/xprtrdma/backchannel.c
 @@ -35,6 +35,11 @@ int xprt_rdma_bc_setup(struct rpc_xprt *xprt, unsigned int reqs)
@@ -59495,7 +59026,7 @@ index c92c1aac270a..9d1a966bacc6 100644
   * xprt_rdma_bc_maxpayload - Return maximum backchannel message size
   * @xprt: transport
 diff --git a/net/wireless/nl80211.c b/net/wireless/nl80211.c
-index 8fb0478888fb..5ea56bc2af12 100644
+index 8fb047888..5ea56bc2a 100644
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
 @@ -2121,7 +2121,7 @@ static int nl80211_send_wiphy(struct cfg80211_registered_device *rdev,
@@ -59508,7 +59039,7 @@ index 8fb0478888fb..5ea56bc2af12 100644
  	if (WARN_ON(!state))
  		return -EINVAL;
 diff --git a/net/wireless/wext-sme.c b/net/wireless/wext-sme.c
-index 73df23570d43..9f959d7b5f4a 100644
+index 73df23570..9f959d7b5 100644
 --- a/net/wireless/wext-sme.c
 +++ b/net/wireless/wext-sme.c
 @@ -201,8 +201,8 @@ int cfg80211_mgd_wext_giwessid(struct net_device *dev,
@@ -59522,7 +59053,7 @@ index 73df23570d43..9f959d7b5f4a 100644
  	/* call only for station! */
  	if (WARN_ON(wdev->iftype != NL80211_IFTYPE_STATION))
 diff --git a/scripts/dtc/checks.c b/scripts/dtc/checks.c
-index 17cb6890d45a..af3392da330e 100644
+index 17cb6890d..af3392da3 100644
 --- a/scripts/dtc/checks.c
 +++ b/scripts/dtc/checks.c
 @@ -819,8 +819,8 @@ static void check_pci_bridge(struct check *c, struct dt_info *dti, struct node *
@@ -59537,7 +59068,7 @@ index 17cb6890d45a..af3392da330e 100644
  
  	prop = get_property(node, "ranges");
 diff --git a/sound/core/control.c b/sound/core/control.c
-index 3b44378b9dec..b94592b46016 100644
+index 3b44378b9..b94592b46 100644
 --- a/sound/core/control.c
 +++ b/sound/core/control.c
 @@ -1443,7 +1443,7 @@ static int snd_ctl_elem_add(struct snd_ctl_file *file,
@@ -59550,7 +59081,7 @@ index 3b44378b9dec..b94592b46016 100644
  		count = 1;
  
 diff --git a/tools/testing/selftests/net/fib_tests.sh b/tools/testing/selftests/net/fib_tests.sh
-index 6fad54c7ecb4..9d1302bb892b 100755
+index 6fad54c7e..9d1302bb8 100755
 --- a/tools/testing/selftests/net/fib_tests.sh
 +++ b/tools/testing/selftests/net/fib_tests.sh
 @@ -636,6 +636,20 @@ fib_suppress_test()
@@ -59575,5 +59106,5 @@ index 6fad54c7ecb4..9d1302bb892b 100755
  # Tests on route add and replace
  
 -- 
-2.17.1
+2.25.1
 
