@@ -21,7 +21,7 @@ index 2f7a32b77..b055611ab 100644
  
  source "arch/arm/mach-integrator/Kconfig"
 diff --git a/arch/arm/Makefile b/arch/arm/Makefile
-index cb7c6b02f..b79b0d689 100644
+index cb7c6b02f..95308da9c 100644
 --- a/arch/arm/Makefile
 +++ b/arch/arm/Makefile
 @@ -182,6 +182,7 @@ machine-$(CONFIG_ARCH_FOOTBRIDGE)	+= footbridge
@@ -37,7 +37,7 @@ index cb7c6b02f..b79b0d689 100644
  endif
  
 +ifeq ($(CONFIG_ARCH_HISI_BVT),y)
-+KBUILD_CPPFLAGS += $(patsubst %,-I%include,$(machdirs) $(platdirs))
++KBUILD_CPPFLAGS += $(patsubst %,-I$(srctree)/%include,$(machdirs) $(platdirs))
 +endif
 +
  export	TEXT_OFFSET GZFLAGS MMUEXT
@@ -112,7 +112,7 @@ index ce66ffd5a..a84efd2d6 100644
 +
 diff --git a/arch/arm/boot/dts/hi3516dv300-demb.dts b/arch/arm/boot/dts/hi3516dv300-demb.dts
 new file mode 100644
-index 000000000..8e6c6abc3
+index 000000000..bbe67651e
 --- /dev/null
 +++ b/arch/arm/boot/dts/hi3516dv300-demb.dts
 @@ -0,0 +1,270 @@
@@ -137,7 +137,7 @@ index 000000000..8e6c6abc3
 +
 +/dts-v1/;
 +#include "hi3516dv300.dtsi"
-+#include "../../../../include/generated/autoconf.h"
++#include "autoconf.h"
 +
 +/ {
 +	model = "Hisilicon HI3516DV300 DEMO Board";
@@ -388,7 +388,7 @@ index 000000000..8e6c6abc3
 +};
 diff --git a/arch/arm/boot/dts/hi3516dv300.dtsi b/arch/arm/boot/dts/hi3516dv300.dtsi
 new file mode 100644
-index 000000000..a8ea89e91
+index 000000000..85a6c5c14
 --- /dev/null
 +++ b/arch/arm/boot/dts/hi3516dv300.dtsi
 @@ -0,0 +1,906 @@
@@ -410,9 +410,9 @@ index 000000000..a8ea89e91
 + * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 + *
 + */
-+#include "../../../../include/generated/autoconf.h"
++#include "autoconf.h"
 +#include "skeleton.dtsi"
-+#include "../../../../include/dt-bindings/clock/hi3516dv300-clock.h"
++#include "clock/hi3516dv300-clock.h"
 +/ {
 +	aliases {
 +		serial0 = &uart0;
@@ -59052,6 +59052,30 @@ index 73df23570..9f959d7b5 100644
  
  	/* call only for station! */
  	if (WARN_ON(wdev->iftype != NL80211_IFTYPE_STATION))
+diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
+index 941337088..bbdfd6a1b 100644
+--- a/scripts/Makefile.lib
++++ b/scripts/Makefile.lib
+@@ -210,7 +210,9 @@ cpp_flags      = -Wp,-MMD,$(depfile) $(NOSTDINC_FLAGS) $(LINUXINCLUDE)     \
+ 
+ ld_flags       = $(KBUILD_LDFLAGS) $(ldflags-y) $(LDFLAGS_$(@F))
+ 
+-DTC_INCLUDE    := $(srctree)/scripts/dtc/include-prefixes
++DTC_INCLUDE    := $(srctree)/scripts/dtc/include-prefixes \
++		  $(objtree)/include/generated \
++		  $(srctree)/include/dt-bindings
+ 
+ dtc_cpp_flags  = -Wp,-MMD,$(depfile).pre.tmp -nostdinc                    \
+ 		 $(addprefix -I,$(DTC_INCLUDE))                          \
+@@ -316,7 +318,7 @@ $(obj)/%.dtb.S: $(obj)/%.dtb FORCE
+ 	$(call if_changed,dt_S_dtb)
+ 
+ quiet_cmd_dtc = DTC     $@
+-cmd_dtc = $(HOSTCC) -E $(dtc_cpp_flags) -x assembler-with-cpp -o $(dtc-tmp) $< ; \
++cmd_dtc = mkdir -p $(dir $(dtc-tmp)); $(HOSTCC) -E $(dtc_cpp_flags) -x assembler-with-cpp -o $(dtc-tmp) $< ; \
+ 	$(DTC) -O $(patsubst .%,%,$(suffix $@)) -o $@ -b 0 \
+ 		$(addprefix -i,$(dir $<) $(DTC_INCLUDE)) $(DTC_FLAGS) \
+ 		-d $(depfile).dtc.tmp $(dtc-tmp) ; \
 diff --git a/scripts/dtc/checks.c b/scripts/dtc/checks.c
 index 17cb6890d..af3392da3 100644
 --- a/scripts/dtc/checks.c
