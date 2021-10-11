@@ -19615,26 +19615,6 @@ index 000000000..777a7c47c
 +module_exit(hi_vdma_exit);
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("Hisilicon VDMA MISC Driver");
-diff --git a/drivers/hid/Makefile b/drivers/hid/Makefile
-index 4acb583c9..01350ca69 100644
---- a/drivers/hid/Makefile
-+++ b/drivers/hid/Makefile
-@@ -2,6 +2,15 @@
- #
- # Makefile for the HID driver
- #
-+HDF_ROOT_DIR = -Idrivers/hdf
-+ccflags-$(CONFIG_DRIVERS_HDF_INPUT) += $(HDF_ROOT_DIR)/framework/model/input/driver \
-+             $(HDF_ROOT_DIR)/framework/include/core \
-+             $(HDF_ROOT_DIR)/framework/core/common/include/host \
-+             $(HDF_ROOT_DIR)/framework/include/utils \
-+             $(HDF_ROOT_DIR)/framework/include/osal \
-+             $(HDF_ROOT_DIR)/framework/ability/sbuf/include \
-+             $(HDF_ROOT_DIR)/khdf/osal/include \
-+             -I../../../../../third_party/FreeBSD/sys/dev/evdev
- hid-y			:= hid-core.o hid-input.o hid-quirks.o
- hid-$(CONFIG_DEBUG_FS)		+= hid-debug.o
- 
 diff --git a/drivers/hidmac/Kconfig b/drivers/hidmac/Kconfig
 new file mode 100644
 index 000000000..dcb3e08bf
@@ -24105,19 +24085,6 @@ index 6ef38a8ee..6d5ac0628 100644
  	default:
  		/* NOTE:  returning a fault code here could cause trouble
  		 * in buggy userspace code.  Some old kernel bugs returned
-diff --git a/drivers/input/mousedev.c b/drivers/input/mousedev.c
-index 505c562a5..67d451beb 100644
---- a/drivers/input/mousedev.c
-+++ b/drivers/input/mousedev.c
-@@ -869,7 +869,7 @@ static struct mousedev *mousedev_create(struct input_dev *dev,
- 
- 	if (mixdev) {
- 		dev_set_name(&mousedev->dev, "mice");
--
-+		mousedev->open = 1;
- 		mousedev->open_device = mixdev_open_devices;
- 		mousedev->close_device = mixdev_close_devices;
- 	} else {
 diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
 index 6053245a4..7534882d0 100644
 --- a/drivers/irqchip/irq-gic.c
@@ -57485,18 +57452,6 @@ index 000000000..38444524f
 +#endif /* CONFIG_CMA */
 +
 +#endif
-diff --git a/include/linux/hid.h b/include/linux/hid.h
-index 6ed2a97eb..1d1445a23 100644
---- a/include/linux/hid.h
-+++ b/include/linux/hid.h
-@@ -622,6 +622,7 @@ struct hid_device {							/* device report descriptor */
- 	struct list_head debug_list;
- 	spinlock_t  debug_list_lock;
- 	wait_queue_head_t debug_wait;
-+	void *input_dev;
- };
- 
- #define to_hid_device(pdev) \
 diff --git a/include/linux/hiedmac.h b/include/linux/hiedmac.h
 new file mode 100644
 index 000000000..26157899a
