@@ -4400,7 +4400,7 @@ index 000000000..daeb1fa65
 +# CONFIG_CORESIGHT is not set
 diff --git a/arch/arm/configs/hi3516dv300_emmc_smp_hos_l2_defconfig b/arch/arm/configs/hi3516dv300_emmc_smp_hos_l2_defconfig
 new file mode 100644
-index 000000000..016d76389
+index 000000000..364f69865
 --- /dev/null
 +++ b/arch/arm/configs/hi3516dv300_emmc_smp_hos_l2_defconfig
 @@ -0,0 +1,3135 @@
@@ -7539,9 +7539,6 @@ index 000000000..016d76389
 +# CONFIG_TEST_BPF is not set
 +# CONFIG_FIND_BIT_BENCHMARK is not set
 +# CONFIG_TEST_FIRMWARE is not set
-+# CONFIG_TEST_SYSCTL is not set
-+# CONFIG_TEST_UDELAY is not set
-+# CONFIG_TEST_STATIC_KEYS is not set
 diff --git a/arch/arm/configs/hi3516dv300_smp_defconfig b/arch/arm/configs/hi3516dv300_smp_defconfig
 new file mode 100644
 index 000000000..109c06652
@@ -11635,11 +11632,11 @@ index c0a7f0d90..a5ca33ad8 100644
  
  static void __init zone_sizes_init(unsigned long min, unsigned long max)
 diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 8eddfc2cd..d93fd59e8 100644
+index dcecc9f6e..c05679732 100644
 --- a/drivers/Kconfig
 +++ b/drivers/Kconfig
-@@ -237,4 +237,12 @@ source "drivers/counter/Kconfig"
- source "drivers/hdf/khdf/Kconfig"
+@@ -235,4 +235,12 @@ source "drivers/interconnect/Kconfig"
+ source "drivers/counter/Kconfig"
  
  source "drivers/most/Kconfig"
 +
@@ -11652,12 +11649,12 @@ index 8eddfc2cd..d93fd59e8 100644
 +source "drivers/hi_vdmav100/Kconfig"
  endmenu
 diff --git a/drivers/Makefile b/drivers/Makefile
-index 025b92b1f..e4d348361 100644
+index 576228037..e204f8baa 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
-@@ -190,3 +190,7 @@ obj-$(CONFIG_INTERCONNECT)	+= interconnect/
+@@ -189,3 +189,7 @@ obj-$(CONFIG_GNSS)		+= gnss/
+ obj-$(CONFIG_INTERCONNECT)	+= interconnect/
  obj-$(CONFIG_COUNTER)		+= counter/
- obj-$(CONFIG_DRIVERS_HDF)	+= hdf/
  obj-$(CONFIG_MOST)		+= most/
 +obj-$(CONFIG_HI_DMAC)          += hidmac/
 +obj-$(CONFIG_HIEDMAC)          += hiedmac/
@@ -17069,10 +17066,10 @@ index 000000000..4c7f08883
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.c b/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.c
 new file mode 100755
-index 000000000..a70f77e0a
+index 000000000..1902f1e8f
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.c
-@@ -0,0 +1,223 @@
+@@ -0,0 +1,300 @@
 +/*
 + * Copyright (c) Hisilicon Technologies Co., Ltd. 2020-2020. All rights reserved.
 + * Description: Hisilicon DRM driver
@@ -17102,6 +17099,12 @@ index 000000000..a70f77e0a
 +
 +#define MIPI_PHYSICAL_WIDTH 60
 +#define MIPI_PHYSICAL_HEIGHT 120
++#define BRIGHTNESS_MAX       255
++#define DEFAULT_BRIGHTNESS   255
++
++struct ext_drm_tv_property {
++    struct drm_property *tv_brightness_property;
++};
 +
 +struct hi_drm_mipitx {
 +    struct drm_connector conn;
@@ -17109,6 +17112,7 @@ index 000000000..a70f77e0a
 +
 +    unsigned int drm_mipi_id;
 +    unsigned int enable; /* 0: disable, 1: enable */
++    struct ext_drm_tv_property private;
 +};
 +
 +#define to_hi_mipitx_by_conn(x) container_of(x, struct hi_drm_mipitx, conn)
@@ -17208,7 +17212,6 @@ index 000000000..a70f77e0a
 +int hi_adp_mipitx_enable(struct drm_encoder *encoder)
 +{
 +    int ret;
-+    const unsigned int level = 255;
 +    struct hi_drm_mipitx *hi_mipitx = to_hi_mipitx_by_encoder(encoder);
 +    struct DispOperations *mipi_dev = adp_get_mipitx_func();
 +    HI_DRM_CHECK_PTR_RETURN(hi_mipitx);
@@ -17220,12 +17223,6 @@ index 000000000..a70f77e0a
 +    }
 +
 +    ret = mipi_dev->on(DRM_HAL_GFX_G0);
-+    if (ret != 0) {
-+        drm_hal_err("error, ret=%#x!\n", ret);
-+        return ret;
-+    }
-+
-+    ret = mipi_dev->setBacklight(DRM_HAL_GFX_G0, level);
 +    if (ret != 0) {
 +        drm_hal_err("error, ret=%#x!\n", ret);
 +        return ret;
@@ -17257,6 +17254,83 @@ index 000000000..a70f77e0a
 +
 +    hi_mipitx->enable = 0;
 +    return 0;
++}
++
++int adp_conn_atomic_set_property(struct drm_connector *connector, struct drm_connector_state *state,
++    struct drm_property *property, uint64_t val)
++{
++    struct hi_drm_mipitx *hi_mipitx = to_hi_mipitx_by_conn(connector);
++    if (property == hi_mipitx->private.tv_brightness_property) {
++        state->tv.brightness = val;
++    } else {
++        HI_DRM_ERR("[CONNECTOR:%d:%s] unknown property [PROP:%d%s]\n", connector->base.id,
++            connector->name, property->base.id, property->name);
++        return -EINVAL;
++    }
++    return 0;
++}
++
++int adp_conn_atomic_get_property(struct drm_connector *connector, const struct drm_connector_state *state,
++    struct drm_property *property, uint64_t *val)
++{
++    struct hi_drm_mipitx *hi_mipitx = to_hi_mipitx_by_conn(connector);
++
++    if (property == hi_mipitx->private.tv_brightness_property) {
++        *val = state->tv.brightness;
++    } else {
++        HI_DRM_ERR("[CONNECTOR:%d:%s] unknown property [PROP:%d%s]\n", connector->base.id,
++            connector->name, property->base.id, property->name);
++        return -EINVAL;
++    }
++    return 0;
++}
++
++int adp_mipi_set_brightness(struct drm_connector *connector,uint32_t brightness)
++{
++    int ret;
++    struct hi_drm_mipitx *hi_mipitx = to_hi_mipitx_by_conn(connector);
++    struct DispOperations *mipi_dev = adp_get_mipitx_func();
++
++    HI_DRM_CHECK_PTR_RETURN(hi_mipitx);
++    HI_DRM_CHECK_PTR_RETURN(mipi_dev);
++    HI_DRM_CHECK_PTR_RETURN(mipi_dev->setBacklight);
++    if (connector == NULL) {
++        return 0;
++    }
++    if (brightness < 0 || brightness >255) {
++        HI_DRM_INFO("brightness value out of range[0~255]!");
++        return 0;
++    }
++    ret = mipi_dev->setBacklight(DRM_HAL_GFX_G0, brightness);
++    if (ret != 0) {
++        drm_hal_err("error, ret = %#x!\n", ret);
++        return ret;
++    }
++    return 0;
++}
++
++int adp_conn_private_properties_init(struct drm_device *dev, struct drm_connector *connector)
++{
++    struct hi_drm_mipitx *hi_mipitx = to_hi_mipitx_by_conn(connector);
++
++    hi_mipitx->private.tv_brightness_property = drm_property_create_range(dev, 0, "brightness", 0, BRIGHTNESS_MAX);
++    if (hi_mipitx->private.tv_brightness_property == NULL) {
++        HI_DRM_ERR("tv_brightness_property create error\n");
++        return -ENOMEM;
++    }
++    drm_object_attach_property(&connector->base, hi_mipitx->private.tv_brightness_property, DEFAULT_BRIGHTNESS);
++    return 0;
++}
++
++void adp_conn_private_properties_deinit(struct drm_device *dev, struct drm_connector *connector)
++{
++    struct hi_drm_mipitx *hi_mipitx = to_hi_mipitx_by_conn(connector);
++
++    if (hi_mipitx->private.tv_brightness_property != NULL) {
++        drm_property_destroy(dev, hi_mipitx->private.tv_brightness_property);
++        hi_mipitx->private.tv_brightness_property = NULL;
++    }
++    return;
 +}
 +
 +int hi_adp_mipitx_get_by_index(unsigned int drm_mipi_id, struct drm_connector **conn, struct drm_encoder **encoder)
@@ -17298,10 +17372,10 @@ index 000000000..a70f77e0a
 +
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.h b/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.h
 new file mode 100644
-index 000000000..d7f3767dc
+index 000000000..a006da477
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_adp_mipitx.h
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,32 @@
 +/*
 + * Copyright (c) Hisilicon Technologies Co., Ltd. 2020-2020. All rights reserved.
 + * Description: Hisilicon DRM driver
@@ -17323,6 +17397,14 @@ index 000000000..d7f3767dc
 +int hi_adp_mipitx_get_modes(struct drm_connector *connector);
 +int hi_adp_mipitx_set_mode(struct drm_encoder *encoder, struct drm_display_mode *mode,
 +    struct drm_connector_state *conn_state);
++
++int adp_conn_private_properties_init(struct drm_device *dev, struct drm_connector *connector);
++void adp_conn_private_properties_deinit(struct drm_device *dev, struct drm_connector *connector);
++int adp_conn_atomic_set_property(struct drm_connector *connector, struct drm_connector_state *state,
++    struct drm_property *property, uint64_t val);
++int adp_conn_atomic_get_property(struct drm_connector *connector, const struct drm_connector_state *state,
++    struct drm_property *property, uint64_t *val);
++int adp_mipi_set_brightness(struct drm_connector *connector,uint32_t brightness);
 +
 +#endif /* __HI_ADP_MIPITX_H__ */
 +
@@ -17746,10 +17828,10 @@ index 000000000..ebe7aac6f
 +#endif /* __HI_DRM_CTRC_H__ */
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.c b/drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.c
 new file mode 100755
-index 000000000..166496e81
+index 000000000..075cb248c
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_drv.c
-@@ -0,0 +1,369 @@
+@@ -0,0 +1,385 @@
 +/*
 + * Copyright (c) Hisilicon Technologies Co., Ltd. 2020-2020. All rights reserved.
 + * Description: Hisilicon DRM driver
@@ -17779,7 +17861,7 @@ index 000000000..166496e81
 +#include "hi_drm_mipitx.h"
 +#include "hisilicon_drm.h"
 +#include "osal_list.h"
-+
++#include "hi_adp_mipitx.h"
 +#define DRIVER_NAME "hisilicon"
 +#define DRIVER_DESC "hisilicon Soc DRM"
 +#define DRIVER_DATE "20200602"
@@ -17968,10 +18050,26 @@ index 000000000..166496e81
 +    return drm_gem_fb_create(dev, file_priv, mode_cmd);
 +}
 +
++int hi_drm_atomic_helper_commit(struct drm_device *dev, struct drm_atomic_state *state, bool nonblock)
++{
++    struct drm_connector *connector = NULL;
++    struct drm_connector_state *old_connector_state = NULL;
++    struct drm_connector_state *new_connector_state = NULL;
++    int i;
++
++    for_each_oldnew_connector_in_state(state, connector, old_connector_state, new_connector_state, i) {
++        if ((connector->connector_type == DRM_MODE_CONNECTOR_DSI) &&
++            (old_connector_state->tv.brightness != new_connector_state->tv.brightness)) {
++            adp_mipi_set_brightness(connector, new_connector_state->tv.brightness);
++        }
++    }
++    return drm_atomic_helper_commit(dev, state, nonblock);
++}
++
 +static const struct drm_mode_config_funcs hi_drm_mode_config_funcs = {
 +    .fb_create = hi_drm_fb_create,
 +    .atomic_check = drm_atomic_helper_check,
-+    .atomic_commit = drm_atomic_helper_commit,
++    .atomic_commit = hi_drm_atomic_helper_commit,
 +};
 +
 +static void hi_drm_mode_config_init(struct drm_device *dev)
@@ -18500,10 +18598,10 @@ index 000000000..22285a50e
 +#endif /* __HI_DRM_HDMITX_H__ */
 diff --git a/drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.c b/drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.c
 new file mode 100755
-index 000000000..b5007d5ff
+index 000000000..7f5d10cc3
 --- /dev/null
 +++ b/drivers/gpu/drm/hisilicon/hismart/hi_drm_mipitx.c
-@@ -0,0 +1,181 @@
+@@ -0,0 +1,189 @@
 +/*
 + * Copyright (c) Hisilicon Technologies Co., Ltd. 2020-2020. All rights reserved.
 + * Description: Hisilicon DRM driver
@@ -18555,6 +18653,8 @@ index 000000000..b5007d5ff
 +    .reset = drm_atomic_helper_connector_reset,
 +    .atomic_duplicate_state = drm_atomic_helper_connector_duplicate_state,
 +    .atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
++    .atomic_set_property = adp_conn_atomic_set_property,
++    .atomic_get_property = adp_conn_atomic_get_property,
 +};
 +
 +static int hi_mipi_dsi_encoder_atomic_check(struct drm_encoder *encoder, struct drm_crtc_state *crtc_state,
@@ -18634,6 +18734,12 @@ index 000000000..b5007d5ff
 +    drm_connector_init(drm, conn, &hi_mipi_dsi_connector_funcs, id);
 +    drm_connector_helper_add(conn, &hi_mipi_dsi_conn_helper_funcs);
 +    drm_connector_attach_encoder(conn, encoder);
++    ret = adp_conn_private_properties_init(drm, conn);
++    if (ret != 0) {
++        HI_DRM_ERR("adp_conn_private_properties_init failed\n");
++        drm_connector_cleanup(conn);
++        return;
++    }
 +    HI_DRM_FUNC_EXIT();
 +    return;
 +}
@@ -18655,7 +18761,7 @@ index 000000000..b5007d5ff
 +    if (ret != 0) {
 +        HI_DRM_ERR("hi_adp_hdmitx_disable err, ret=%#x\n", ret);
 +    }
-+
++    adp_conn_private_properties_deinit(drm, conn);
 +    drm_connector_cleanup(conn);
 +    drm_encoder_cleanup(encoder);
 +    HI_DRM_FUNC_EXIT();
@@ -59087,6 +59193,3 @@ index 6fad54c7e..9d1302bb8 100755
  ################################################################################
  # Tests on route add and replace
  
--- 
-2.25.1
-
