@@ -53288,7 +53288,7 @@ index 0584f4d2f..d035d4995 100644
  	spi_gpio = spi_master_get_devdata(master);
  
 diff --git a/drivers/spi/spi-pl022.c b/drivers/spi/spi-pl022.c
-index d1776fea2..0534a53ab 100644
+index d1776fea2..3b280d713 100644
 --- a/drivers/spi/spi-pl022.c
 +++ b/drivers/spi/spi-pl022.c
 @@ -34,6 +34,7 @@
@@ -53468,7 +53468,21 @@ index d1776fea2..0534a53ab 100644
  		 dma_chan_name(pl022->dma_rx_channel),
  		 dma_chan_name(pl022->dma_tx_channel));
  
-@@ -1855,6 +1943,13 @@ static int pl022_setup(struct spi_device *spi)
+@@ -1563,11 +1651,10 @@ static void do_polling_transfer(struct pl022 *pl022)
+ 
+ 		/* Update total byte transferred */
+ 		message->actual_length += pl022->cur_transfer->len;
++		if (pl022->cur_transfer->cs_change)
++			pl022_cs_control(pl022, SSP_CHIP_DESELECT);
+ 		/* Move to next transfer */
+ 		message->state = next_transfer(pl022);
+-		if (message->state != STATE_DONE
+-		    && pl022->cur_transfer->cs_change)
+-			pl022_cs_control(pl022, SSP_CHIP_DESELECT);
+ 	}
+ out:
+ 	/* Handle end of message */
+@@ -1855,6 +1942,13 @@ static int pl022_setup(struct spi_device *spi)
  	unsigned int bits = spi->bits_per_word;
  	u32 tmp;
  	struct device_node *np = spi->dev.of_node;
@@ -53482,7 +53496,7 @@ index d1776fea2..0534a53ab 100644
  
  	if (!spi->max_speed_hz)
  		return -EINVAL;
-@@ -1997,7 +2092,12 @@ static int pl022_setup(struct spi_device *spi)
+@@ -1997,7 +2091,12 @@ static int pl022_setup(struct spi_device *spi)
  	chip->cpsr = clk_freq.cpsdvsr;
  
  	/* Special setup for the ST micro extended control registers */
@@ -53495,7 +53509,7 @@ index d1776fea2..0534a53ab 100644
  		u32 etx;
  
  		if (pl022->vendor->pl023) {
-@@ -2031,6 +2131,22 @@ static int pl022_setup(struct spi_device *spi)
+@@ -2031,6 +2130,22 @@ static int pl022_setup(struct spi_device *spi)
  			       SSP_CR1_MASK_RXIFLSEL_ST, 7);
  		SSP_WRITE_BITS(chip->cr1, chip_info->tx_lev_trig,
  			       SSP_CR1_MASK_TXIFLSEL_ST, 10);
@@ -53518,7 +53532,7 @@ index d1776fea2..0534a53ab 100644
  	} else {
  		SSP_WRITE_BITS(chip->cr0, bits - 1,
  			       SSP_CR0_MASK_DSS, 0);
-@@ -2119,6 +2235,8 @@ pl022_platform_data_dt_get(struct device *dev)
+@@ -2119,6 +2234,8 @@ pl022_platform_data_dt_get(struct device *dev)
  static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
  {
  	struct device *dev = &adev->dev;
@@ -53527,7 +53541,7 @@ index d1776fea2..0534a53ab 100644
  	struct pl022_ssp_controller *platform_info =
  			dev_get_platdata(&adev->dev);
  	struct spi_master *master;
-@@ -2126,7 +2244,7 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
+@@ -2126,7 +2243,7 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
  	struct device_node *np = adev->dev.of_node;
  	int status = 0, i, num_cs;
  
@@ -53536,7 +53550,7 @@ index d1776fea2..0534a53ab 100644
  		 "ARM PL022 driver, device ID: 0x%08x\n", adev->periphid);
  	if (!platform_info && IS_ENABLED(CONFIG_OF))
  		platform_info = pl022_platform_data_dt_get(dev);
-@@ -2182,6 +2300,43 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
+@@ -2182,6 +2299,43 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
  	} else if (pl022->vendor->internal_cs_ctrl) {
  		for (i = 0; i < num_cs; i++)
  			pl022->chipselects[i] = i;
@@ -53580,7 +53594,7 @@ index d1776fea2..0534a53ab 100644
  	} else if (IS_ENABLED(CONFIG_OF)) {
  		for (i = 0; i < num_cs; i++) {
  			int cs_gpio = of_get_named_gpio(np, "cs-gpios", i);
-@@ -2227,7 +2382,7 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
+@@ -2227,7 +2381,7 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
  		status = -ENOMEM;
  		goto err_no_ioremap;
  	}
@@ -53589,7 +53603,7 @@ index d1776fea2..0534a53ab 100644
  		&adev->res.start, pl022->virtbase);
  
  	pl022->clk = devm_clk_get(&adev->dev, NULL);
-@@ -2287,7 +2442,7 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
+@@ -2287,7 +2441,7 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
  
  	/* let runtime pm put suspend */
  	if (platform_info->autosuspend_delay > 0) {
@@ -53598,7 +53612,7 @@ index d1776fea2..0534a53ab 100644
  			"will use autosuspend for runtime pm, delay %dms\n",
  			platform_info->autosuspend_delay);
  		pm_runtime_set_autosuspend_delay(dev,
-@@ -2308,6 +2463,10 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
+@@ -2308,6 +2462,10 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
   err_no_ioremap:
  	amba_release_regions(adev);
   err_no_ioregion:
@@ -53609,7 +53623,7 @@ index d1776fea2..0534a53ab 100644
   err_no_gpio:
   err_no_mem:
  	spi_master_put(master);
-@@ -2334,6 +2493,10 @@ pl022_remove(struct amba_device *adev)
+@@ -2334,6 +2492,10 @@ pl022_remove(struct amba_device *adev)
  
  	clk_disable_unprepare(pl022->clk);
  	amba_release_regions(adev);
@@ -53620,7 +53634,7 @@ index d1776fea2..0534a53ab 100644
  	tasklet_disable(&pl022->pump_transfers);
  	return 0;
  }
-@@ -2445,6 +2608,17 @@ static struct vendor_data vendor_lsi = {
+@@ -2445,6 +2607,17 @@ static struct vendor_data vendor_lsi = {
  	.internal_cs_ctrl = true,
  };
  
@@ -53638,7 +53652,7 @@ index d1776fea2..0534a53ab 100644
  static const struct amba_id pl022_ids[] = {
  	{
  		/*
-@@ -2485,6 +2659,17 @@ static const struct amba_id pl022_ids[] = {
+@@ -2485,6 +2658,17 @@ static const struct amba_id pl022_ids[] = {
  		.mask	= 0x000fffff,
  		.data	= &vendor_lsi,
  	},
@@ -59193,3 +59207,4 @@ index 6fad54c7e..9d1302bb8 100755
  ################################################################################
  # Tests on route add and replace
  
+
