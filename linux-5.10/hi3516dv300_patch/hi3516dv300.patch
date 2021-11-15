@@ -12234,7 +12234,7 @@ index fec2e9754..68c87b25c 100644
  	return AC_ERR_OK;
  }
  
-+ifndef CONFIG_HISI_SATA_FBS
++#ifndef CONFIG_HISI_SATA_FBS
  static void ahci_fbs_dec_intr(struct ata_port *ap)
  {
  	struct ahci_port_priv *pp = ap->private_data;
@@ -39651,7 +39651,7 @@ index 1f0d542d5..3ff778c71 100644
  		mtd->erasesize >> 10, mtd->writesize, mtd->oobsize);
 +
 +	/* Print ecc type and ecc mode about hisilicon flash controller */
-+	hinfc_show_info(mtd, nand_manufacturer_name(manufacturer), type->name);
++	hinfc_show_info(mtd, nand_manufacturer_name(manufacturer_desc), type->name);
 +
  	return 0;
  
