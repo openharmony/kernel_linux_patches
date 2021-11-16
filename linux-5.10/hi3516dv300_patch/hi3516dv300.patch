@@ -24792,7 +24792,7 @@ index 451c25fc2..e7ec6250e 100644
 +
 +obj-$(CONFIG_HIMCI)	+= himci/
 diff --git a/drivers/mmc/host/cqhci.c b/drivers/mmc/host/cqhci.c
-index 697fe4075..248fe7ea8 100644
+index 7ba4f714106f..f5614efa4a47 100644
 --- a/drivers/mmc/host/cqhci.c
 +++ b/drivers/mmc/host/cqhci.c
 @@ -46,6 +46,11 @@ static inline u8 *get_link_desc(struct cqhci_host *cq_host, u8 tag)
@@ -24834,7 +24834,7 @@ index 697fe4075..248fe7ea8 100644
  
  	pr_debug("%s: cqhci: desc_size: %zu data_sz: %zu slot-sz: %d\n",
  		 mmc_hostname(cq_host->mmc), cq_host->desc_size, cq_host->data_size,
-@@ -267,14 +281,14 @@ static void __cqhci_enable(struct cqhci_host *cq_host)
+@@ -267,6 +281,8 @@ static void __cqhci_enable(struct cqhci_host *cq_host)
  
  	cqhci_writel(cq_host, cq_host->rca, CQHCI_SSC2);
  
@@ -24843,15 +24843,16 @@ index 697fe4075..248fe7ea8 100644
  	cqhci_set_irqs(cq_host, 0);
  
  	cqcfg |= CQHCI_ENABLE;
- 
- 	cqhci_writel(cq_host, cqcfg, CQHCI_CFG);
+@@ -276,8 +292,6 @@ static void __cqhci_enable(struct cqhci_host *cq_host)
+ 	if (cqhci_readl(cq_host, CQHCI_CTL) & CQHCI_HALT)
+ 		cqhci_writel(cq_host, 0, CQHCI_CTL);
  
 -	mmc->cqe_on = true;
 -
  	if (cq_host->ops->enable)
  		cq_host->ops->enable(mmc);
  
-@@ -449,7 +463,7 @@ static int cqhci_dma_map(struct mmc_host *host, struct mmc_request *mrq)
+@@ -452,7 +466,7 @@ static int cqhci_dma_map(struct mmc_host *host, struct mmc_request *mrq)
  	return sg_count;
  }
  
@@ -24860,7 +24861,7 @@ index 697fe4075..248fe7ea8 100644
  				bool dma64)
  {
  	__le32 *attr = (__le32 __force *)desc;
-@@ -471,6 +485,27 @@ static void cqhci_set_tran_desc(u8 *desc, dma_addr_t addr, int len, bool end,
+@@ -474,6 +488,27 @@ static void cqhci_set_tran_desc(u8 *desc, dma_addr_t addr, int len, bool end,
  	}
  }
  
@@ -24888,7 +24889,7 @@ index 697fe4075..248fe7ea8 100644
  static int cqhci_prep_tran_desc(struct mmc_request *mrq,
  			       struct cqhci_host *cq_host, int tag)
  {
-@@ -497,7 +532,7 @@ static int cqhci_prep_tran_desc(struct mmc_request *mrq,
+@@ -500,7 +535,7 @@ static int cqhci_prep_tran_desc(struct mmc_request *mrq,
  
  		if ((i+1) == sg_count)
  			end = true;
@@ -24897,7 +24898,7 @@ index 697fe4075..248fe7ea8 100644
  		desc += cq_host->trans_desc_len;
  	}
  
-@@ -948,6 +983,9 @@ static void cqhci_recovery_start(struct mmc_host *mmc)
+@@ -951,6 +986,9 @@ static void cqhci_recovery_start(struct mmc_host *mmc)
  		cq_host->ops->disable(mmc, true);
  
  	mmc->cqe_on = false;
@@ -54505,7 +54506,7 @@ index 3cd294264..edf3f9b59 100644
 diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
 old mode 100644
 new mode 100755
-index 14a7c05ab..77b1a5236
+index b75fe568096f..c0f71fd32c77
 --- a/drivers/usb/dwc3/gadget.c
 +++ b/drivers/usb/dwc3/gadget.c
 @@ -27,6 +27,8 @@
@@ -54579,15 +54580,15 @@ index 14a7c05ab..77b1a5236
  
  	if (!tmp)
  		tmp = DWC3_TRB_NUM - 1;
-@@ -933,7 +949,7 @@ static struct dwc3_trb *dwc3_ep_prev_trb(struct dwc3_ep *dep, u8 index)
+@@ -932,7 +948,7 @@ static struct dwc3_trb *dwc3_ep_prev_trb(struct dwc3_ep *dep, u8 index)
+ 
  static u32 dwc3_calc_trbs_left(struct dwc3_ep *dep)
  {
- 	struct dwc3_trb		*tmp;
 -	u8			trbs_left;
 +	u32			trbs_left;
  
  	/*
- 	 * If enqueue & dequeue are equal than it is either full or empty.
+ 	 * If the enqueue & dequeue are equal then the TRB ring is either full
 @@ -968,6 +984,7 @@ static void __dwc3_prepare_one_trb(struct dwc3_ep *dep, struct dwc3_trb *trb,
  	struct dwc3		*dwc = dep->dwc;
  	struct usb_gadget	*gadget = dwc->gadget;
@@ -54715,7 +54716,7 @@ index 14a7c05ab..77b1a5236
  	list_for_each_entry(r, &dep->cancelled_list, list) {
  		if (r == req)
  			goto out;
-@@ -2669,12 +2729,77 @@ static int dwc3_gadget_init_endpoint(struct dwc3 *dwc, u8 epnum)
+@@ -2679,12 +2739,77 @@ static int dwc3_gadget_init_endpoint(struct dwc3 *dwc, u8 epnum)
  	return 0;
  }
  
@@ -54793,7 +54794,7 @@ index 14a7c05ab..77b1a5236
  	for (epnum = 0; epnum < total; epnum++) {
  		int			ret;
  
-@@ -3882,6 +4007,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
+@@ -3892,6 +4017,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
  		goto err3;
  	}
  
