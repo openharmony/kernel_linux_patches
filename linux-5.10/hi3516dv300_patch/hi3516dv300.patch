@@ -943,7 +943,7 @@ index 000000000..85a6c5c14
 +			interrupts = <0 27 4>;
 +			interrupt-names = "peripheral";
 +			maximum-speed = "high-speed";
-+			dr_mode = "peripheral";
++			dr_mode = "otg";
 +		};
 +#endif
 +		gpio_chip0: gpio_chip@120d0000 {
