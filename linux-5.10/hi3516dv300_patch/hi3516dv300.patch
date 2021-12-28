@@ -15698,7 +15698,7 @@ index 000000000..7e611dd84
 +++ b/drivers/gpu/drm/hisilicon/hismart/Makefile
 @@ -0,0 +1,27 @@
 +KERNEL_DIR := $(srctree)
-+SDK_ROOT_DIR = $(shell cd $(KERNEL_DIR)/../../../../../device/hisilicon/hispark_taurus/sdk_linux/soc/src && /bin/pwd)
++SDK_ROOT_DIR = $(shell cd $(KERNEL_DIR)/../../../../../device/soc/hisilicon/hi3516dv300/sdk_linux/drv && /bin/pwd)
 +$(warning SDK_ROOT_DIR=  $(SDK_ROOT_DIR))
 +EXTRA_CFLAGS +=  -I$(SDK_ROOT_DIR)/mpp/cbb/vo/vo_dev/drm_hal \
 +		 -I$(SDK_ROOT_DIR)/mpp/component/hifb/drm_hal \
