@@ -1,3 +1,23 @@
+diff --git a/arch/arm64/kernel/vmlinux.lds.S b/arch/arm64/kernel/vmlinux.lds.S
+index 30c102978..1d8b8de34 100644
+--- a/arch/arm64/kernel/vmlinux.lds.S
++++ b/arch/arm64/kernel/vmlinux.lds.S
+@@ -201,6 +201,15 @@ SECTIONS
+ 		INIT_RAM_FS
+ 		*(.init.rodata.* .init.bss)	/* from the EFI stub */
+ 	}
++
++#ifdef CONFIG_DRIVERS_HDF
++	.init.hdf_table : {
++		_hdf_drivers_start = .;
++		*(.hdf.driver)
++		_hdf_drivers_end = .;
++	}
++#endif
++
+ 	.exit.data : {
+ 		EXIT_DATA
+ 	}
 diff --git a/arch/arm/kernel/vmlinux.lds.S b/arch/arm/kernel/vmlinux.lds.S
 index 8af654bd1..1e9ff41d6 100644
 --- a/arch/arm/kernel/vmlinux.lds.S
