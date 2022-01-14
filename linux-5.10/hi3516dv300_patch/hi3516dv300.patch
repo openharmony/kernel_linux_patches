@@ -11635,10 +11635,10 @@ diff --git a/drivers/Kconfig b/drivers/Kconfig
 index dcecc9f6e..c05679732 100644
 --- a/drivers/Kconfig
 +++ b/drivers/Kconfig
-@@ -235,4 +235,12 @@ source "drivers/interconnect/Kconfig"
- source "drivers/counter/Kconfig"
- 
+@@ -237,4 +237,12 @@ source "drivers/counter/Kconfig"
  source "drivers/most/Kconfig"
+ 
+ source "drivers/accesstokenid/Kconfig"
 +
 +source "drivers/hidmac/Kconfig"
 +
@@ -11652,10 +11652,10 @@ diff --git a/drivers/Makefile b/drivers/Makefile
 index 576228037..e204f8baa 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
-@@ -189,3 +189,7 @@ obj-$(CONFIG_GNSS)		+= gnss/
- obj-$(CONFIG_INTERCONNECT)	+= interconnect/
+@@ -190,3 +190,7 @@ obj-$(CONFIG_INTERCONNECT)	+= interconnect/
  obj-$(CONFIG_COUNTER)		+= counter/
  obj-$(CONFIG_MOST)		+= most/
+ obj-$(CONFIG_ACCESS_TOKENID)	+= accesstokenid/
 +obj-$(CONFIG_HI_DMAC)          += hidmac/
 +obj-$(CONFIG_HIEDMAC)          += hiedmac/
 +obj-$(CONFIG_ARCH_HISI_BVT)    += hisilicon/
