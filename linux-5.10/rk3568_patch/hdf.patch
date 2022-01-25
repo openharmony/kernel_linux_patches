@@ -19,7 +19,7 @@ index 30c102978942..1d8b8de34f1c 100644
  		EXIT_DATA
  	}
 diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 8c97ea01aabd..340987ef1f17 100644
+index c9a22b041303..33244488827c 100644
 --- a/drivers/Kconfig
 +++ b/drivers/Kconfig
 @@ -234,6 +234,8 @@ source "drivers/interconnect/Kconfig"
@@ -30,19 +30,18 @@ index 8c97ea01aabd..340987ef1f17 100644
 +
  source "drivers/most/Kconfig"
  
- source "drivers/rkflash/Kconfig"
+ source "drivers/accesstokenid/Kconfig"
 diff --git a/drivers/Makefile b/drivers/Makefile
-index 18cc78f5385c..f9cc4fa69f3b 100644
+index 71da48160b09..8d033a97c4bd 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
-@@ -188,6 +188,7 @@ obj-$(CONFIG_SIOX)		+= siox/
+@@ -188,5 +188,6 @@ obj-$(CONFIG_SIOX)		+= siox/
  obj-$(CONFIG_GNSS)		+= gnss/
  obj-$(CONFIG_INTERCONNECT)	+= interconnect/
  obj-$(CONFIG_COUNTER)		+= counter/
 +obj-$(CONFIG_DRIVERS_HDF)	+= hdf/
  obj-$(CONFIG_MOST)		+= most/
- obj-$(CONFIG_RK_FLASH)		+= rkflash/
- obj-$(CONFIG_RK_NAND)		+= rk_nand/
+ obj-$(CONFIG_ACCESS_TOKENID)	+= accesstokenid/
 diff --git a/drivers/hdf/Makefile b/drivers/hdf/Makefile
 new file mode 100644
 index 000000000000..5c5e1911c4f7
@@ -300,6 +299,92 @@ index 580d378342c4..fb945f4ce1ff 100644
  		if (input_register_device(hidinput->input))
  			goto out_unwind;
  		hidinput->registered = true;
+diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+index a48e5f2d859d..90d25f2248b1 100644
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -85,3 +85,17 @@ obj-$(CONFIG_INPUT_XEN_KBDDEV_FRONTEND)	+= xen-kbdfront.o
+ obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
+ obj-$(CONFIG_INPUT_IDEAPAD_SLIDEBAR)	+= ideapad_slidebar.o
+ 
++ccflags-y +=-Idrivers/hdf/framework/model/input/driver \
++             -Idrivers/hdf/framework/model/input/driver/input_bus_ops \
++             -Idrivers/hdf/framework/include/core \
++             -Idrivers/hdf/framework/core/common/include/host \
++             -Idrivers/hdf/framework/include/utils \
++             -Idrivers/hdf/framework/include/osal \
++             -Idrivers/hdf/framework/include/platform \
++             -Idrivers/hdf/framework/include/config \
++             -Idrivers/hdf/framework/core/host/include \
++             -Idrivers/hdf/framework/core/shared/include \
++             -Idrivers/hdf/framework/utils/include \
++             -Idrivers/hdf/khdf/osal/include
++ccflags-y +=-Ibounds_checking_function/include \
++             -Idrivers/hdf/evdev
+diff --git a/drivers/input/misc/rk805-pwrkey.c b/drivers/input/misc/rk805-pwrkey.c
+index 3fb64dbda1a2..0b7fa0cacfc6 100644
+--- a/drivers/input/misc/rk805-pwrkey.c
++++ b/drivers/input/misc/rk805-pwrkey.c
+@@ -14,27 +14,37 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include "hdf_hid_adapter.h"
++
++InputDevice *HidinputDev=NULL;
+ 
+ static irqreturn_t pwrkey_fall_irq(int irq, void *_pwr)
+ {
+-	struct input_dev *pwr = _pwr;
+-
+-	input_report_key(pwr, KEY_POWER, 1);
+-	input_sync(pwr);
+-
++	HidReportEvent(HidinputDev, EV_KEY, KEY_POWER, 1);
++	HidReportEvent(HidinputDev, EV_SYN, SYN_REPORT, 0);
+ 	return IRQ_HANDLED;
+ }
+ 
+ static irqreturn_t pwrkey_rise_irq(int irq, void *_pwr)
+ {
+-	struct input_dev *pwr = _pwr;
+-
+-	input_report_key(pwr, KEY_POWER, 0);
+-	input_sync(pwr);
+-
++	HidReportEvent(HidinputDev, EV_KEY, KEY_POWER, 0);
++	HidReportEvent(HidinputDev, EV_SYN, SYN_REPORT, 0);
+ 	return IRQ_HANDLED;
+ }
+
++static InputDevice* HidRegisterHdfPowerKeyDev(void) 
++{
++	InputDevice* inputDev = NULL;
++	HidInfo Hid_keyInfo;
++
++	Hid_keyInfo.devType = HID_TYPE_KEY;
++	Hid_keyInfo.eventType[0] = SET_BIT(EV_KEY);
++	Hid_keyInfo.keyCode[3] = SET_BIT(KEY_POWER);
++	Hid_keyInfo.devName = "hid-powerkey";
++	inputDev = HidRegisterHdfInputDev(&Hid_keyInfo);
++	return inputDev;
++}
++
+ static int rk805_pwrkey_probe(struct platform_device *pdev)
+ {
+ 	struct input_dev *pwr;
+@@ -87,6 +97,11 @@ static int rk805_pwrkey_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, pwr);
+ 	device_init_wakeup(&pdev->dev, true);
+ 
++	HidinputDev = HidRegisterHdfPowerKeyDev();
++	if (NULL == HidinputDev) {
++		pr_err("HidRegisterHdfInputDev error\n");
++		return -EINVAL;
++	}
+ 	return 0;
+ }
+ 
 diff --git a/drivers/input/mousedev.c b/drivers/input/mousedev.c
 index 505c562a5daa..67d451beba08 100644
 --- a/drivers/input/mousedev.c
