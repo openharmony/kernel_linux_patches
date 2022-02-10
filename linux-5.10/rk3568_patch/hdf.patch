@@ -19,10 +19,10 @@ index 30c102978942..1d8b8de34f1c 100644
  		EXIT_DATA
  	}
 diff --git a/drivers/Kconfig b/drivers/Kconfig
-index c9a22b041303..33244488827c 100644
+index 826b2b19d0b8..9a887e91b375 100644
 --- a/drivers/Kconfig
 +++ b/drivers/Kconfig
-@@ -234,6 +234,8 @@ source "drivers/interconnect/Kconfig"
+@@ -236,6 +236,8 @@ source "drivers/interconnect/Kconfig"
  
  source "drivers/counter/Kconfig"
  
@@ -32,10 +32,10 @@ index c9a22b041303..33244488827c 100644
  
  source "drivers/accesstokenid/Kconfig"
 diff --git a/drivers/Makefile b/drivers/Makefile
-index 71da48160b09..8d033a97c4bd 100644
+index ecc494918773..79507aef0c21 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
-@@ -188,5 +188,6 @@ obj-$(CONFIG_SIOX)		+= siox/
+@@ -191,5 +191,6 @@ obj-$(CONFIG_SIOX)		+= siox/
  obj-$(CONFIG_GNSS)		+= gnss/
  obj-$(CONFIG_INTERCONNECT)	+= interconnect/
  obj-$(CONFIG_COUNTER)		+= counter/
@@ -322,10 +322,10 @@ index a48e5f2d859d..90d25f2248b1 100644
 +ccflags-y +=-Ibounds_checking_function/include \
 +             -Idrivers/hdf/evdev
 diff --git a/drivers/input/misc/rk805-pwrkey.c b/drivers/input/misc/rk805-pwrkey.c
-index 3fb64dbda1a2..0b7fa0cacfc6 100644
+index 3fb64dbda1a2..394cd5912db0 100644
 --- a/drivers/input/misc/rk805-pwrkey.c
 +++ b/drivers/input/misc/rk805-pwrkey.c
-@@ -14,27 +14,37 @@
+@@ -14,6 +14,9 @@
  #include <linux/kernel.h>
  #include <linux/module.h>
  #include <linux/platform_device.h>
@@ -335,28 +335,24 @@ index 3fb64dbda1a2..0b7fa0cacfc6 100644
  
  static irqreturn_t pwrkey_fall_irq(int irq, void *_pwr)
  {
--	struct input_dev *pwr = _pwr;
--
--	input_report_key(pwr, KEY_POWER, 1);
--	input_sync(pwr);
--
+@@ -22,6 +25,8 @@ static irqreturn_t pwrkey_fall_irq(int irq, void *_pwr)
+ 	input_report_key(pwr, KEY_POWER, 1);
+ 	input_sync(pwr);
+ 
 +	HidReportEvent(HidinputDev, EV_KEY, KEY_POWER, 1);
 +	HidReportEvent(HidinputDev, EV_SYN, SYN_REPORT, 0);
  	return IRQ_HANDLED;
  }
  
- static irqreturn_t pwrkey_rise_irq(int irq, void *_pwr)
- {
--	struct input_dev *pwr = _pwr;
--
--	input_report_key(pwr, KEY_POWER, 0);
--	input_sync(pwr);
--
+@@ -32,9 +37,24 @@ static irqreturn_t pwrkey_rise_irq(int irq, void *_pwr)
+ 	input_report_key(pwr, KEY_POWER, 0);
+ 	input_sync(pwr);
+ 
 +	HidReportEvent(HidinputDev, EV_KEY, KEY_POWER, 0);
 +	HidReportEvent(HidinputDev, EV_SYN, SYN_REPORT, 0);
  	return IRQ_HANDLED;
  }
-
+ 
 +static InputDevice* HidRegisterHdfPowerKeyDev(void) 
 +{
 +	InputDevice* inputDev = NULL;
@@ -373,7 +369,7 @@ index 3fb64dbda1a2..0b7fa0cacfc6 100644
  static int rk805_pwrkey_probe(struct platform_device *pdev)
  {
  	struct input_dev *pwr;
-@@ -87,6 +97,11 @@ static int rk805_pwrkey_probe(struct platform_device *pdev)
+@@ -87,6 +107,11 @@ static int rk805_pwrkey_probe(struct platform_device *pdev)
  	platform_set_drvdata(pdev, pwr);
  	device_init_wakeup(&pdev->dev, true);
  
