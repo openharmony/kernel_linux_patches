@@ -11661,7 +11661,7 @@ index 000000000..58fe574b3
 +	up(&kmsg_sem);
 +	bbox_print_info("There's no valid fault log!\n");
 +
-+	return -EIO;
++	return -ENOMSG;
 +}
 +
 +static int save_last_log(const char *log_dir, struct error_info *info)
@@ -12001,7 +12001,7 @@ index 000000000..92a680a9e
 +	up(&kmsg_sem);
 +	bbox_print_info("There's no valid fault log!\n");
 +
-+	return -EIO;
++	return -ENOMSG;
 +}
 +
 +static int save_last_log(const char *log_dir, struct error_info *info)
