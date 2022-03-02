@@ -11578,7 +11578,7 @@ index 000000000..58fe574b3
 +	}
 +	up(&kmsg_sem);
 +	if (ret == 0)
-+		change_own_mode(path, AID_ROOT, AID_SYSTEM, BBOX_FILE_LIMIT);
++		change_own(path, AID_ROOT, AID_SYSTEM);
 +
 +	return ret;
 +}
@@ -11924,7 +11924,7 @@ index 000000000..92a680a9e
 +	}
 +	up(&kmsg_sem);
 +	if (ret == 0)
-+		change_own_mode(path, AID_ROOT, AID_SYSTEM, BBOX_FILE_LIMIT);
++		change_own(path, AID_ROOT, AID_SYSTEM);
 +
 +	return ret;
 +}
