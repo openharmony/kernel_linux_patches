@@ -1,5 +1,5 @@
 diff --git a/arch/arm64/kernel/vmlinux.lds.S b/arch/arm64/kernel/vmlinux.lds.S
-index 30c102978942..1d8b8de34f1c 100644
+index 30c102978..1d8b8de34 100644
 --- a/arch/arm64/kernel/vmlinux.lds.S
 +++ b/arch/arm64/kernel/vmlinux.lds.S
 @@ -201,6 +201,15 @@ SECTIONS
@@ -19,7 +19,7 @@ index 30c102978942..1d8b8de34f1c 100644
  		EXIT_DATA
  	}
 diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 826b2b19d0b8..9a887e91b375 100644
+index 826b2b19d..9a887e91b 100644
 --- a/drivers/Kconfig
 +++ b/drivers/Kconfig
 @@ -236,6 +236,8 @@ source "drivers/interconnect/Kconfig"
@@ -32,7 +32,7 @@ index 826b2b19d0b8..9a887e91b375 100644
  
  source "drivers/accesstokenid/Kconfig"
 diff --git a/drivers/Makefile b/drivers/Makefile
-index ecc494918773..79507aef0c21 100644
+index ecc494918..79507aef0 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
 @@ -191,5 +191,6 @@ obj-$(CONFIG_SIOX)		+= siox/
@@ -44,14 +44,14 @@ index ecc494918773..79507aef0c21 100644
  obj-$(CONFIG_ACCESS_TOKENID)	+= accesstokenid/
 diff --git a/drivers/hdf/Makefile b/drivers/hdf/Makefile
 new file mode 100644
-index 000000000000..5c5e1911c4f7
+index 000000000..5c5e1911c
 --- /dev/null
 +++ b/drivers/hdf/Makefile
 @@ -0,0 +1,2 @@
 +export PROJECT_ROOT := ../../../../../
 +obj-$(CONFIG_DRIVERS_HDF) += khdf/
 diff --git a/drivers/hid/Makefile b/drivers/hid/Makefile
-index 4acb583c92a6..ddcaf4cdcb9c 100644
+index 4acb583c9..ddcaf4cdc 100644
 --- a/drivers/hid/Makefile
 +++ b/drivers/hid/Makefile
 @@ -2,6 +2,15 @@
@@ -71,7 +71,7 @@ index 4acb583c92a6..ddcaf4cdcb9c 100644
  hid-$(CONFIG_DEBUG_FS)		+= hid-debug.o
  
 diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
-index 5550c943f985..f0503e2327a3 100644
+index 5550c943f..f0503e232 100644
 --- a/drivers/hid/hid-core.c
 +++ b/drivers/hid/hid-core.c
 @@ -33,6 +33,9 @@
@@ -216,7 +216,7 @@ index 5550c943f985..f0503e2327a3 100644
  	if (!--hdev->ll_open_count)
  		hdev->ll_driver->close(hdev);
 diff --git a/drivers/hid/hid-input.c b/drivers/hid/hid-input.c
-index 580d378342c4..fb945f4ce1ff 100644
+index 580d37834..fb945f4ce 100644
 --- a/drivers/hid/hid-input.c
 +++ b/drivers/hid/hid-input.c
 @@ -20,6 +20,10 @@
@@ -300,7 +300,7 @@ index 580d378342c4..fb945f4ce1ff 100644
  			goto out_unwind;
  		hidinput->registered = true;
 diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-index a48e5f2d859d..90d25f2248b1 100644
+index a48e5f2d8..90d25f224 100644
 --- a/drivers/input/misc/Makefile
 +++ b/drivers/input/misc/Makefile
 @@ -85,3 +85,17 @@ obj-$(CONFIG_INPUT_XEN_KBDDEV_FRONTEND)	+= xen-kbdfront.o
@@ -322,7 +322,7 @@ index a48e5f2d859d..90d25f2248b1 100644
 +ccflags-y +=-Ibounds_checking_function/include \
 +             -Idrivers/hdf/evdev
 diff --git a/drivers/input/misc/rk805-pwrkey.c b/drivers/input/misc/rk805-pwrkey.c
-index 3fb64dbda1a2..394cd5912db0 100644
+index 3fb64dbda..394cd5912 100644
 --- a/drivers/input/misc/rk805-pwrkey.c
 +++ b/drivers/input/misc/rk805-pwrkey.c
 @@ -14,6 +14,9 @@
@@ -382,7 +382,7 @@ index 3fb64dbda1a2..394cd5912db0 100644
  }
  
 diff --git a/drivers/input/mousedev.c b/drivers/input/mousedev.c
-index 505c562a5daa..67d451beba08 100644
+index 505c562a5..67d451beb 100644
 --- a/drivers/input/mousedev.c
 +++ b/drivers/input/mousedev.c
 @@ -869,7 +869,7 @@ static struct mousedev *mousedev_create(struct input_dev *dev,
@@ -394,8 +394,45 @@ index 505c562a5daa..67d451beba08 100644
  		mousedev->open_device = mixdev_open_devices;
  		mousedev->close_device = mixdev_close_devices;
  	} else {
+diff --git a/drivers/usb/core/notify.c b/drivers/usb/core/notify.c
+index e61436637..8256d576c 100644
+--- a/drivers/usb/core/notify.c
++++ b/drivers/usb/core/notify.c
+@@ -66,3 +66,12 @@ void usb_notify_remove_bus(struct usb_bus *ubus)
+ {
+ 	blocking_notifier_call_chain(&usb_notifier_list, USB_BUS_REMOVE, ubus);
+ }
++
++void usb_notify_online_status(bool online)
++{
++	if (online) {
++		blocking_notifier_call_chain(&usb_notifier_list, USB_GADGET_ADD, NULL);
++	} else {
++		blocking_notifier_call_chain(&usb_notifier_list, USB_GADGET_REMOVE, NULL);
++	}
++}
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index b75fe5680..8b236394a 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -3633,6 +3633,7 @@ static void dwc3_gadget_interrupt(struct dwc3 *dwc,
+ {
+ 	switch (event->type) {
+ 	case DWC3_DEVICE_EVENT_DISCONNECT:
++		usb_notify_online_status(false);
+ 		dwc3_gadget_disconnect_interrupt(dwc);
+ 		break;
+ 	case DWC3_DEVICE_EVENT_RESET:
+@@ -3640,6 +3641,7 @@ static void dwc3_gadget_interrupt(struct dwc3 *dwc,
+ 		break;
+ 	case DWC3_DEVICE_EVENT_CONNECT_DONE:
+ 		dwc3_gadget_conndone_interrupt(dwc);
++		usb_notify_online_status(true);
+ 		break;
+ 	case DWC3_DEVICE_EVENT_WAKEUP:
+ 		dwc3_gadget_wakeup_interrupt(dwc);
 diff --git a/include/linux/hid.h b/include/linux/hid.h
-index 6ed2a97eb55f..1d1445a23967 100644
+index 6ed2a97eb..1d1445a23 100644
 --- a/include/linux/hid.h
 +++ b/include/linux/hid.h
 @@ -622,6 +622,7 @@ struct hid_device {							/* device report descriptor */
@@ -406,3 +443,19 @@ index 6ed2a97eb55f..1d1445a23967 100644
  };
  
  #define to_hid_device(pdev) \
+diff --git a/include/linux/usb.h b/include/linux/usb.h
+index d6a41841b..de3232ee5 100644
+--- a/include/linux/usb.h
++++ b/include/linux/usb.h
+@@ -2019,8 +2019,11 @@ static inline int usb_translate_errors(int error_code)
+ #define USB_DEVICE_REMOVE	0x0002
+ #define USB_BUS_ADD		0x0003
+ #define USB_BUS_REMOVE		0x0004
++#define USB_GADGET_ADD		0x0005
++#define USB_GADGET_REMOVE	0x0006
+ extern void usb_register_notify(struct notifier_block *nb);
+ extern void usb_unregister_notify(struct notifier_block *nb);
++extern void usb_notify_online_status(bool online);
+ 
+ /* debugfs stuff */
+ extern struct dentry *usb_debug_root;
