@@ -3353,7 +3353,7 @@ index 000000000..5144122e5
 +}
 +CLK_OF_DECLARE(hisi_pll_pst_clk, "hisilicon,pll-pst-clk", of_hisi_pll_pst_clk_setup);
 diff --git a/drivers/dma-buf/Kconfig b/drivers/dma-buf/Kconfig
-index 3ca7de37d..9c8094ebf 100644
+index 3280ca972..d080183eb 100644
 --- a/drivers/dma-buf/Kconfig
 +++ b/drivers/dma-buf/Kconfig
 @@ -56,6 +56,13 @@ config DMABUF_SELFTESTS
@@ -3371,10 +3371,10 @@ index 3ca7de37d..9c8094ebf 100644
  	bool "DMA-BUF Userland Memory Heaps"
  	select DMA_SHARED_BUFFER
 diff --git a/drivers/dma-buf/Makefile b/drivers/dma-buf/Makefile
-index 995e05f60..64625fdcc 100644
+index 40d81f23c..2429cea01 100644
 --- a/drivers/dma-buf/Makefile
 +++ b/drivers/dma-buf/Makefile
-@@ -13,3 +13,5 @@ dmabuf_selftests-y := \
+@@ -14,3 +14,5 @@ dmabuf_selftests-y := \
  	st-dma-fence-chain.o
  
  obj-$(CONFIG_DMABUF_SELFTESTS)	+= dmabuf_selftests.o
@@ -3383,7 +3383,7 @@ index 995e05f60..64625fdcc 100644
 diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
 old mode 100644
 new mode 100755
-index 922416b3a..c6431aa45
+index f55396de2..f8d570a51
 --- a/drivers/dma-buf/dma-buf.c
 +++ b/drivers/dma-buf/dma-buf.c
 @@ -14,6 +14,7 @@
@@ -3394,7 +3394,7 @@ index 922416b3a..c6431aa45
  #include <linux/dma-fence.h>
  #include <linux/anon_inodes.h>
  #include <linux/export.h>
-@@ -25,10 +26,17 @@
+@@ -25,10 +26,16 @@
  #include <linux/mm.h>
  #include <linux/mount.h>
  #include <linux/pseudo_fs.h>
@@ -3408,11 +3408,10 @@ index 922416b3a..c6431aa45
  
 +#include "securec.h"
 +#include "heaps/heap-helpers.h"
-+
- static inline int is_dma_buf_file(struct file *);
+ #include "dma-buf-sysfs-stats.h"
  
- struct dma_buf_list {
-@@ -620,6 +628,89 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags)
+ static inline int is_dma_buf_file(struct file *);
+@@ -635,6 +642,89 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags)
  }
  EXPORT_SYMBOL_GPL(dma_buf_fd);
  
@@ -3502,7 +3501,7 @@ index 922416b3a..c6431aa45
  /**
   * dma_buf_get - returns the dma_buf structure related to an fd
   * @fd:	[in]	fd associated with the dma_buf to be returned
-@@ -1140,6 +1231,155 @@ int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
+@@ -1155,6 +1245,155 @@ int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
  }
  EXPORT_SYMBOL_GPL(dma_buf_end_cpu_access);
  
@@ -3658,7 +3657,7 @@ index 922416b3a..c6431aa45
  
  /**
   * dma_buf_mmap - Setup up a userspace mmap with the given vma
-@@ -1359,14 +1599,110 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
+@@ -1374,14 +1613,110 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
  	return ret;
  }
  
@@ -3770,7 +3769,7 @@ index 922416b3a..c6431aa45
  
  	d = debugfs_create_dir("dma_buf", NULL);
  	if (IS_ERR(d))
-@@ -1377,13 +1713,23 @@ static int dma_buf_init_debugfs(void)
+@@ -1392,13 +1727,23 @@ static int dma_buf_init_debugfs(void)
  	d = debugfs_create_file("bufinfo", S_IRUGO, dma_buf_debugfs_dir,
  				NULL, &dma_buf_debug_fops);
  	if (IS_ERR(d)) {
@@ -3802,7 +3801,7 @@ index 922416b3a..c6431aa45
 diff --git a/drivers/dma-buf/dma-heap.c b/drivers/dma-buf/dma-heap.c
 old mode 100644
 new mode 100755
-index afd22c9db..05e1c0047
+index 70e410c64..d11c99a08
 --- a/drivers/dma-buf/dma-heap.c
 +++ b/drivers/dma-buf/dma-heap.c
 @@ -9,7 +9,7 @@
@@ -3968,7 +3967,7 @@ index afd22c9db..05e1c0047
  	default:
  		ret = -ENOTTY;
  		goto err;
-@@ -257,6 +323,11 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -269,6 +335,11 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
  		err_ret = ERR_CAST(dev_ret);
  		goto err2;
  	}
@@ -4028,7 +4027,7 @@ index e55384dc1..a0656dded 100644
  
  static const struct dma_heap_ops cma_heap_ops = {
 diff --git a/drivers/dma-buf/heaps/heap-helpers.c b/drivers/dma-buf/heaps/heap-helpers.c
-index d0696cf93..1c2554eef 100644
+index 35aa65bbf..4ed5b9390 100644
 --- a/drivers/dma-buf/heaps/heap-helpers.c
 +++ b/drivers/dma-buf/heaps/heap-helpers.c
 @@ -23,6 +23,9 @@ void init_heap_helper_buffer(struct heap_helper_buffer *buffer,
@@ -4041,7 +4040,7 @@ index d0696cf93..1c2554eef 100644
  }
  
  struct dma_buf *heap_helper_export_dmabuf(struct heap_helper_buffer *buffer,
-@@ -83,12 +86,6 @@ static void dma_heap_buffer_vmap_put(struct heap_helper_buffer *buffer)
+@@ -84,12 +87,6 @@ static void dma_heap_buffer_vmap_put(struct heap_helper_buffer *buffer)
  	}
  }
  
@@ -4054,7 +4053,7 @@ index d0696cf93..1c2554eef 100644
  static int dma_heap_attach(struct dma_buf *dmabuf,
  			   struct dma_buf_attachment *attachment)
  {
-@@ -191,6 +188,12 @@ static void dma_heap_dma_buf_release(struct dma_buf *dmabuf)
+@@ -192,6 +189,12 @@ static void dma_heap_dma_buf_release(struct dma_buf *dmabuf)
  {
  	struct heap_helper_buffer *buffer = dmabuf->priv;
  
@@ -5786,7 +5785,7 @@ index 000000000..1aed6f642
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/hisilicon/gpu/Makefile b/drivers/hisilicon/gpu/Makefile
 new file mode 100644
-index 000000000..7d5fe673c
+index 000000000..850a8de75
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/Makefile
 @@ -0,0 +1,65 @@
@@ -40018,7 +40017,7 @@ index 000000000..e92e53216
 +#endif /* __MALI_BLOCK_ALLOCATOR_H__ */
 diff --git a/drivers/hisilicon/gpu/utgard/linux/mali_memory_cow.c b/drivers/hisilicon/gpu/utgard/linux/mali_memory_cow.c
 new file mode 100644
-index 000000000..6cfcc433f
+index 000000000..0c6923037
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/utgard/linux/mali_memory_cow.c
 @@ -0,0 +1,782 @@
@@ -40806,7 +40805,7 @@ index 000000000..6cfcc433f
 +}
 diff --git a/drivers/hisilicon/gpu/utgard/linux/mali_memory_cow.h b/drivers/hisilicon/gpu/utgard/linux/mali_memory_cow.h
 new file mode 100644
-index 000000000..3ea6d576b
+index 000000000..ca0096d14
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/utgard/linux/mali_memory_cow.h
 @@ -0,0 +1,48 @@
@@ -40860,7 +40859,7 @@ index 000000000..3ea6d576b
 +
 diff --git a/drivers/hisilicon/gpu/utgard/linux/mali_memory_defer_bind.c b/drivers/hisilicon/gpu/utgard/linux/mali_memory_defer_bind.c
 new file mode 100644
-index 000000000..b2a19573e
+index 000000000..e0107fb0d
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/utgard/linux/mali_memory_defer_bind.c
 @@ -0,0 +1,262 @@
@@ -41128,7 +41127,7 @@ index 000000000..b2a19573e
 +
 diff --git a/drivers/hisilicon/gpu/utgard/linux/mali_memory_defer_bind.h b/drivers/hisilicon/gpu/utgard/linux/mali_memory_defer_bind.h
 new file mode 100644
-index 000000000..ab599021e
+index 000000000..4b6b541a7
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/utgard/linux/mali_memory_defer_bind.h
 @@ -0,0 +1,64 @@
@@ -42826,7 +42825,7 @@ index 000000000..bb91d5169
 +}
 diff --git a/drivers/hisilicon/gpu/utgard/linux/mali_memory_manager.h b/drivers/hisilicon/gpu/utgard/linux/mali_memory_manager.h
 new file mode 100644
-index 000000000..c1b0083c2
+index 000000000..055e3516f
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/utgard/linux/mali_memory_manager.h
 @@ -0,0 +1,51 @@
@@ -44978,7 +44977,7 @@ index 000000000..26a27aa2b
 +#endif
 diff --git a/drivers/hisilicon/gpu/utgard/linux/mali_memory_swap_alloc.h b/drivers/hisilicon/gpu/utgard/linux/mali_memory_swap_alloc.h
 new file mode 100644
-index 000000000..9dd972af3
+index 000000000..ea0d24ca1
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/utgard/linux/mali_memory_swap_alloc.h
 @@ -0,0 +1,121 @@
@@ -45696,7 +45695,7 @@ index 000000000..4b39326c9
 +}
 diff --git a/drivers/hisilicon/gpu/utgard/linux/mali_memory_util.h b/drivers/hisilicon/gpu/utgard/linux/mali_memory_util.h
 new file mode 100644
-index 000000000..230f0d5c5
+index 000000000..c860ff507
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/utgard/linux/mali_memory_util.h
 @@ -0,0 +1,20 @@
@@ -45722,7 +45721,7 @@ index 000000000..230f0d5c5
 +#endif
 diff --git a/drivers/hisilicon/gpu/utgard/linux/mali_memory_virtual.c b/drivers/hisilicon/gpu/utgard/linux/mali_memory_virtual.c
 new file mode 100644
-index 000000000..1c9f1eaa9
+index 000000000..bad82ad24
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/utgard/linux/mali_memory_virtual.c
 @@ -0,0 +1,127 @@
@@ -45855,7 +45854,7 @@ index 000000000..1c9f1eaa9
 +
 diff --git a/drivers/hisilicon/gpu/utgard/linux/mali_memory_virtual.h b/drivers/hisilicon/gpu/utgard/linux/mali_memory_virtual.h
 new file mode 100644
-index 000000000..4eb61635d
+index 000000000..c63d33a0f
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/utgard/linux/mali_memory_virtual.h
 @@ -0,0 +1,35 @@
@@ -45961,7 +45960,7 @@ index 000000000..0c686fbcf
 +}
 diff --git a/drivers/hisilicon/gpu/utgard/linux/mali_osk_bitmap.c b/drivers/hisilicon/gpu/utgard/linux/mali_osk_bitmap.c
 new file mode 100644
-index 000000000..44460b99b
+index 000000000..19caab987
 --- /dev/null
 +++ b/drivers/hisilicon/gpu/utgard/linux/mali_osk_bitmap.c
 @@ -0,0 +1,152 @@
@@ -63217,7 +63216,7 @@ new mode 100755
 diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
 old mode 100644
 new mode 100755
-index 957b398d3..22a902835
+index e79fa6751..833225789
 --- a/include/linux/dma-buf.h
 +++ b/include/linux/dma-buf.h
 @@ -25,6 +25,7 @@
@@ -63228,7 +63227,7 @@ index 957b398d3..22a902835
  
  /**
   * struct dma_buf_ops - operations possible on struct dma_buf
-@@ -310,6 +311,8 @@ struct dma_buf {
+@@ -313,6 +314,8 @@ struct dma_buf {
  	struct mutex lock;
  	unsigned vmapping_counter;
  	void *vmap_ptr;
@@ -63237,7 +63236,7 @@ index 957b398d3..22a902835
  	const char *exp_name;
  	const char *name;
  	spinlock_t name_lock;
-@@ -487,6 +490,9 @@ void dma_buf_unpin(struct dma_buf_attachment *attach);
+@@ -497,6 +500,9 @@ void dma_buf_unpin(struct dma_buf_attachment *attach);
  struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info);
  
  int dma_buf_fd(struct dma_buf *dmabuf, int flags);
@@ -63247,7 +63246,7 @@ index 957b398d3..22a902835
  struct dma_buf *dma_buf_get(int fd);
  void dma_buf_put(struct dma_buf *dmabuf);
  
-@@ -500,6 +506,10 @@ int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
+@@ -510,6 +516,10 @@ int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
  int dma_buf_end_cpu_access(struct dma_buf *dma_buf,
  			   enum dma_data_direction dir);
  
@@ -63259,7 +63258,7 @@ index 957b398d3..22a902835
  		 unsigned long);
  void *dma_buf_vmap(struct dma_buf *);
 diff --git a/include/linux/dma-heap.h b/include/linux/dma-heap.h
-index 454e354d1..79caf2992 100644
+index 83b8cfb2d..e7b56a365 100644
 --- a/include/linux/dma-heap.h
 +++ b/include/linux/dma-heap.h
 @@ -11,8 +11,32 @@
@@ -63305,7 +63304,7 @@ index 454e354d1..79caf2992 100644
  			unsigned long len,
  			unsigned long fd_flags,
  			unsigned long heap_flags);
-@@ -56,4 +80,13 @@ void *dma_heap_get_drvdata(struct dma_heap *heap);
+@@ -65,4 +89,13 @@ const char *dma_heap_get_name(struct dma_heap *heap);
   */
  struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info);
  
