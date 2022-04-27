@@ -307,20 +307,20 @@ index a48e5f2d8..90d25f224 100644
  obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
  obj-$(CONFIG_INPUT_IDEAPAD_SLIDEBAR)	+= ideapad_slidebar.o
  
-+ccflags-y +=-Idrivers/hdf/framework/model/input/driver \
-+             -Idrivers/hdf/framework/model/input/driver/input_bus_ops \
-+             -Idrivers/hdf/framework/include/core \
-+             -Idrivers/hdf/framework/core/common/include/host \
-+             -Idrivers/hdf/framework/include/utils \
-+             -Idrivers/hdf/framework/include/osal \
-+             -Idrivers/hdf/framework/include/platform \
-+             -Idrivers/hdf/framework/include/config \
-+             -Idrivers/hdf/framework/core/host/include \
-+             -Idrivers/hdf/framework/core/shared/include \
-+             -Idrivers/hdf/framework/utils/include \
-+             -Idrivers/hdf/khdf/osal/include
-+ccflags-y +=-Ibounds_checking_function/include \
-+             -Idrivers/hdf/evdev
++ccflags-y +=-I$(srctree)/drivers/hdf/framework/model/input/driver \
++             -I$(srctree)/drivers/hdf/framework/model/input/driver/input_bus_ops \
++             -I$(srctree)/drivers/hdf/framework/include/core \
++             -I$(srctree)/drivers/hdf/framework/core/common/include/host \
++             -I$(srctree)/drivers/hdf/framework/include/utils \
++             -I$(srctree)/drivers/hdf/framework/include/osal \
++             -I$(srctree)/drivers/hdf/framework/include/platform \
++             -I$(srctree)/drivers/hdf/framework/include/config \
++             -I$(srctree)/drivers/hdf/framework/core/host/include \
++             -I$(srctree)/drivers/hdf/framework/core/shared/include \
++             -I$(srctree)/drivers/hdf/framework/utils/include \
++             -I$(srctree)/drivers/hdf/khdf/osal/include
++ccflags-y +=-I$(srctree)/bounds_checking_function/include \
++             -I$(srctree)/drivers/hdf/evdev
 diff --git a/drivers/input/misc/rk805-pwrkey.c b/drivers/input/misc/rk805-pwrkey.c
 index 3fb64dbda..394cd5912 100644
 --- a/drivers/input/misc/rk805-pwrkey.c
