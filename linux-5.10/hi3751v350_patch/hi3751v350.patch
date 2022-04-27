@@ -3353,12 +3353,12 @@ index 000000000..5144122e5
 +}
 +CLK_OF_DECLARE(hisi_pll_pst_clk, "hisilicon,pll-pst-clk", of_hisi_pll_pst_clk_setup);
 diff --git a/drivers/dma-buf/Kconfig b/drivers/dma-buf/Kconfig
-index 3280ca972..d080183eb 100644
+index 594b77d89..bff9c330f 100644
 --- a/drivers/dma-buf/Kconfig
 +++ b/drivers/dma-buf/Kconfig
-@@ -56,6 +56,13 @@ config DMABUF_SELFTESTS
- 	default n
- 	depends on DMA_SHARED_BUFFER
+@@ -69,6 +69,13 @@ config DMABUF_PROCESS_INFO
+ 	  debugfs (if DEBUG_FS enabled) and process_dmabuf_info file in procfs
+ 	  (if PROC_FS enabled) to show dmabuf objects usage of all processes.
  
 +config HI_DMABUF_ATTACH
 +	bool "hisilicon dma-buf attachment"
@@ -3371,19 +3371,22 @@ index 3280ca972..d080183eb 100644
  	bool "DMA-BUF Userland Memory Heaps"
  	select DMA_SHARED_BUFFER
 diff --git a/drivers/dma-buf/Makefile b/drivers/dma-buf/Makefile
-index 40d81f23c..2429cea01 100644
+index cfbc5e3da..733a84f30 100644
 --- a/drivers/dma-buf/Makefile
 +++ b/drivers/dma-buf/Makefile
-@@ -14,3 +14,5 @@ dmabuf_selftests-y := \
+@@ -13,6 +13,8 @@ dmabuf_selftests-y := \
+ 	st-dma-fence.o \
  	st-dma-fence-chain.o
  
- obj-$(CONFIG_DMABUF_SELFTESTS)	+= dmabuf_selftests.o
-+
 +ccflags-y += -I$(srctree)/bounds_checking_function/include
++
+ obj-$(CONFIG_DMABUF_SELFTESTS)	+= dmabuf_selftests.o
+ 
+ obj-$(CONFIG_DMABUF_PROCESS_INFO)	+= dma-buf-process-info.o
 diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
 old mode 100644
 new mode 100755
-index f55396de2..f8d570a51
+index b6ae42d59..3966078fe
 --- a/drivers/dma-buf/dma-buf.c
 +++ b/drivers/dma-buf/dma-buf.c
 @@ -14,6 +14,7 @@
@@ -3409,9 +3412,9 @@ index f55396de2..f8d570a51
 +#include "securec.h"
 +#include "heaps/heap-helpers.h"
  #include "dma-buf-sysfs-stats.h"
+ #include "dma-buf-process-info.h"
  
- static inline int is_dma_buf_file(struct file *);
-@@ -635,6 +642,89 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags)
+@@ -637,6 +644,89 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags)
  }
  EXPORT_SYMBOL_GPL(dma_buf_fd);
  
@@ -3501,7 +3504,7 @@ index f55396de2..f8d570a51
  /**
   * dma_buf_get - returns the dma_buf structure related to an fd
   * @fd:	[in]	fd associated with the dma_buf to be returned
-@@ -1155,6 +1245,155 @@ int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
+@@ -1157,6 +1247,155 @@ int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
  }
  EXPORT_SYMBOL_GPL(dma_buf_end_cpu_access);
  
@@ -3657,7 +3660,7 @@ index f55396de2..f8d570a51
  
  /**
   * dma_buf_mmap - Setup up a userspace mmap with the given vma
-@@ -1374,14 +1613,110 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
+@@ -1381,14 +1620,110 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
  	return ret;
  }
  
@@ -3769,7 +3772,7 @@ index f55396de2..f8d570a51
  
  	d = debugfs_create_dir("dma_buf", NULL);
  	if (IS_ERR(d))
-@@ -1392,13 +1727,23 @@ static int dma_buf_init_debugfs(void)
+@@ -1399,14 +1734,24 @@ static int dma_buf_init_debugfs(void)
  	d = debugfs_create_file("bufinfo", S_IRUGO, dma_buf_debugfs_dir,
  				NULL, &dma_buf_debug_fops);
  	if (IS_ERR(d)) {
@@ -3779,15 +3782,16 @@ index f55396de2..f8d570a51
 -		err = PTR_ERR(d);
 +		pr_err("dma_buf: debugfs: failed to create node bufinfo\n");
 +		goto err;
-+	}
-+
+ 	}
+ 
 +	d = debugfs_create_file("create_heapfs", 0644, dma_buf_debugfs_dir, NULL,
 +			&dma_heaps_create_fops);
 +	if (IS_ERR(d)) {
 +		pr_err("dma_buf: debugfs: failed to create node bufinfo\n");
 +		goto err;
- 	}
- 
++ 	}
++
+ 	dma_buf_process_info_init_debugfs(dma_buf_debugfs_dir);
 -	return err;
 +	return 0;
 +err:
@@ -63216,7 +63220,7 @@ new mode 100755
 diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
 old mode 100644
 new mode 100755
-index e79fa6751..833225789
+index 0c5706abb..39d739c39
 --- a/include/linux/dma-buf.h
 +++ b/include/linux/dma-buf.h
 @@ -25,6 +25,7 @@
@@ -63227,7 +63231,7 @@ index e79fa6751..833225789
  
  /**
   * struct dma_buf_ops - operations possible on struct dma_buf
-@@ -313,6 +314,8 @@ struct dma_buf {
+@@ -315,6 +316,8 @@ struct dma_buf {
  	struct mutex lock;
  	unsigned vmapping_counter;
  	void *vmap_ptr;
@@ -63236,7 +63240,7 @@ index e79fa6751..833225789
  	const char *exp_name;
  	const char *name;
  	spinlock_t name_lock;
-@@ -497,6 +500,9 @@ void dma_buf_unpin(struct dma_buf_attachment *attach);
+@@ -503,6 +506,9 @@ void dma_buf_unpin(struct dma_buf_attachment *attach);
  struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info);
  
  int dma_buf_fd(struct dma_buf *dmabuf, int flags);
@@ -63246,7 +63250,7 @@ index e79fa6751..833225789
  struct dma_buf *dma_buf_get(int fd);
  void dma_buf_put(struct dma_buf *dmabuf);
  
-@@ -510,6 +516,10 @@ int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
+@@ -516,6 +522,10 @@ int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
  int dma_buf_end_cpu_access(struct dma_buf *dma_buf,
  			   enum dma_data_direction dir);
  
