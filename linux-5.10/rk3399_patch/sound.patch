@@ -1,0 +1,1556 @@
+From e43d4d7dc9e276d6756466687dbf5b615c5dff35 Mon Sep 17 00:00:00 2001
+From: jiewangdp <jiewangdp@isoftstone.com>
+Date: Fri, 24 Jun 2022 17:23:47 +0800
+Subject: [PATCH] sound
+
+Change-Id: Idfc837c0e1d91bee6277ace0bd3d09851ba17f65
+---
+ sound/drivers/aloop.c               |  30 +++-
+ sound/soc/codecs/Kconfig            |  13 +-
+ sound/soc/codecs/Makefile           |   4 +
+ sound/soc/codecs/bt-sco.c           |   8 +-
+ sound/soc/codecs/es8328.c           |  18 +++
+ sound/soc/codecs/rt5640.c           |   4 +-
+ sound/soc/codecs/rt5651.c           |  85 +++++++++-
+ sound/soc/codecs/rt5651.h           |   3 +
+ sound/soc/codecs/wm8974.c           |  38 +++++
+ sound/soc/rockchip/Kconfig          |  55 +++++++
+ sound/soc/rockchip/Makefile         |  21 ++-
+ sound/soc/rockchip/rockchip_i2s.c   | 230 ++++++++++++++++++----------
+ sound/soc/rockchip/rockchip_i2s.h   |  10 +-
+ sound/soc/rockchip/rockchip_pdm.c   | 136 ++++++++++++++--
+ sound/soc/rockchip/rockchip_pdm.h   |   6 +
+ sound/soc/rockchip/rockchip_spdif.c |  45 +++---
+ sound/usb/quirks.c                  |   6 +
+ 17 files changed, 582 insertions(+), 130 deletions(-)
+
+diff --git a/sound/drivers/aloop.c b/sound/drivers/aloop.c
+index 2c5f7e905ab8..51821334fcee 100644
+--- a/sound/drivers/aloop.c
++++ b/sound/drivers/aloop.c
+@@ -37,6 +37,7 @@ MODULE_SUPPORTED_DEVICE("{{ALSA,Loopback soundcard}}");
+ 
+ #define MAX_PCM_SUBSTREAMS	8
+ 
++static bool use_raw_jiffies;
+ static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
+ static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
+ static bool enable[SNDRV_CARDS] = {1, [1 ... (SNDRV_CARDS - 1)] = 0};
+@@ -44,6 +45,8 @@ static int pcm_substreams[SNDRV_CARDS] = {[0 ... (SNDRV_CARDS - 1)] = 8};
+ static int pcm_notify[SNDRV_CARDS];
+ static char *timer_source[SNDRV_CARDS];
+ 
++module_param(use_raw_jiffies, bool, 0444);
++MODULE_PARM_DESC(use_raw_jiffies, "Use raw jiffies follows local clocks.");
+ module_param_array(index, int, NULL, 0444);
+ MODULE_PARM_DESC(index, "Index value for loopback soundcard.");
+ module_param_array(id, charp, NULL, 0444);
+@@ -163,6 +166,22 @@ struct loopback_pcm {
+ 
+ static struct platform_device *devices[SNDRV_CARDS];
+ 
++static inline unsigned long get_raw_jiffies(void)
++{
++	struct timespec64 ts64;
++
++	ktime_get_raw_ts64(&ts64);
++	return timespec64_to_jiffies(&ts64);
++}
++
++static inline unsigned long cycles_to_jiffies(void)
++{
++	if (likely(use_raw_jiffies))
++		return get_raw_jiffies();
++
++	return jiffies;
++}
++
+ static inline unsigned int byte_pos(struct loopback_pcm *dpcm, unsigned int x)
+ {
+ 	if (dpcm->pcm_rate_shift == NO_PITCH) {
+@@ -387,7 +406,7 @@ static int loopback_trigger(struct snd_pcm_substream *substream, int cmd)
+ 		err = loopback_check_format(cable, substream->stream);
+ 		if (err < 0)
+ 			return err;
+-		dpcm->last_jiffies = jiffies;
++		dpcm->last_jiffies = cycles_to_jiffies();
+ 		dpcm->pcm_rate_shift = 0;
+ 		dpcm->last_drift = 0;
+ 		spin_lock(&cable->lock);	
+@@ -419,7 +438,7 @@ static int loopback_trigger(struct snd_pcm_substream *substream, int cmd)
+ 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+ 	case SNDRV_PCM_TRIGGER_RESUME:
+ 		spin_lock(&cable->lock);
+-		dpcm->last_jiffies = jiffies;
++		dpcm->last_jiffies = cycles_to_jiffies();
+ 		cable->pause &= ~stream;
+ 		err = cable->ops->start(dpcm);
+ 		spin_unlock(&cable->lock);
+@@ -608,15 +627,16 @@ static unsigned int loopback_jiffies_timer_pos_update
+ 			cable->streams[SNDRV_PCM_STREAM_CAPTURE];
+ 	unsigned long delta_play = 0, delta_capt = 0;
+ 	unsigned int running, count1, count2;
++	unsigned long cur_jiffies = cycles_to_jiffies();
+ 
+ 	running = cable->running ^ cable->pause;
+ 	if (running & (1 << SNDRV_PCM_STREAM_PLAYBACK)) {
+-		delta_play = jiffies - dpcm_play->last_jiffies;
++		delta_play = cur_jiffies - dpcm_play->last_jiffies;
+ 		dpcm_play->last_jiffies += delta_play;
+ 	}
+ 
+ 	if (running & (1 << SNDRV_PCM_STREAM_CAPTURE)) {
+-		delta_capt = jiffies - dpcm_capt->last_jiffies;
++		delta_capt = cur_jiffies - dpcm_capt->last_jiffies;
+ 		dpcm_capt->last_jiffies += delta_capt;
+ 	}
+ 
+@@ -842,7 +862,7 @@ static void loopback_jiffies_timer_dpcm_info(struct loopback_pcm *dpcm,
+ 	snd_iprintf(buffer, "    irq_pos:\t\t%u\n", dpcm->irq_pos);
+ 	snd_iprintf(buffer, "    period_frac:\t%u\n", dpcm->period_size_frac);
+ 	snd_iprintf(buffer, "    last_jiffies:\t%lu (%lu)\n",
+-		    dpcm->last_jiffies, jiffies);
++		    dpcm->last_jiffies, cycles_to_jiffies());
+ 	snd_iprintf(buffer, "    timer_expires:\t%lu\n", dpcm->timer.expires);
+ }
+ 
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index 34c6dd04b85a..b380d0b31b4e 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -89,10 +89,12 @@ config SND_SOC_ALL_CODECS
+ 	imply SND_SOC_DA732X
+ 	imply SND_SOC_DA9055
+ 	imply SND_SOC_DMIC
++	imply SND_SOC_DUMMY_CODEC
+ 	imply SND_SOC_ES8316
+ 	imply SND_SOC_ES8328_SPI
+ 	imply SND_SOC_ES8328_I2C
+ 	imply SND_SOC_ES7134
++	imply SND_SOC_ES7202
+ 	imply SND_SOC_ES7241
+ 	imply SND_SOC_GTM601
+ 	imply SND_SOC_HDAC_HDMI
+@@ -761,6 +763,9 @@ config SND_SOC_DMIC
+ 	  Enable support for the Generic Digital Microphone CODEC.
+ 	  Select this if your sound card has DMICs.
+ 
++config SND_SOC_DUMMY_CODEC
++	tristate "Dummy CODEC"
++
+ config SND_SOC_HDMI_CODEC
+ 	tristate
+ 	select SND_PCM_ELD
+@@ -776,6 +781,7 @@ config SND_SOC_ES7241
+ config SND_SOC_ES8316
+ 	tristate "Everest Semi ES8316 CODEC"
+ 	depends on I2C
++	depends on I2C
+ 
+ config SND_SOC_ES8328
+ 	tristate
+@@ -1024,6 +1030,9 @@ config SND_SOC_RK3328
+ 	tristate "Rockchip RK3328 audio CODEC"
+ 	select REGMAP_MMIO
+ 
++config SND_SOC_RK_CODEC_DIGITAL
++	tristate "Rockchip Codec Digital Interface"
++
+ config SND_SOC_RL6231
+ 	tristate
+ 	default y if SND_SOC_RT5514=y
+@@ -1130,7 +1139,7 @@ config SND_SOC_RT5631
+ 	depends on I2C
+ 
+ config SND_SOC_RT5640
+-	tristate
++	tristate "Realtek ALC5640 CODEC"
+ 	depends on I2C
+ 
+ config SND_SOC_RT5645
+@@ -1138,7 +1147,7 @@ config SND_SOC_RT5645
+ 	depends on I2C
+ 
+ config SND_SOC_RT5651
+-	tristate
++	tristate "Realtek ALC5651 CODEC"
+ 	depends on I2C
+ 
+ config SND_SOC_RT5659
+diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
+index 11ce98c25d6c..5e2b27de3600 100644
+--- a/sound/soc/codecs/Makefile
++++ b/sound/soc/codecs/Makefile
+@@ -84,6 +84,7 @@ snd-soc-da7219-objs := da7219.o da7219-aad.o
+ snd-soc-da732x-objs := da732x.o
+ snd-soc-da9055-objs := da9055.o
+ snd-soc-dmic-objs := dmic.o
++snd-soc-dummy-codec-objs := dummy-codec.o
+ snd-soc-es7134-objs := es7134.o
+ snd-soc-es7241-objs := es7241.o
+ snd-soc-es8316-objs := es8316.o
+@@ -156,6 +157,7 @@ snd-soc-pcm512x-objs := pcm512x.o
+ snd-soc-pcm512x-i2c-objs := pcm512x-i2c.o
+ snd-soc-pcm512x-spi-objs := pcm512x-spi.o
+ snd-soc-rk3328-objs := rk3328_codec.o
++snd-soc-rk-codec-digital-objs := rk_codec_digital.o
+ snd-soc-rl6231-objs := rl6231.o
+ snd-soc-rl6347a-objs := rl6347a.o
+ snd-soc-rt1011-objs := rt1011.o
+@@ -393,6 +395,7 @@ obj-$(CONFIG_SND_SOC_DA7219)	+= snd-soc-da7219.o
+ obj-$(CONFIG_SND_SOC_DA732X)	+= snd-soc-da732x.o
+ obj-$(CONFIG_SND_SOC_DA9055)	+= snd-soc-da9055.o
+ obj-$(CONFIG_SND_SOC_DMIC)	+= snd-soc-dmic.o
++obj-$(CONFIG_SND_SOC_DUMMY_CODEC)	+= snd-soc-dummy-codec.o
+ obj-$(CONFIG_SND_SOC_ES7134)	+= snd-soc-es7134.o
+ obj-$(CONFIG_SND_SOC_ES7241)	+= snd-soc-es7241.o
+ obj-$(CONFIG_SND_SOC_ES8316)    += snd-soc-es8316.o
+@@ -465,6 +468,7 @@ obj-$(CONFIG_SND_SOC_PCM512x)	+= snd-soc-pcm512x.o
+ obj-$(CONFIG_SND_SOC_PCM512x_I2C)	+= snd-soc-pcm512x-i2c.o
+ obj-$(CONFIG_SND_SOC_PCM512x_SPI)	+= snd-soc-pcm512x-spi.o
+ obj-$(CONFIG_SND_SOC_RK3328)	+= snd-soc-rk3328.o
++obj-$(CONFIG_SND_SOC_RK_CODEC_DIGITAL)	+= snd-soc-rk-codec-digital.o
+ obj-$(CONFIG_SND_SOC_RL6231)	+= snd-soc-rl6231.o
+ obj-$(CONFIG_SND_SOC_RL6347A)	+= snd-soc-rl6347a.o
+ obj-$(CONFIG_SND_SOC_RT1011)	+= snd-soc-rt1011.o
+diff --git a/sound/soc/codecs/bt-sco.c b/sound/soc/codecs/bt-sco.c
+index 4d286844e3c8..2be7ba425ee4 100644
+--- a/sound/soc/codecs/bt-sco.c
++++ b/sound/soc/codecs/bt-sco.c
+@@ -26,14 +26,14 @@ static struct snd_soc_dai_driver bt_sco_dai[] = {
+ 		.playback = {
+ 			.stream_name = "Playback",
+ 			.channels_min = 1,
+-			.channels_max = 1,
++			.channels_max = 2,
+ 			.rates = SNDRV_PCM_RATE_8000,
+ 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
+ 		},
+ 		.capture = {
+ 			 .stream_name = "Capture",
+ 			.channels_min = 1,
+-			.channels_max = 1,
++			.channels_max = 2,
+ 			.rates = SNDRV_PCM_RATE_8000,
+ 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
+ 		},
+@@ -43,14 +43,14 @@ static struct snd_soc_dai_driver bt_sco_dai[] = {
+ 		.playback = {
+ 			.stream_name = "Playback",
+ 			.channels_min = 1,
+-			.channels_max = 1,
++			.channels_max = 2,
+ 			.rates = SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000,
+ 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
+ 		},
+ 		.capture = {
+ 			 .stream_name = "Capture",
+ 			.channels_min = 1,
+-			.channels_max = 1,
++			.channels_max = 2,
+ 			.rates = SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000,
+ 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
+ 		},
+diff --git a/sound/soc/codecs/es8328.c b/sound/soc/codecs/es8328.c
+index 7e26231a596a..1d27a26e0907 100644
+--- a/sound/soc/codecs/es8328.c
++++ b/sound/soc/codecs/es8328.c
+@@ -36,6 +36,16 @@ static const struct snd_pcm_hw_constraint_list constraints_12288 = {
+ 	.list	= rates_12288,
+ };
+ 
++static unsigned int ratios_12000[] = {
++	8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000,
++	48000, 88235, 96000,
++};
++
++static struct snd_pcm_hw_constraint_list constraints_12000 = {
++	.count = ARRAY_SIZE(ratios_12000),
++	.list = ratios_12000,
++};
++
+ static const unsigned int rates_11289[] = {
+ 	8018, 11025, 22050, 44100, 88200,
+ };
+@@ -574,6 +584,14 @@ static int es8328_set_sysclk(struct snd_soc_dai *codec_dai,
+ 		es8328->sysclk_constraints = &constraints_12288;
+ 		es8328->mclk_ratios = ratios_12288;
+ 		break;
++
++	case 24000000:
++		mclkdiv2 = 1;
++		fallthrough;
++	case 12000000:
++		es8328->sysclk_constraints = &constraints_12000;
++		es8328->mclk_ratios = ratios_12000;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/sound/soc/codecs/rt5640.c b/sound/soc/codecs/rt5640.c
+index a5674c227b3a..0db73e7a0511 100644
+--- a/sound/soc/codecs/rt5640.c
++++ b/sound/soc/codecs/rt5640.c
+@@ -1335,7 +1335,9 @@ static const struct snd_soc_dapm_route rt5640_dapm_routes[] = {
+ 	{ "I2S2", NULL, "I2S2 Filter ASRC", is_using_asrc },
+ 	{ "DMIC1", NULL, "DMIC1 ASRC", is_using_asrc },
+ 	{ "DMIC2", NULL, "DMIC2 ASRC", is_using_asrc },
+-
++	{"IN1P", NULL, "MICBIAS1"},
++	{"IN2P", NULL, "MICBIAS1"},
++	{"IN3P", NULL, "MICBIAS1"},
+ 	{"IN1P", NULL, "LDO2"},
+ 	{"IN2P", NULL, "LDO2"},
+ 	{"IN3P", NULL, "LDO2"},
+diff --git a/sound/soc/codecs/rt5651.c b/sound/soc/codecs/rt5651.c
+index e59fdc81dbd4..2dd8d6d4f87d 100644
+--- a/sound/soc/codecs/rt5651.c
++++ b/sound/soc/codecs/rt5651.c
+@@ -24,6 +24,9 @@
+ #include <sound/initval.h>
+ #include <sound/tlv.h>
+ #include <sound/jack.h>
++#include <linux/of_gpio.h>
++#include <linux/gpio.h>
++#include <linux/clk.h>
+ 
+ #include "rl6231.h"
+ #include "rt5651.h"
+@@ -284,6 +287,40 @@ static bool rt5651_readable_register(struct device *dev, unsigned int reg)
+ 	}
+ }
+ 
++static int rt5651_asrc_get(struct snd_kcontrol *kcontrol,
++			   struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
++	struct rt5651_priv *rt5651 = snd_soc_component_get_drvdata(component);
++
++	ucontrol->value.integer.value[0] = rt5651->asrc_en;
++
++	return 0;
++}
++
++static int rt5651_asrc_put(struct snd_kcontrol *kcontrol,
++			   struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
++	struct rt5651_priv *rt5651 = snd_soc_component_get_drvdata(component);
++
++	rt5651->asrc_en = ucontrol->value.integer.value[0];
++	if (rt5651->asrc_en) {
++		regmap_write(rt5651->regmap, 0x80, 0x4000);
++		regmap_write(rt5651->regmap, 0x81, 0x0302);
++		regmap_write(rt5651->regmap, 0x82, 0x0800);
++		regmap_write(rt5651->regmap, 0x73, 0x1004);
++		regmap_write(rt5651->regmap, 0x83, 0x1000);
++		regmap_write(rt5651->regmap, 0x84, 0x7000);
++		snd_soc_component_update_bits(component, 0x64, 0x0200, 0x0200);
++		snd_soc_component_update_bits(component, RT5651_D_MISC, 0xc00, 0xc00);
++	} else {
++		regmap_write(rt5651->regmap, 0x83, 0x0);
++		regmap_write(rt5651->regmap, 0x84, 0x0);
++	}
++	return 0;
++}
++
+ static const DECLARE_TLV_DB_SCALE(out_vol_tlv, -4650, 150, 0);
+ static const DECLARE_TLV_DB_MINMAX(dac_vol_tlv, -6562, 0);
+ static const DECLARE_TLV_DB_SCALE(in_vol_tlv, -3450, 150, 0);
+@@ -311,6 +348,10 @@ static SOC_ENUM_SINGLE_DECL(rt5651_if2_dac_enum, RT5651_DIG_INF_DATA,
+ static SOC_ENUM_SINGLE_DECL(rt5651_if2_adc_enum, RT5651_DIG_INF_DATA,
+ 				RT5651_IF2_ADC_SEL_SFT, rt5651_data_select);
+ 
++static const char * const rt5651_asrc_mode[] = {"Disable", "Enable"};
++
++static SOC_ENUM_SINGLE_DECL(rt5651_asrc_enum, 0, 0, rt5651_asrc_mode);
++
+ static const struct snd_kcontrol_new rt5651_snd_controls[] = {
+ 	/* Headphone Output Volume */
+ 	SOC_DOUBLE_TLV("HP Playback Volume", RT5651_HP_VOL,
+@@ -353,6 +394,9 @@ static const struct snd_kcontrol_new rt5651_snd_controls[] = {
+ 			RT5651_ADC_L_BST_SFT, RT5651_ADC_R_BST_SFT,
+ 			3, 0, adc_bst_tlv),
+ 
++	/* RT5651 ASRC Switch */
++	SOC_ENUM_EXT("RT5651 ASRC Switch", rt5651_asrc_enum,
++		     rt5651_asrc_get, rt5651_asrc_put),
+ 	/* ASRC */
+ 	SOC_SINGLE("IF1 ASRC Switch", RT5651_PLL_MODE_1,
+ 		RT5651_STO1_T_SFT, 1, 0),
+@@ -1511,9 +1555,13 @@ static int rt5651_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int source,
+ static int rt5651_set_bias_level(struct snd_soc_component *component,
+ 			enum snd_soc_bias_level level)
+ {
++	struct rt5651_priv *rt5651 = snd_soc_component_get_drvdata(component);
++
+ 	switch (level) {
+ 	case SND_SOC_BIAS_PREPARE:
+ 		if (SND_SOC_BIAS_STANDBY == snd_soc_component_get_bias_level(component)) {
++			if (!IS_ERR(rt5651->mclk))
++				clk_prepare_enable(rt5651->mclk);
+ 			if (snd_soc_component_read(component, RT5651_PLL_MODE_1) & 0x9200)
+ 				snd_soc_component_update_bits(component, RT5651_D_MISC,
+ 						    0xc00, 0xc00);
+@@ -1531,6 +1579,9 @@ static int rt5651_set_bias_level(struct snd_soc_component *component,
+ 				RT5651_PWR_FV1 | RT5651_PWR_FV2,
+ 				RT5651_PWR_FV1 | RT5651_PWR_FV2);
+ 			snd_soc_component_update_bits(component, RT5651_D_MISC, 0x1, 0x1);
++		} else if (SND_SOC_BIAS_PREPARE == snd_soc_component_get_bias_level(component)) {
++			if (!IS_ERR(rt5651->mclk))
++				clk_disable_unprepare(rt5651->mclk);
+ 		}
+ 		break;
+ 
+@@ -2061,6 +2112,10 @@ static int rt5651_probe(struct snd_soc_component *component)
+ 
+ 	rt5651->component = component;
+ 
++	rt5651->mclk = devm_clk_get(component->dev, "mclk");
++	if (PTR_ERR(rt5651->mclk) == -EPROBE_DEFER)
++		return -EPROBE_DEFER;
++
+ 	snd_soc_component_update_bits(component, RT5651_PWR_ANLG1,
+ 		RT5651_PWR_LDO_DVO_MASK, RT5651_PWR_LDO_DVO_1_2V);
+ 
+@@ -2071,6 +2126,25 @@ static int rt5651_probe(struct snd_soc_component *component)
+ 	return 0;
+ }
+ 
++static void rt5651_enable_spk(struct rt5651_priv *rt5651, bool enable)
++{
++	if (!rt5651 || !rt5651->gpiod_spk_ctl)
++		return;
++	gpiod_set_value(rt5651->gpiod_spk_ctl, enable);
++}
++
++static int rt5651_mute(struct snd_soc_dai *dai, int mute, int stream)
++{
++	struct snd_soc_component *component = dai->component;
++	struct rt5651_priv *rt5651 = snd_soc_component_get_drvdata(component);
++
++	if (mute)
++		rt5651_enable_spk(rt5651, false);
++	else
++		rt5651_enable_spk(rt5651, true);
++	return 0;
++}
++
+ #ifdef CONFIG_PM
+ static int rt5651_suspend(struct snd_soc_component *component)
+ {
+@@ -2104,6 +2178,8 @@ static const struct snd_soc_dai_ops rt5651_aif_dai_ops = {
+ 	.set_fmt = rt5651_set_dai_fmt,
+ 	.set_sysclk = rt5651_set_dai_sysclk,
+ 	.set_pll = rt5651_set_dai_pll,
++	.mute_stream = rt5651_mute,
++	.no_capture_mute = 1,
+ };
+ 
+ static struct snd_soc_dai_driver rt5651_dai[] = {
+@@ -2270,7 +2346,14 @@ static int rt5651_i2c_probe(struct i2c_client *i2c,
+ 			 rt5651->irq, ret);
+ 		rt5651->irq = -ENXIO;
+ 	}
+-
++	rt5651->gpiod_spk_ctl = devm_gpiod_get(&i2c->dev,
++					       "spk-con",
++					       GPIOD_OUT_LOW);
++	if (IS_ERR(rt5651->gpiod_spk_ctl)) {
++		ret = IS_ERR(rt5651->gpiod_spk_ctl);
++		rt5651->gpiod_spk_ctl = NULL;
++		dev_warn(&i2c->dev, "cannot get spk-con-gpio %d\n", ret);
++	}
+ 	ret = devm_snd_soc_register_component(&i2c->dev,
+ 				&soc_component_dev_rt5651,
+ 				rt5651_dai, ARRAY_SIZE(rt5651_dai));
+diff --git a/sound/soc/codecs/rt5651.h b/sound/soc/codecs/rt5651.h
+index 20c33a3ece37..05739b17813c 100644
+--- a/sound/soc/codecs/rt5651.h
++++ b/sound/soc/codecs/rt5651.h
+@@ -2096,7 +2096,10 @@ struct rt5651_priv {
+ 	int pll_out;
+ 
+ 	int dmic_en;
++	int asrc_en;
+ 	bool hp_mute;
++	struct clk *mclk;
++	struct gpio_desc *gpiod_spk_ctl;
+ };
+ 
+ #endif /* __RT5651_H__ */
+diff --git a/sound/soc/codecs/wm8974.c b/sound/soc/codecs/wm8974.c
+index c86231dfcf4f..0827b7e65ac1 100644
+--- a/sound/soc/codecs/wm8974.c
++++ b/sound/soc/codecs/wm8974.c
+@@ -7,6 +7,7 @@
+  * Author: Liam Girdwood <Liam.Girdwood@wolfsonmicro.com>
+  */
+ 
++#include <linux/clk.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+@@ -27,6 +28,7 @@
+ struct wm8974_priv {
+ 	unsigned int mclk;
+ 	unsigned int fs;
++	struct clk *mclk_in;
+ };
+ 
+ static const struct reg_default wm8974_reg_defaults[] = {
+@@ -613,6 +615,36 @@ static int wm8974_set_bias_level(struct snd_soc_component *component,
+ 	return 0;
+ }
+ 
++static int wm8974_startup(struct snd_pcm_substream *substream,
++			  struct snd_soc_dai *dai)
++{
++	struct snd_soc_component *component = dai->component;
++	struct wm8974_priv *priv = snd_soc_component_get_drvdata(component);
++	u16 power1 = snd_soc_component_read(component, WM8974_POWER1);
++
++	clk_prepare_enable(priv->mclk_in);
++	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
++		power1 |= 0x10;
++		snd_soc_component_write(component, WM8974_POWER1, power1);
++	}
++
++	return 0;
++}
++
++static void wm8974_shutdown(struct snd_pcm_substream *substream,
++			    struct snd_soc_dai *dai)
++{
++	struct snd_soc_component *component = dai->component;
++	struct wm8974_priv *priv = snd_soc_component_get_drvdata(component);
++	u16 power1 = snd_soc_component_read(component, WM8974_POWER1);
++
++	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
++		power1 &= ~0x10;
++		snd_soc_component_write(component, WM8974_POWER1, power1);
++	}
++	clk_disable_unprepare(priv->mclk_in);
++}
++
+ #define WM8974_RATES (SNDRV_PCM_RATE_8000_48000)
+ 
+ #define WM8974_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE |\
+@@ -625,6 +657,8 @@ static const struct snd_soc_dai_ops wm8974_ops = {
+ 	.set_clkdiv = wm8974_set_dai_clkdiv,
+ 	.set_pll = wm8974_set_dai_pll,
+ 	.set_sysclk = wm8974_set_dai_sysclk,
++	.startup = wm8974_startup,
++	.shutdown = wm8974_shutdown,
+ 	.no_capture_mute = 1,
+ };
+ 
+@@ -702,6 +736,10 @@ static int wm8974_i2c_probe(struct i2c_client *i2c,
+ 	if (IS_ERR(regmap))
+ 		return PTR_ERR(regmap);
+ 
++	priv->mclk_in = devm_clk_get(&i2c->dev, "mclk");
++	if (IS_ERR(priv->mclk_in))
++		return PTR_ERR(priv->mclk_in);
++
+ 	ret = devm_snd_soc_register_component(&i2c->dev,
+ 			&soc_component_dev_wm8974, &wm8974_dai, 1);
+ 
+diff --git a/sound/soc/rockchip/Kconfig b/sound/soc/rockchip/Kconfig
+index d610b553ea3b..fa31a0151301 100644
+--- a/sound/soc/rockchip/Kconfig
++++ b/sound/soc/rockchip/Kconfig
+@@ -7,6 +7,22 @@ config SND_SOC_ROCKCHIP
+ 	  the Rockchip SoCs' Audio interfaces. You will also need to
+ 	  select the audio interfaces to support below.
+ 
++config SND_SOC_ROCKCHIP_PREALLOC_BUFFER_SIZE
++	int "Default prealloc buffer size (kbytes)"
++	depends on SND_SOC_ROCKCHIP
++	default "512"
++	help
++	  The default value is 512 kilobytes. Only change this if you know
++	  what you are doing.
++
++config SND_SOC_ROCKCHIP_AUDIO_PWM
++	tristate "Rockchip Audio PWM Driver"
++	depends on CLKDEV_LOOKUP && SND_SOC_ROCKCHIP
++	select SND_SOC_GENERIC_DMAENGINE_PCM
++	help
++	  Say Y or M if you want to add support for Audio PWM driver for
++	  Rockchip Audio PWM Controller.
++
+ config SND_SOC_ROCKCHIP_I2S
+ 	tristate "Rockchip I2S Device Driver"
+ 	depends on CLKDEV_LOOKUP && SND_SOC_ROCKCHIP
+@@ -16,6 +32,15 @@ config SND_SOC_ROCKCHIP_I2S
+ 	  Rockchip I2S device. The device supports upto maximum of
+ 	  8 channels each for play and record.
+ 
++config SND_SOC_ROCKCHIP_I2S_TDM
++	tristate "Rockchip I2S/TDM Device Driver"
++	depends on CLKDEV_LOOKUP && SND_SOC_ROCKCHIP
++	select SND_SOC_GENERIC_DMAENGINE_PCM
++	help
++	  Say Y or M if you want to add support for I2S/TDM driver for
++	  Rockchip I2S/TDM device. The device supports up to maximum of
++	  8 channels each for play and record.
++
+ config SND_SOC_ROCKCHIP_PDM
+ 	tristate "Rockchip PDM Controller Driver"
+ 	depends on CLKDEV_LOOKUP && SND_SOC_ROCKCHIP
+@@ -34,6 +59,21 @@ config SND_SOC_ROCKCHIP_SPDIF
+ 	  Say Y or M if you want to add support for SPDIF driver for
+ 	  Rockchip SPDIF transceiver device.
+ 
++config SND_SOC_ROCKCHIP_SPDIFRX
++	tristate "Rockchip SPDIFRX Device Driver"
++	depends on CLKDEV_LOOKUP && SND_SOC_ROCKCHIP
++	select SND_SOC_GENERIC_DMAENGINE_PCM
++	help
++	  Say Y or M if you want to add support for SPDIFRX driver for
++	  Rockchip SPDIF receiver device.
++
++config SND_SOC_ROCKCHIP_VAD
++	tristate "Rockchip Voice Activity Detection Driver"
++	depends on CLKDEV_LOOKUP && SND_SOC_ROCKCHIP
++	help
++	  Say Y or M if you want to add support for VAD driver for
++	  Rockchip VAD device.
++
+ config SND_SOC_ROCKCHIP_MAX98090
+ 	tristate "ASoC support for Rockchip boards using a MAX98090 codec"
+ 	depends on SND_SOC_ROCKCHIP && I2C && GPIOLIB && CLKDEV_LOOKUP
+@@ -45,6 +85,13 @@ config SND_SOC_ROCKCHIP_MAX98090
+ 	  Say Y or M here if you want to add support for SoC audio on Rockchip
+ 	  boards using the MAX98090 codec and HDMI codec, such as Veyron.
+ 
++config SND_SOC_ROCKCHIP_MULTICODECS
++	tristate "ASoC support for Rockchip multicodecs"
++	depends on SND_SOC_ROCKCHIP && CLKDEV_LOOKUP
++	help
++	  Say Y or M here if you want to add support for SoC audio on Rockchip
++	  boards using multicodecs, such as RK3308 boards.
++
+ config SND_SOC_ROCKCHIP_RT5645
+ 	tristate "ASoC support for Rockchip boards using a RT5645/RT5650 codec"
+ 	depends on SND_SOC_ROCKCHIP && I2C && GPIOLIB && CLKDEV_LOOKUP
+@@ -54,6 +101,14 @@ config SND_SOC_ROCKCHIP_RT5645
+ 	  Say Y or M here if you want to add support for SoC audio on Rockchip
+ 	  boards using the RT5645/RT5650 codec, such as Veyron.
+ 
++config SND_SOC_ROCKCHIP_HDMI
++	tristate "ASoC support for Rockchip HDMI audio"
++	depends on SND_SOC_ROCKCHIP && CLKDEV_LOOKUP
++	select SND_SOC_HDMI_CODEC
++	help
++	  Say Y or M here if you want to add support for SoC audio on Rockchip
++	  boards using built-in HDMI or external HDMI.
++
+ config SND_SOC_RK3288_HDMI_ANALOG
+ 	tristate "ASoC support multiple codecs for Rockchip RK3288 boards"
+ 	depends on SND_SOC_ROCKCHIP && I2C && GPIOLIB && CLKDEV_LOOKUP
+diff --git a/sound/soc/rockchip/Makefile b/sound/soc/rockchip/Makefile
+index 65e814d46006..c3a8bdb31037 100644
+--- a/sound/soc/rockchip/Makefile
++++ b/sound/soc/rockchip/Makefile
+@@ -1,20 +1,39 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # ROCKCHIP Platform Support
++snd-soc-rockchip-audio-pwm-objs := rockchip_audio_pwm.o
+ snd-soc-rockchip-i2s-objs := rockchip_i2s.o
++snd-soc-rockchip-i2s-tdm-objs := rockchip_i2s_tdm.o
+ snd-soc-rockchip-pcm-objs := rockchip_pcm.o
+ snd-soc-rockchip-pdm-objs := rockchip_pdm.o
+ snd-soc-rockchip-spdif-objs := rockchip_spdif.o
++snd-soc-rockchip-spdifrx-objs := rockchip_spdifrx.o
++snd-soc-rockchip-vad-objs := rockchip_vad.o
++ifdef CONFIG_THUMB2_KERNEL
++snd-soc-rockchip-vad-$(CONFIG_THUMB2_KERNEL) += vad_preprocess_thumb.o
++else
++snd-soc-rockchip-vad-$(CONFIG_ARM64) += vad_preprocess_arm64.o
++snd-soc-rockchip-vad-$(CONFIG_ARM) += vad_preprocess_arm.o
++endif
+ 
+-obj-$(CONFIG_SND_SOC_ROCKCHIP_I2S) += snd-soc-rockchip-i2s.o snd-soc-rockchip-pcm.o
++obj-$(CONFIG_SND_SOC_ROCKCHIP) += snd-soc-rockchip-pcm.o
++obj-$(CONFIG_SND_SOC_ROCKCHIP_AUDIO_PWM) += snd-soc-rockchip-audio-pwm.o
++obj-$(CONFIG_SND_SOC_ROCKCHIP_I2S) += snd-soc-rockchip-i2s.o
++obj-$(CONFIG_SND_SOC_ROCKCHIP_I2S_TDM) += snd-soc-rockchip-i2s-tdm.o
+ obj-$(CONFIG_SND_SOC_ROCKCHIP_PDM) += snd-soc-rockchip-pdm.o
+ obj-$(CONFIG_SND_SOC_ROCKCHIP_SPDIF) += snd-soc-rockchip-spdif.o
++obj-$(CONFIG_SND_SOC_ROCKCHIP_SPDIFRX) += snd-soc-rockchip-spdifrx.o
++obj-$(CONFIG_SND_SOC_ROCKCHIP_VAD) += snd-soc-rockchip-vad.o
+ 
++snd-soc-rockchip-hdmi-objs := rockchip_hdmi.o
+ snd-soc-rockchip-max98090-objs := rockchip_max98090.o
++snd-soc-rockchip-multicodecs-objs := rockchip_multicodecs.o
+ snd-soc-rockchip-rt5645-objs := rockchip_rt5645.o
+ snd-soc-rk3288-hdmi-analog-objs := rk3288_hdmi_analog.o
+ snd-soc-rk3399-gru-sound-objs := rk3399_gru_sound.o
+ 
++obj-$(CONFIG_SND_SOC_ROCKCHIP_HDMI) += snd-soc-rockchip-hdmi.o
+ obj-$(CONFIG_SND_SOC_ROCKCHIP_MAX98090) += snd-soc-rockchip-max98090.o
++obj-$(CONFIG_SND_SOC_ROCKCHIP_MULTICODECS) += snd-soc-rockchip-multicodecs.o
+ obj-$(CONFIG_SND_SOC_ROCKCHIP_RT5645) += snd-soc-rockchip-rt5645.o
+ obj-$(CONFIG_SND_SOC_RK3288_HDMI_ANALOG) += snd-soc-rk3288-hdmi-analog.o
+ obj-$(CONFIG_SND_SOC_RK3399_GRU_SOUND) += snd-soc-rk3399-gru-sound.o
+diff --git a/sound/soc/rockchip/rockchip_i2s.c b/sound/soc/rockchip/rockchip_i2s.c
+index fa84ec695b52..b31431327c7c 100644
+--- a/sound/soc/rockchip/rockchip_i2s.c
++++ b/sound/soc/rockchip/rockchip_i2s.c
+@@ -15,11 +15,11 @@
+ #include <linux/clk.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/regmap.h>
++#include <linux/spinlock.h>
+ #include <sound/pcm_params.h>
+ #include <sound/dmaengine_pcm.h>
+ 
+ #include "rockchip_i2s.h"
+-#include "rockchip_pcm.h"
+ 
+ #define DRV_NAME "rockchip-i2s"
+ 
+@@ -40,6 +40,9 @@ struct rk_i2s_dev {
+ 	struct regmap *regmap;
+ 	struct regmap *grf;
+ 
++	bool has_capture;
++	bool has_playback;
++
+ /*
+  * Used to indicate the tx/rx status.
+  * I2S controller hopes to start the tx and rx together,
+@@ -49,6 +52,8 @@ struct rk_i2s_dev {
+ 	bool rx_start;
+ 	bool is_master_mode;
+ 	const struct rk_i2s_pins *pins;
++	unsigned int bclk_ratio;
++	spinlock_t lock; /* tx/rx lock */
+ };
+ 
+ static int i2s_runtime_suspend(struct device *dev)
+@@ -92,6 +97,7 @@ static void rockchip_snd_txctrl(struct rk_i2s_dev *i2s, int on)
+ 	unsigned int val = 0;
+ 	int retry = 10;
+ 
++	spin_lock(&i2s->lock);
+ 	if (on) {
+ 		regmap_update_bits(i2s->regmap, I2S_DMACR,
+ 				   I2S_DMACR_TDE_ENABLE, I2S_DMACR_TDE_ENABLE);
+@@ -132,6 +138,7 @@ static void rockchip_snd_txctrl(struct rk_i2s_dev *i2s, int on)
+ 			}
+ 		}
+ 	}
++	spin_unlock(&i2s->lock);
+ }
+ 
+ static void rockchip_snd_rxctrl(struct rk_i2s_dev *i2s, int on)
+@@ -139,6 +146,7 @@ static void rockchip_snd_rxctrl(struct rk_i2s_dev *i2s, int on)
+ 	unsigned int val = 0;
+ 	int retry = 10;
+ 
++	spin_lock(&i2s->lock);
+ 	if (on) {
+ 		regmap_update_bits(i2s->regmap, I2S_DMACR,
+ 				   I2S_DMACR_RDE_ENABLE, I2S_DMACR_RDE_ENABLE);
+@@ -179,6 +187,7 @@ static void rockchip_snd_rxctrl(struct rk_i2s_dev *i2s, int on)
+ 			}
+ 		}
+ 	}
++	spin_unlock(&i2s->lock);
+ }
+ 
+ static int rockchip_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
+@@ -207,13 +216,27 @@ static int rockchip_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
+ 
+ 	regmap_update_bits(i2s->regmap, I2S_CKR, mask, val);
+ 
+-	mask = I2S_CKR_CKP_MASK;
++	mask = I2S_CKR_CKP_MASK | I2S_CKR_TLP_MASK | I2S_CKR_RLP_MASK;
+ 	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
+ 	case SND_SOC_DAIFMT_NB_NF:
+-		val = I2S_CKR_CKP_NEG;
++		val = I2S_CKR_CKP_NORMAL |
++		      I2S_CKR_TLP_NORMAL |
++		      I2S_CKR_RLP_NORMAL;
++		break;
++	case SND_SOC_DAIFMT_NB_IF:
++		val = I2S_CKR_CKP_NORMAL |
++		      I2S_CKR_TLP_INVERTED |
++		      I2S_CKR_RLP_INVERTED;
+ 		break;
+ 	case SND_SOC_DAIFMT_IB_NF:
+-		val = I2S_CKR_CKP_POS;
++		val = I2S_CKR_CKP_INVERTED |
++		      I2S_CKR_TLP_NORMAL |
++		      I2S_CKR_RLP_NORMAL;
++		break;
++	case SND_SOC_DAIFMT_IB_IF:
++		val = I2S_CKR_CKP_INVERTED |
++		      I2S_CKR_TLP_INVERTED |
++		      I2S_CKR_RLP_INVERTED;
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+@@ -287,11 +310,11 @@ static int rockchip_i2s_hw_params(struct snd_pcm_substream *substream,
+ 
+ 	if (i2s->is_master_mode) {
+ 		mclk_rate = clk_get_rate(i2s->mclk);
+-		bclk_rate = 2 * 32 * params_rate(params);
+-		if (bclk_rate == 0 || mclk_rate % bclk_rate)
++		bclk_rate = i2s->bclk_ratio * params_rate(params);
++		if (!bclk_rate)
+ 			return -EINVAL;
+ 
+-		div_bclk = mclk_rate / bclk_rate;
++		div_bclk = DIV_ROUND_CLOSEST(mclk_rate, bclk_rate);
+ 		div_lrck = bclk_rate / params_rate(params);
+ 		regmap_update_bits(i2s->regmap, I2S_CKR,
+ 				   I2S_CKR_MDIV_MASK,
+@@ -422,6 +445,16 @@ static int rockchip_i2s_trigger(struct snd_pcm_substream *substream,
+ 	return ret;
+ }
+ 
++static int rockchip_i2s_set_bclk_ratio(struct snd_soc_dai *dai,
++				       unsigned int ratio)
++{
++	struct rk_i2s_dev *i2s = to_info(dai);
++
++	i2s->bclk_ratio = ratio;
++
++	return 0;
++}
++
+ static int rockchip_i2s_set_sysclk(struct snd_soc_dai *cpu_dai, int clk_id,
+ 				   unsigned int freq, int dir)
+ {
+@@ -442,14 +475,16 @@ static int rockchip_i2s_dai_probe(struct snd_soc_dai *dai)
+ {
+ 	struct rk_i2s_dev *i2s = snd_soc_dai_get_drvdata(dai);
+ 
+-	dai->capture_dma_data = &i2s->capture_dma_data;
+-	dai->playback_dma_data = &i2s->playback_dma_data;
++	snd_soc_dai_init_dma_data(dai,
++		i2s->has_playback ? &i2s->playback_dma_data : NULL,
++		i2s->has_capture  ? &i2s->capture_dma_data  : NULL);
+ 
+ 	return 0;
+ }
+ 
+ static const struct snd_soc_dai_ops rockchip_i2s_dai_ops = {
+ 	.hw_params = rockchip_i2s_hw_params,
++	.set_bclk_ratio	= rockchip_i2s_set_bclk_ratio,
+ 	.set_sysclk = rockchip_i2s_set_sysclk,
+ 	.set_fmt = rockchip_i2s_set_fmt,
+ 	.trigger = rockchip_i2s_trigger,
+@@ -457,28 +492,6 @@ static const struct snd_soc_dai_ops rockchip_i2s_dai_ops = {
+ 
+ static struct snd_soc_dai_driver rockchip_i2s_dai = {
+ 	.probe = rockchip_i2s_dai_probe,
+-	.playback = {
+-		.stream_name = "Playback",
+-		.channels_min = 2,
+-		.channels_max = 8,
+-		.rates = SNDRV_PCM_RATE_8000_192000,
+-		.formats = (SNDRV_PCM_FMTBIT_S8 |
+-			    SNDRV_PCM_FMTBIT_S16_LE |
+-			    SNDRV_PCM_FMTBIT_S20_3LE |
+-			    SNDRV_PCM_FMTBIT_S24_LE |
+-			    SNDRV_PCM_FMTBIT_S32_LE),
+-	},
+-	.capture = {
+-		.stream_name = "Capture",
+-		.channels_min = 2,
+-		.channels_max = 2,
+-		.rates = SNDRV_PCM_RATE_8000_192000,
+-		.formats = (SNDRV_PCM_FMTBIT_S8 |
+-			    SNDRV_PCM_FMTBIT_S16_LE |
+-			    SNDRV_PCM_FMTBIT_S20_3LE |
+-			    SNDRV_PCM_FMTBIT_S24_LE |
+-			    SNDRV_PCM_FMTBIT_S32_LE),
+-	},
+ 	.ops = &rockchip_i2s_dai_ops,
+ 	.symmetric_rates = 1,
+ };
+@@ -575,29 +588,108 @@ static const struct rk_i2s_pins rk3399_i2s_pins = {
+ 	.shift = 11,
+ };
+ 
+-static const struct of_device_id rockchip_i2s_match[] = {
++static const struct of_device_id rockchip_i2s_match[] __maybe_unused = {
++	{ .compatible = "rockchip,px30-i2s", },
++	{ .compatible = "rockchip,rk1808-i2s", },
++	{ .compatible = "rockchip,rk3036-i2s", },
+ 	{ .compatible = "rockchip,rk3066-i2s", },
++	{ .compatible = "rockchip,rk3128-i2s", },
+ 	{ .compatible = "rockchip,rk3188-i2s", },
++	{ .compatible = "rockchip,rk3228-i2s", },
+ 	{ .compatible = "rockchip,rk3288-i2s", },
++	{ .compatible = "rockchip,rk3308-i2s", },
++	{ .compatible = "rockchip,rk3328-i2s", },
++	{ .compatible = "rockchip,rk3366-i2s", },
++	{ .compatible = "rockchip,rk3368-i2s", },
+ 	{ .compatible = "rockchip,rk3399-i2s", .data = &rk3399_i2s_pins },
++	{ .compatible = "rockchip,rv1126-i2s", },
+ 	{},
+ };
+ 
++static int rockchip_i2s_init_dai(struct rk_i2s_dev *i2s, struct resource *res,
++				 struct snd_soc_dai_driver **dp)
++{
++	struct device_node *node = i2s->dev->of_node;
++	struct snd_soc_dai_driver *dai;
++	struct property *dma_names;
++	const char *dma_name;
++	unsigned int val;
++
++	of_property_for_each_string(node, "dma-names", dma_names, dma_name) {
++		if (!strcmp(dma_name, "tx"))
++			i2s->has_playback = true;
++		if (!strcmp(dma_name, "rx"))
++			i2s->has_capture = true;
++	}
++
++	dai = devm_kmemdup(i2s->dev, &rockchip_i2s_dai,
++			   sizeof(*dai), GFP_KERNEL);
++	if (!dai)
++		return -ENOMEM;
++
++	if (i2s->has_playback) {
++		dai->playback.stream_name = "Playback";
++		dai->playback.channels_min = 2;
++		dai->playback.channels_max = 8;
++		dai->playback.rates = SNDRV_PCM_RATE_8000_192000;
++		dai->playback.formats = SNDRV_PCM_FMTBIT_S8 |
++					SNDRV_PCM_FMTBIT_S16_LE |
++					SNDRV_PCM_FMTBIT_S20_3LE |
++					SNDRV_PCM_FMTBIT_S24_LE |
++					SNDRV_PCM_FMTBIT_S32_LE;
++
++		i2s->playback_dma_data.addr = res->start + I2S_TXDR;
++		i2s->playback_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++		i2s->playback_dma_data.maxburst = 8;
++
++		if (!of_property_read_u32(node, "rockchip,playback-channels", &val)) {
++			if (val >= 2 && val <= 8)
++				dai->playback.channels_max = val;
++		}
++	}
++
++	if (i2s->has_capture) {
++		dai->capture.stream_name = "Capture";
++		dai->capture.channels_min = 2;
++		dai->capture.channels_max = 8;
++		dai->capture.rates = SNDRV_PCM_RATE_8000_192000;
++		dai->capture.formats = SNDRV_PCM_FMTBIT_S8 |
++				       SNDRV_PCM_FMTBIT_S16_LE |
++				       SNDRV_PCM_FMTBIT_S20_3LE |
++				       SNDRV_PCM_FMTBIT_S24_LE |
++				       SNDRV_PCM_FMTBIT_S32_LE;
++
++		i2s->capture_dma_data.addr = res->start + I2S_RXDR;
++		i2s->capture_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++		i2s->capture_dma_data.maxburst = 8;
++
++		if (!of_property_read_u32(node, "rockchip,capture-channels", &val)) {
++			if (val >= 2 && val <= 8)
++				dai->capture.channels_max = val;
++		}
++	}
++
++	if (dp)
++		*dp = dai;
++
++	return 0;
++}
++
+ static int rockchip_i2s_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
+ 	const struct of_device_id *of_id;
+ 	struct rk_i2s_dev *i2s;
+-	struct snd_soc_dai_driver *soc_dai;
++	struct snd_soc_dai_driver *dai;
+ 	struct resource *res;
+ 	void __iomem *regs;
+ 	int ret;
+-	int val;
+ 
+ 	i2s = devm_kzalloc(&pdev->dev, sizeof(*i2s), GFP_KERNEL);
+ 	if (!i2s)
+ 		return -ENOMEM;
+ 
++	spin_lock_init(&i2s->lock);
+ 	i2s->dev = &pdev->dev;
+ 
+ 	i2s->grf = syscon_regmap_lookup_by_phandle(node, "rockchip,grf");
+@@ -609,26 +701,7 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
+ 		i2s->pins = of_id->data;
+ 	}
+ 
+-	/* try to prepare related clocks */
+-	i2s->hclk = devm_clk_get(&pdev->dev, "i2s_hclk");
+-	if (IS_ERR(i2s->hclk)) {
+-		dev_err(&pdev->dev, "Can't retrieve i2s bus clock\n");
+-		return PTR_ERR(i2s->hclk);
+-	}
+-	ret = clk_prepare_enable(i2s->hclk);
+-	if (ret) {
+-		dev_err(i2s->dev, "hclock enable failed %d\n", ret);
+-		return ret;
+-	}
+-
+-	i2s->mclk = devm_clk_get(&pdev->dev, "i2s_clk");
+-	if (IS_ERR(i2s->mclk)) {
+-		dev_err(&pdev->dev, "Can't retrieve i2s master clock\n");
+-		return PTR_ERR(i2s->mclk);
+-	}
+-
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	regs = devm_ioremap_resource(&pdev->dev, res);
++	regs = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
+ 	if (IS_ERR(regs))
+ 		return PTR_ERR(regs);
+ 
+@@ -640,16 +713,28 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
+ 		return PTR_ERR(i2s->regmap);
+ 	}
+ 
+-	i2s->playback_dma_data.addr = res->start + I2S_TXDR;
+-	i2s->playback_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+-	i2s->playback_dma_data.maxburst = 4;
+-
+-	i2s->capture_dma_data.addr = res->start + I2S_RXDR;
+-	i2s->capture_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+-	i2s->capture_dma_data.maxburst = 4;
++	i2s->bclk_ratio = 64;
+ 
+ 	dev_set_drvdata(&pdev->dev, i2s);
+ 
++	i2s->mclk = devm_clk_get(&pdev->dev, "i2s_clk");
++	if (IS_ERR(i2s->mclk)) {
++		dev_err(&pdev->dev, "Can't retrieve i2s master clock\n");
++		return PTR_ERR(i2s->mclk);
++	}
++
++	/* try to prepare related clocks */
++	i2s->hclk = devm_clk_get(&pdev->dev, "i2s_hclk");
++	if (IS_ERR(i2s->hclk)) {
++		dev_err(&pdev->dev, "Can't retrieve i2s bus clock\n");
++		return PTR_ERR(i2s->hclk);
++	}
++	ret = clk_prepare_enable(i2s->hclk);
++	if (ret) {
++		dev_err(i2s->dev, "hclock enable failed %d\n", ret);
++		return ret;
++	}
++
+ 	pm_runtime_enable(&pdev->dev);
+ 	if (!pm_runtime_enabled(&pdev->dev)) {
+ 		ret = i2s_runtime_resume(&pdev->dev);
+@@ -657,33 +742,20 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
+ 			goto err_pm_disable;
+ 	}
+ 
+-	soc_dai = devm_kmemdup(&pdev->dev, &rockchip_i2s_dai,
+-			       sizeof(*soc_dai), GFP_KERNEL);
+-	if (!soc_dai) {
+-		ret = -ENOMEM;
++	ret = rockchip_i2s_init_dai(i2s, res, &dai);
++	if (ret)
+ 		goto err_pm_disable;
+-	}
+-
+-	if (!of_property_read_u32(node, "rockchip,playback-channels", &val)) {
+-		if (val >= 2 && val <= 8)
+-			soc_dai->playback.channels_max = val;
+-	}
+-
+-	if (!of_property_read_u32(node, "rockchip,capture-channels", &val)) {
+-		if (val >= 2 && val <= 8)
+-			soc_dai->capture.channels_max = val;
+-	}
+ 
+ 	ret = devm_snd_soc_register_component(&pdev->dev,
+ 					      &rockchip_i2s_component,
+-					      soc_dai, 1);
++					      dai, 1);
+ 
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Could not register DAI\n");
+ 		goto err_suspend;
+ 	}
+ 
+-	ret = rockchip_pcm_platform_register(&pdev->dev);
++	ret = devm_snd_dmaengine_pcm_register(&pdev->dev, NULL, 0);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Could not register PCM\n");
+ 		goto err_suspend;
+@@ -697,6 +769,8 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
+ err_pm_disable:
+ 	pm_runtime_disable(&pdev->dev);
+ 
++	clk_disable_unprepare(i2s->hclk);
++
+ 	return ret;
+ }
+ 
+diff --git a/sound/soc/rockchip/rockchip_i2s.h b/sound/soc/rockchip/rockchip_i2s.h
+index fcaae24e40af..251851bf4f2c 100644
+--- a/sound/soc/rockchip/rockchip_i2s.h
++++ b/sound/soc/rockchip/rockchip_i2s.h
+@@ -88,15 +88,17 @@
+ #define I2S_CKR_MSS_SLAVE	(1 << I2S_CKR_MSS_SHIFT)
+ #define I2S_CKR_MSS_MASK	(1 << I2S_CKR_MSS_SHIFT)
+ #define I2S_CKR_CKP_SHIFT	26
+-#define I2S_CKR_CKP_NEG		(0 << I2S_CKR_CKP_SHIFT)
+-#define I2S_CKR_CKP_POS		(1 << I2S_CKR_CKP_SHIFT)
++#define I2S_CKR_CKP_NORMAL	(0 << I2S_CKR_CKP_SHIFT)
++#define I2S_CKR_CKP_INVERTED	(1 << I2S_CKR_CKP_SHIFT)
+ #define I2S_CKR_CKP_MASK	(1 << I2S_CKR_CKP_SHIFT)
+ #define I2S_CKR_RLP_SHIFT	25
+ #define I2S_CKR_RLP_NORMAL	(0 << I2S_CKR_RLP_SHIFT)
+-#define I2S_CKR_RLP_OPPSITE	(1 << I2S_CKR_RLP_SHIFT)
++#define I2S_CKR_RLP_INVERTED	(1 << I2S_CKR_RLP_SHIFT)
++#define I2S_CKR_RLP_MASK	(1 << I2S_CKR_RLP_SHIFT)
+ #define I2S_CKR_TLP_SHIFT	24
+ #define I2S_CKR_TLP_NORMAL	(0 << I2S_CKR_TLP_SHIFT)
+-#define I2S_CKR_TLP_OPPSITE	(1 << I2S_CKR_TLP_SHIFT)
++#define I2S_CKR_TLP_INVERTED	(1 << I2S_CKR_TLP_SHIFT)
++#define I2S_CKR_TLP_MASK	(1 << I2S_CKR_TLP_SHIFT)
+ #define I2S_CKR_MDIV_SHIFT	16
+ #define I2S_CKR_MDIV(x)		((x - 1) << I2S_CKR_MDIV_SHIFT)
+ #define I2S_CKR_MDIV_MASK	(0xff << I2S_CKR_MDIV_SHIFT)
+diff --git a/sound/soc/rockchip/rockchip_pdm.c b/sound/soc/rockchip/rockchip_pdm.c
+index 5adb293d0435..67f426f2e074 100644
+--- a/sound/soc/rockchip/rockchip_pdm.c
++++ b/sound/soc/rockchip/rockchip_pdm.c
+@@ -19,11 +19,15 @@
+ #include "rockchip_pdm.h"
+ 
+ #define PDM_DMA_BURST_SIZE	(8) /* size * width: 8*4 = 32 bytes */
+-#define PDM_SIGNOFF_CLK_RATE	(100000000)
++#define PDM_SIGNOFF_CLK_100M	(100000000)
++#define PDM_SIGNOFF_CLK_300M	(300000000)
++#define PDM_PATH_MAX		(4)
+ 
+ enum rk_pdm_version {
+ 	RK_PDM_RK3229,
+ 	RK_PDM_RK3308,
++	RK_PDM_RK3588,
++	RK_PDM_RV1126,
+ };
+ 
+ struct rk_pdm_dev {
+@@ -74,7 +78,8 @@ static struct rk_pdm_ds_ratio ds_ratio[] = {
+ };
+ 
+ static unsigned int get_pdm_clk(struct rk_pdm_dev *pdm, unsigned int sr,
+-				unsigned int *clk_src, unsigned int *clk_out)
++				unsigned int *clk_src, unsigned int *clk_out,
++				unsigned int signoff)
+ {
+ 	unsigned int i, count, clk, div, rate;
+ 
+@@ -99,7 +104,7 @@ static unsigned int get_pdm_clk(struct rk_pdm_dev *pdm, unsigned int sr,
+ 	}
+ 
+ 	if (!clk) {
+-		clk = clk_round_rate(pdm->clk, PDM_SIGNOFF_CLK_RATE);
++		clk = clk_round_rate(pdm->clk, signoff);
+ 		*clk_src = clk;
+ 	}
+ 	return clk;
+@@ -121,6 +126,55 @@ static unsigned int get_pdm_ds_ratio(unsigned int sr)
+ 	return ratio;
+ }
+ 
++static unsigned int get_pdm_cic_ratio(unsigned int clk)
++{
++	switch (clk) {
++	case 4096000:
++	case 5644800:
++	case 6144000:
++		return 0;
++	case 2048000:
++	case 2822400:
++	case 3072000:
++		return 1;
++	case 1024000:
++	case 1411200:
++	case 1536000:
++		return 2;
++	default:
++		return 1;
++	}
++}
++
++static unsigned int samplerate_to_bit(unsigned int samplerate)
++{
++	switch (samplerate) {
++	case 8000:
++	case 11025:
++	case 12000:
++		return 0;
++	case 16000:
++	case 22050:
++	case 24000:
++		return 1;
++	case 32000:
++		return 2;
++	case 44100:
++	case 48000:
++		return 3;
++	case 64000:
++	case 88200:
++	case 96000:
++		return 4;
++	case 128000:
++	case 176400:
++	case 192000:
++		return 5;
++	default:
++		return 1;
++	}
++}
++
+ static inline struct rk_pdm_dev *to_info(struct snd_soc_dai *dai)
+ {
+ 	return snd_soc_dai_get_drvdata(dai);
+@@ -149,7 +203,7 @@ static int rockchip_pdm_hw_params(struct snd_pcm_substream *substream,
+ 	struct rk_pdm_dev *pdm = to_info(dai);
+ 	unsigned int val = 0;
+ 	unsigned int clk_rate, clk_div, samplerate;
+-	unsigned int clk_src, clk_out = 0;
++	unsigned int clk_src = 0, clk_out = 0, signoff = PDM_SIGNOFF_CLK_100M;
+ 	unsigned long m, n;
+ 	bool change;
+ 	int ret;
+@@ -158,7 +212,10 @@ static int rockchip_pdm_hw_params(struct snd_pcm_substream *substream,
+ 		return 0;
+ 
+ 	samplerate = params_rate(params);
+-	clk_rate = get_pdm_clk(pdm, samplerate, &clk_src, &clk_out);
++
++	if (pdm->version == RK_PDM_RK3588)
++		signoff = PDM_SIGNOFF_CLK_300M;
++	clk_rate = get_pdm_clk(pdm, samplerate, &clk_src, &clk_out, signoff);
+ 	if (!clk_rate)
+ 		return -EINVAL;
+ 
+@@ -166,7 +223,9 @@ static int rockchip_pdm_hw_params(struct snd_pcm_substream *substream,
+ 	if (ret)
+ 		return -EINVAL;
+ 
+-	if (pdm->version == RK_PDM_RK3308) {
++	if (pdm->version == RK_PDM_RK3308 ||
++	    pdm->version == RK_PDM_RK3588 ||
++	    pdm->version == RK_PDM_RV1126) {
+ 		rational_best_approximation(clk_out, clk_src,
+ 					    GENMASK(16 - 1, 0),
+ 					    GENMASK(16 - 1, 0),
+@@ -194,8 +253,18 @@ static int rockchip_pdm_hw_params(struct snd_pcm_substream *substream,
+ 				   PDM_CLK_FD_RATIO_MSK,
+ 				   val);
+ 	}
+-	val = get_pdm_ds_ratio(samplerate);
+-	regmap_update_bits(pdm->regmap, PDM_CLK_CTRL, PDM_DS_RATIO_MSK, val);
++
++	if (pdm->version == RK_PDM_RK3588 || pdm->version == RK_PDM_RV1126) {
++		val = get_pdm_cic_ratio(clk_out);
++		regmap_update_bits(pdm->regmap, PDM_CLK_CTRL, PDM_CIC_RATIO_MSK, val);
++		val = samplerate_to_bit(samplerate);
++		regmap_update_bits(pdm->regmap, PDM_CTRL0,
++				   PDM_SAMPLERATE_MSK, PDM_SAMPLERATE(val));
++	} else {
++		val = get_pdm_ds_ratio(samplerate);
++		regmap_update_bits(pdm->regmap, PDM_CLK_CTRL, PDM_DS_RATIO_MSK, val);
++	}
++
+ 	regmap_update_bits(pdm->regmap, PDM_HPF_CTRL,
+ 			   PDM_HPF_CF_MSK, PDM_HPF_60HZ);
+ 	regmap_update_bits(pdm->regmap, PDM_HPF_CTRL,
+@@ -441,9 +510,10 @@ static bool rockchip_pdm_precious_reg(struct device *dev, unsigned int reg)
+ }
+ 
+ static const struct reg_default rockchip_pdm_reg_defaults[] = {
+-	{0x04, 0x78000017},
+-	{0x08, 0x0bb8ea60},
+-	{0x18, 0x0000001f},
++	{ PDM_CTRL0, 0x78000017 },
++	{ PDM_CTRL1, 0x0bb8ea60 },
++	{ PDM_CLK_CTRL, 0x0000e401 },
++	{ PDM_DMA_CTRL, 0x0000001f },
+ };
+ 
+ static const struct regmap_config rockchip_pdm_regmap_config = {
+@@ -460,7 +530,7 @@ static const struct regmap_config rockchip_pdm_regmap_config = {
+ 	.cache_type = REGCACHE_FLAT,
+ };
+ 
+-static const struct of_device_id rockchip_pdm_match[] = {
++static const struct of_device_id rockchip_pdm_match[] __maybe_unused = {
+ 	{ .compatible = "rockchip,pdm",
+ 	  .data = (void *)RK_PDM_RK3229 },
+ 	{ .compatible = "rockchip,px30-pdm",
+@@ -469,12 +539,46 @@ static const struct of_device_id rockchip_pdm_match[] = {
+ 	  .data = (void *)RK_PDM_RK3308 },
+ 	{ .compatible = "rockchip,rk3308-pdm",
+ 	  .data = (void *)RK_PDM_RK3308 },
++	{ .compatible = "rockchip,rk3568-pdm",
++	  .data = (void *)RK_PDM_RV1126 },
++	{ .compatible = "rockchip,rk3588-pdm",
++	  .data = (void *)RK_PDM_RK3588 },
++	{ .compatible = "rockchip,rv1126-pdm",
++	  .data = (void *)RK_PDM_RV1126 },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, rockchip_pdm_match);
+ 
++static int rockchip_pdm_path_parse(struct rk_pdm_dev *pdm, struct device_node *node)
++{
++	unsigned int path[PDM_PATH_MAX];
++	int cnt = 0, ret = 0, i = 0, val = 0, msk = 0;
++
++	cnt = of_count_phandle_with_args(node, "rockchip,path-map",
++					 NULL);
++	if (cnt != PDM_PATH_MAX)
++		return cnt;
++
++	ret = of_property_read_u32_array(node, "rockchip,path-map",
++					 path, cnt);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < cnt; i++) {
++		if (path[i] >= PDM_PATH_MAX)
++			return -EINVAL;
++		msk |= PDM_PATH_MASK(i);
++		val |= PDM_PATH(i, path[i]);
++	}
++
++	regmap_update_bits(pdm->regmap, PDM_CLK_CTRL, msk, val);
++
++	return 0;
++}
++
+ static int rockchip_pdm_probe(struct platform_device *pdev)
+ {
++	struct device_node *node = pdev->dev.of_node;
+ 	const struct of_device_id *match;
+ 	struct rk_pdm_dev *pdm;
+ 	struct resource *res;
+@@ -495,8 +599,7 @@ static int rockchip_pdm_probe(struct platform_device *pdev)
+ 			return PTR_ERR(pdm->reset);
+ 	}
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	regs = devm_ioremap_resource(&pdev->dev, res);
++	regs = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
+ 	if (IS_ERR(regs))
+ 		return PTR_ERR(regs);
+ 
+@@ -541,6 +644,11 @@ static int rockchip_pdm_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	rockchip_pdm_rxctrl(pdm, 0);
++
++	ret = rockchip_pdm_path_parse(pdm, node);
++	if (ret != 0 && ret != -ENOENT)
++		goto err_suspend;
++
+ 	ret = devm_snd_dmaengine_pcm_register(&pdev->dev, NULL, 0);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "could not register pcm: %d\n", ret);
+diff --git a/sound/soc/rockchip/rockchip_pdm.h b/sound/soc/rockchip/rockchip_pdm.h
+index 8e5bbafef7bb..cab977272ee6 100644
+--- a/sound/soc/rockchip/rockchip_pdm.h
++++ b/sound/soc/rockchip/rockchip_pdm.h
+@@ -41,6 +41,8 @@
+ #define PDM_PATH1_EN		BIT(28)
+ #define PDM_PATH0_EN		BIT(27)
+ #define PDM_HWT_EN		BIT(26)
++#define PDM_SAMPLERATE_MSK	GENMASK(7, 5)
++#define PDM_SAMPLERATE(x)	((x) << 5)
+ #define PDM_VDW_MSK		(0x1f << 0)
+ #define PDM_VDW(X)		((X - 1) << 0)
+ 
+@@ -51,6 +53,9 @@
+ #define PDM_FD_DENOMINATOR_MSK	GENMASK(15, 0)
+ 
+ /* PDM CLK CTRL */
++#define PDM_PATH_SHIFT(x)	(8 + (x) * 2)
++#define PDM_PATH_MASK(x)	(0x3 << PDM_PATH_SHIFT(x))
++#define PDM_PATH(x, v)		((v) << PDM_PATH_SHIFT(x))
+ #define PDM_CLK_FD_RATIO_MSK	BIT(6)
+ #define PDM_CLK_FD_RATIO_40	(0X0 << 6)
+ #define PDM_CLK_FD_RATIO_35	BIT(6)
+@@ -66,6 +71,7 @@
+ #define PDM_CLK_1280FS		(0x2 << 0)
+ #define PDM_CLK_2560FS		(0x3 << 0)
+ #define PDM_CLK_5120FS		(0x4 << 0)
++#define PDM_CIC_RATIO_MSK	(0x3 << 0)
+ 
+ /* PDM HPF CTRL */
+ #define PDM_HPF_LE		BIT(3)
+diff --git a/sound/soc/rockchip/rockchip_spdif.c b/sound/soc/rockchip/rockchip_spdif.c
+index 674810851fbc..f7173614446a 100644
+--- a/sound/soc/rockchip/rockchip_spdif.c
++++ b/sound/soc/rockchip/rockchip_spdif.c
+@@ -41,7 +41,7 @@ struct rk_spdif_dev {
+ 	struct regmap *regmap;
+ };
+ 
+-static const struct of_device_id rk_spdif_match[] = {
++static const struct of_device_id rk_spdif_match[] __maybe_unused = {
+ 	{ .compatible = "rockchip,rk3066-spdif",
+ 	  .data = (void *)RK_SPDIF_RK3066 },
+ 	{ .compatible = "rockchip,rk3188-spdif",
+@@ -58,6 +58,10 @@ static const struct of_device_id rk_spdif_match[] = {
+ 	  .data = (void *)RK_SPDIF_RK3366 },
+ 	{ .compatible = "rockchip,rk3399-spdif",
+ 	  .data = (void *)RK_SPDIF_RK3366 },
++	{ .compatible = "rockchip,rk3568-spdif",
++	  .data = (void *)RK_SPDIF_RK3366 },
++	{ .compatible = "rockchip,rk3588-spdif",
++	  .data = (void *)RK_SPDIF_RK3366 },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, rk_spdif_match);
+@@ -103,8 +107,8 @@ static int __maybe_unused rk_spdif_runtime_resume(struct device *dev)
+ }
+ 
+ static int rk_spdif_hw_params(struct snd_pcm_substream *substream,
+-				  struct snd_pcm_hw_params *params,
+-				  struct snd_soc_dai *dai)
++			      struct snd_pcm_hw_params *params,
++			      struct snd_soc_dai *dai)
+ {
+ 	struct rk_spdif_dev *spdif = snd_soc_dai_get_drvdata(dai);
+ 	unsigned int val = SPDIF_CFGR_HALFWORD_ENABLE;
+@@ -137,15 +141,15 @@ static int rk_spdif_hw_params(struct snd_pcm_substream *substream,
+ 	}
+ 
+ 	ret = regmap_update_bits(spdif->regmap, SPDIF_CFGR,
+-		SPDIF_CFGR_CLK_DIV_MASK | SPDIF_CFGR_HALFWORD_ENABLE |
+-		SDPIF_CFGR_VDW_MASK,
+-		val);
++				 SPDIF_CFGR_CLK_DIV_MASK |
++				 SPDIF_CFGR_HALFWORD_ENABLE |
++				 SDPIF_CFGR_VDW_MASK, val);
+ 
+ 	return ret;
+ }
+ 
+ static int rk_spdif_trigger(struct snd_pcm_substream *substream,
+-				int cmd, struct snd_soc_dai *dai)
++			    int cmd, struct snd_soc_dai *dai)
+ {
+ 	struct rk_spdif_dev *spdif = snd_soc_dai_get_drvdata(dai);
+ 	int ret;
+@@ -155,31 +159,31 @@ static int rk_spdif_trigger(struct snd_pcm_substream *substream,
+ 	case SNDRV_PCM_TRIGGER_RESUME:
+ 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+ 		ret = regmap_update_bits(spdif->regmap, SPDIF_DMACR,
+-				   SPDIF_DMACR_TDE_ENABLE |
+-				   SPDIF_DMACR_TDL_MASK,
+-				   SPDIF_DMACR_TDE_ENABLE |
+-				   SPDIF_DMACR_TDL(16));
++					 SPDIF_DMACR_TDE_ENABLE |
++					 SPDIF_DMACR_TDL_MASK,
++					 SPDIF_DMACR_TDE_ENABLE |
++					 SPDIF_DMACR_TDL(16));
+ 
+ 		if (ret != 0)
+ 			return ret;
+ 
+ 		ret = regmap_update_bits(spdif->regmap, SPDIF_XFER,
+-				   SPDIF_XFER_TXS_START,
+-				   SPDIF_XFER_TXS_START);
++					 SPDIF_XFER_TXS_START,
++					 SPDIF_XFER_TXS_START);
+ 		break;
+ 	case SNDRV_PCM_TRIGGER_SUSPEND:
+ 	case SNDRV_PCM_TRIGGER_STOP:
+ 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+ 		ret = regmap_update_bits(spdif->regmap, SPDIF_DMACR,
+-				   SPDIF_DMACR_TDE_ENABLE,
+-				   SPDIF_DMACR_TDE_DISABLE);
++					 SPDIF_DMACR_TDE_ENABLE,
++					 SPDIF_DMACR_TDE_DISABLE);
+ 
+ 		if (ret != 0)
+ 			return ret;
+ 
+ 		ret = regmap_update_bits(spdif->regmap, SPDIF_XFER,
+-				   SPDIF_XFER_TXS_START,
+-				   SPDIF_XFER_TXS_STOP);
++					 SPDIF_XFER_TXS_START,
++					 SPDIF_XFER_TXS_STOP);
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+@@ -247,6 +251,7 @@ static bool rk_spdif_rd_reg(struct device *dev, unsigned int reg)
+ 	case SPDIF_INTCR:
+ 	case SPDIF_INTSR:
+ 	case SPDIF_XFER:
++	case SPDIF_SMPDR:
+ 		return true;
+ 	default:
+ 		return false;
+@@ -258,6 +263,7 @@ static bool rk_spdif_volatile_reg(struct device *dev, unsigned int reg)
+ 	switch (reg) {
+ 	case SPDIF_INTSR:
+ 	case SPDIF_SDBLR:
++	case SPDIF_SMPDR:
+ 		return true;
+ 	default:
+ 		return false;
+@@ -291,7 +297,7 @@ static int rk_spdif_probe(struct platform_device *pdev)
+ 		grf = syscon_regmap_lookup_by_phandle(np, "rockchip,grf");
+ 		if (IS_ERR(grf)) {
+ 			dev_err(&pdev->dev,
+-				"rockchip_spdif missing 'rockchip,grf' \n");
++				"rockchip_spdif missing 'rockchip,grf'\n");
+ 			return PTR_ERR(grf);
+ 		}
+ 
+@@ -313,8 +319,7 @@ static int rk_spdif_probe(struct platform_device *pdev)
+ 	if (IS_ERR(spdif->mclk))
+ 		return PTR_ERR(spdif->mclk);
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	regs = devm_ioremap_resource(&pdev->dev, res);
++	regs = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
+ 	if (IS_ERR(regs))
+ 		return PTR_ERR(regs);
+ 
+diff --git a/sound/usb/quirks.c b/sound/usb/quirks.c
+index a45b27a2ed4e..657c35354cc5 100644
+--- a/sound/usb/quirks.c
++++ b/sound/usb/quirks.c
+@@ -1523,6 +1523,9 @@ bool snd_usb_get_sample_rate_quirk(struct snd_usb_audio *chip)
+ 	case USB_ID(0x0556, 0x0014): /* Phoenix Audio TMX320VC */
+ 	case USB_ID(0x05a3, 0x9420): /* ELP HD USB Camera */
+ 	case USB_ID(0x05a7, 0x1020): /* Bose Companion 5 */
++#ifdef CONFIG_HID_RKVR
++	case USB_ID(0x071B, 0x3205): /* RockChip NanoC VR */
++#endif
+ 	case USB_ID(0x074d, 0x3553): /* Outlaw RR2150 (Micronas UAC3553B) */
+ 	case USB_ID(0x1395, 0x740a): /* Sennheiser DECT */
+ 	case USB_ID(0x1901, 0x0191): /* GE B850V3 CP2114 audio interface */
+@@ -1838,6 +1841,9 @@ void snd_usb_audioformat_attributes_quirk(struct snd_usb_audio *chip,
+ 					  int stream)
+ {
+ 	switch (chip->usb_id) {
++#ifdef CONFIG_HID_RKVR
++	case USB_ID(0x071B, 0x3205): /* RockChip NanoC VR */
++#endif
+ 	case USB_ID(0x0a92, 0x0053): /* AudioTrak Optoplay */
+ 		/* Optoplay sets the sample rate attribute although
+ 		 * it seems not supporting it in fact.
+-- 
+2.25.1
+

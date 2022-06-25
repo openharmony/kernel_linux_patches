@@ -1,0 +1,72 @@
+From c745cfd5a6ef5710308c264a2fe7e8652883a694 Mon Sep 17 00:00:00 2001
+From: jiewangdp <jiewangdp@isoftstone.com>
+Date: Sat, 25 Jun 2022 11:04:59 +0800
+Subject: [PATCH] scripts
+
+Change-Id: I2671b89bd3ae785475e0419745119edc979fad21
+---
+ scripts/Makefile     |  1 +
+ scripts/Makefile.lib |  5 +++--
+ scripts/dtc/checks.c | 18 ++++++++++++++++++
+ 3 files changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/scripts/Makefile b/scripts/Makefile
+index 9adb6d247818..b7b7ad5475e6 100644
+--- a/scripts/Makefile
++++ b/scripts/Makefile
+@@ -9,6 +9,7 @@ CRYPTO_CFLAGS = $(shell pkg-config --cflags libcrypto 2> /dev/null)
+ hostprogs-always-$(CONFIG_BUILD_BIN2C)			+= bin2c
+ hostprogs-always-$(CONFIG_KALLSYMS)			+= kallsyms
+ hostprogs-always-$(BUILD_C_RECORDMCOUNT)		+= recordmcount
++hostprogs-always-$(CONFIG_ARCH_ROCKCHIP)		+= resource_tool
+ hostprogs-always-$(CONFIG_BUILDTIME_TABLE_SORT)		+= sorttable
+ hostprogs-always-$(CONFIG_ASN1)				+= asn1_compiler
+ hostprogs-always-$(CONFIG_MODULE_SIG_FORMAT)		+= sign-file
+diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
+index 94133708889d..d018b4ad057d 100644
+--- a/scripts/Makefile.lib
++++ b/scripts/Makefile.lib
+@@ -316,8 +316,9 @@ $(obj)/%.dtb.S: $(obj)/%.dtb FORCE
+ 	$(call if_changed,dt_S_dtb)
+ 
+ quiet_cmd_dtc = DTC     $@
+-cmd_dtc = $(HOSTCC) -E $(dtc_cpp_flags) -x assembler-with-cpp -o $(dtc-tmp) $< ; \
+-	$(DTC) -O $(patsubst .%,%,$(suffix $@)) -o $@ -b 0 \
++cmd_dtc = mkdir -p $(dir ${dtc-tmp}) ; \
++      $(CPP) $(dtc_cpp_flags) -x assembler-with-cpp -o $(dtc-tmp) $< ; \
++      $(DTC) -O dtb -o $@ -b 0 \
+ 		$(addprefix -i,$(dir $<) $(DTC_INCLUDE)) $(DTC_FLAGS) \
+ 		-d $(depfile).dtc.tmp $(dtc-tmp) ; \
+ 	cat $(depfile).pre.tmp $(depfile).dtc.tmp > $(depfile)
+diff --git a/scripts/dtc/checks.c b/scripts/dtc/checks.c
+index 17cb6890d45a..913fb08af475 100644
+--- a/scripts/dtc/checks.c
++++ b/scripts/dtc/checks.c
+@@ -649,6 +649,24 @@ static void fixup_omit_unused_nodes(struct check *c, struct dt_info *dti,
+ 		return;
+ 	if (node->omit_if_unused && !node->is_referenced)
+ 		delete_node(node);
++
++	if (node->deleted) {
++		struct node *parent = node->parent;
++		struct node *child;
++		struct label *label;
++		struct property *prop;
++
++		for_each_label(parent->labels, label)
++			return;
++
++		for_each_property(parent, prop)
++			return;
++
++		for_each_child(parent, child)
++			return;
++
++		delete_node(parent);
++	}
+ }
+ ERROR(omit_unused_nodes, fixup_omit_unused_nodes, NULL, &phandle_references, &path_references);
+ 
+-- 
+2.25.1
+
