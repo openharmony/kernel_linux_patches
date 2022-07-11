@@ -132,7 +132,7 @@ diff -Naur a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
 +	type = check_rocker(hdev->name)?HID_TYPE_ROCKER:type;
 +	type = check_encoder(hdev->name)?HID_TYPE_ENCODER:type;
 +	type = check_trackball(hdev->name)?HID_TYPE_TRACKBALL:type;
-+	if ( type < 0) {
++	if (type < 0) {
 +		kfree(dev);
 +		dev = NULL;
 +		return;
