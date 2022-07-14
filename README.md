@@ -22,17 +22,22 @@ During the build process, you can merge the driver code based on the chip platfo
 kernel/linux
 ├── build
 │	├── BUILD.gn					# GN file of the build framework
-│	├── kernel.mk					# Kernel build file
-│	└── ohos.build					# Kernel build component file
+│	├── kernel.mk				# Kernel build file
+│	└── ohos.build				# Kernel build component file
 ├── patches
-│	├── linux-4.19					# linux-4.19 patches
-│	│   └── hi3516dv300_patch		
-│	│   		├── hi3516dv300.patch	# linux-4.19 Hi3516D V300 SOC patches
-│	│   		└── hdf.patch			# linux-4.19 Hi3516D V300 HDF patches
+│	├── linux-4.19				# linux-4.19 patches
+│	│   ├── common_patch
+│	│   │		└── hdf.patch		# linux-4.19 HDF patches
+│	│   └── hi3516dv300_patch
+│	│   		└── hi3516dv300.patch	# linux-4.19 Hi3516D V300 SOC patches
 │	└── linux-5.10
-│	    └── hi3516dv300_patch		
-│	    		├── hi3516dv300.patch	# linux-5.10 Hi3516D V300 SOC patches
-│	    		└── hdf.patch			# linux-5.10 Hi3516D V300 HDF patches
+│	    ├── common_patch
+│	    │		└── hdf.patch		# linux-5.10 HDF patches
+│	    └── hi3516dv300_patch
+│	    │		└── hi3516dv300.patch	# linux-5.10 Hi3516D V300 SOC patches
+│	    └── rkrk3568_patch
+│	    		├── kernel.patch		# linux-5.10 rk3568 SOC patches
+│	    		└── hdf.patch		# linux-5.10 rk3568 customized HDF patches
 └── config
 	├── linux-4.19
 	│   └── arch
@@ -59,7 +64,7 @@ kernel/linux
 	Apply the HDF kernel patches matching your kernel version. For details, see the method in **kernel.mk** in the **kernel/linux/build** repository.
 	
 	```
-	$(OHOS_BUILD_HOME)/drivers/adapter/khdf/linux/patch_hdf.sh $(OHOS_BUILD_HOME) $(KERNEL_SRC_TMP_PATH)     $(HDF_PATCH_FILE)
+	$(OHOS_BUILD_HOME)/drivers/hdf_core/adapter/khdf/linux/patch_hdf.sh $(OHOS_BUILD_HOME) $(KERNEL_SRC_TMP_PATH) $(KERNEL_PATCH_PATH) $(DEVICE_NAME)
 	```
 
 2. Apply the chip driver patches.
