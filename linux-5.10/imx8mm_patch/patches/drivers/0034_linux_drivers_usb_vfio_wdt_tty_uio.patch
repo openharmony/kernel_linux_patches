@@ -22,11 +22,12 @@ diff --git a/drivers/Makefile b/drivers/Makefile
 index ecc494918..9b0f77d66 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
-@@ -192,4 +192,5 @@ obj-$(CONFIG_GNSS)		+= gnss/
- obj-$(CONFIG_INTERCONNECT)	+= interconnect/
+@@ -193,5 +193,6 @@ obj-$(CONFIG_INTERCONNECT)	+= interconnect/
  obj-$(CONFIG_COUNTER)		+= counter/
+ obj-$(CONFIG_DRIVERS_HDF)	+= hdf/
  obj-$(CONFIG_MOST)		+= most/
 -obj-$(CONFIG_ACCESS_TOKENID)	+= accesstokenid/
+ obj-$(CONFIG_VENDOR_HOOKS)	+= hooks/
 +obj-y		 		+= mxc/
 +obj-y				+= accesstokenid/
 diff --git a/drivers/tty/serial/fsl_linflexuart.c b/drivers/tty/serial/fsl_linflexuart.c
