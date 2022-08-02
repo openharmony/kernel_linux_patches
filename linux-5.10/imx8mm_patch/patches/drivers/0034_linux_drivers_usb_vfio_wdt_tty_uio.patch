@@ -1,30 +1,31 @@
-commit f5b72a3d3cd6c2ae6492d8a67ed2bae6a20e4038
+commit 4db2b27c1effd807e8f56823bacf7e2adedd808c
 Author: zhaoxc0502 <zhaoxc0502@thundersoft.com>
-Date:   Thu Jun 16 17:28:52 2022 +0800
+Date:   Mon Aug 1 23:14:41 2022 +0800
 
-    linux_drivers_usb_vfio_wdt_tty_uio
+    0034_linux_drivers_usb_vfio_wdt_tty_uio
     
-    Change-Id: I2ebadedfff3adc7e3c3d640f16cdf5b970856a2a
+    Change-Id: I1b7e905c318654a235ffe85d3c392289593c1c9d
 
 diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 826b2b19d..fac66ea92 100644
+index 3584901f1..a5a4ce865 100644
 --- a/drivers/Kconfig
 +++ b/drivers/Kconfig
-@@ -238,5 +238,7 @@ source "drivers/counter/Kconfig"
+@@ -238,6 +238,8 @@ source "drivers/counter/Kconfig"
  
  source "drivers/most/Kconfig"
  
 +source "drivers/mxc/Kconfig"
 +
  source "drivers/accesstokenid/Kconfig"
- endmenu
+ 
+ source "drivers/hooks/Kconfig"
 diff --git a/drivers/Makefile b/drivers/Makefile
-index ecc494918..9b0f77d66 100644
+index f13d70df6..ac43e7b69 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
-@@ -193,5 +193,6 @@ obj-$(CONFIG_INTERCONNECT)	+= interconnect/
+@@ -192,5 +192,6 @@ obj-$(CONFIG_GNSS)		+= gnss/
+ obj-$(CONFIG_INTERCONNECT)	+= interconnect/
  obj-$(CONFIG_COUNTER)		+= counter/
- obj-$(CONFIG_DRIVERS_HDF)	+= hdf/
  obj-$(CONFIG_MOST)		+= most/
 -obj-$(CONFIG_ACCESS_TOKENID)	+= accesstokenid/
  obj-$(CONFIG_VENDOR_HOOKS)	+= hooks/
@@ -2511,7 +2512,7 @@ index a70911a22..62b4fb5f0 100644
  static struct platform_driver lpuart_driver = {
  	.probe		= lpuart_probe,
 diff --git a/drivers/tty/serial/imx.c b/drivers/tty/serial/imx.c
-index a66301b3b..610a8f12c 100644
+index e40f64798..e196f5fcf 100644
 --- a/drivers/tty/serial/imx.c
 +++ b/drivers/tty/serial/imx.c
 @@ -23,6 +23,7 @@
@@ -3090,7 +3091,7 @@ index 0697eb980..635bc7431 100644
 +void ci_hdrc_enter_lpm(struct ci_hdrc *ci, bool enable);
  #endif	/* __DRIVERS_USB_CHIPIDEA_CI_H */
 diff --git a/drivers/usb/chipidea/ci_hdrc_imx.c b/drivers/usb/chipidea/ci_hdrc_imx.c
-index b4c6527fe..dcc74e9fa 100644
+index f79845594..e1a313c03 100644
 --- a/drivers/usb/chipidea/ci_hdrc_imx.c
 +++ b/drivers/usb/chipidea/ci_hdrc_imx.c
 @@ -14,6 +14,7 @@
@@ -3289,7 +3290,7 @@ index 999c65390..cbd580e2b 100644
  
  #endif /* __DRIVER_USB_CHIPIDEA_CI_HDRC_IMX_H */
 diff --git a/drivers/usb/chipidea/core.c b/drivers/usb/chipidea/core.c
-index aa40e510b..7f594d91f 100644
+index 127b1a62b..81abfd909 100644
 --- a/drivers/usb/chipidea/core.c
 +++ b/drivers/usb/chipidea/core.c
 @@ -195,7 +195,7 @@ static void hw_wait_phy_stable(void)
@@ -3310,7 +3311,7 @@ index aa40e510b..7f594d91f 100644
  {
  	int count = 0;
  
-@@ -516,6 +516,13 @@ static irqreturn_t ci_irq(int irq, void *data)
+@@ -516,6 +516,13 @@ static irqreturn_t ci_irq_handler(int irq, void *data)
  	u32 otgsc = 0;
  
  	if (ci->in_lpm) {
@@ -3324,7 +3325,7 @@ index aa40e510b..7f594d91f 100644
  		disable_irq_nosync(irq);
  		ci->wakeup_int = true;
  		pm_runtime_get(ci->dev);
-@@ -957,9 +964,12 @@ static ssize_t role_store(struct device *dev,
+@@ -966,9 +973,12 @@ static ssize_t role_store(struct device *dev,
  			     strlen(ci->roles[role]->name)))
  			break;
  
@@ -3338,7 +3339,7 @@ index aa40e510b..7f594d91f 100644
  	pm_runtime_get_sync(dev);
  	disable_irq(ci->irq);
  	ci_role_stop(ci);
-@@ -979,6 +989,54 @@ static struct attribute *ci_attrs[] = {
+@@ -988,6 +998,54 @@ static struct attribute *ci_attrs[] = {
  };
  ATTRIBUTE_GROUPS(ci);
  
@@ -3393,7 +3394,7 @@ index aa40e510b..7f594d91f 100644
  static int ci_hdrc_probe(struct platform_device *pdev)
  {
  	struct device	*dev = &pdev->dev;
-@@ -1131,25 +1189,7 @@ static int ci_hdrc_probe(struct platform_device *pdev)
+@@ -1140,25 +1198,7 @@ static int ci_hdrc_probe(struct platform_device *pdev)
  		}
  	}
  
@@ -3420,7 +3421,7 @@ index aa40e510b..7f594d91f 100644
  	if (!ci_otg_is_fsm_mode(ci)) {
  		/* only update vbus status for peripheral */
  		if (ci->role == CI_ROLE_GADGET) {
-@@ -1186,11 +1226,22 @@ static int ci_hdrc_probe(struct platform_device *pdev)
+@@ -1195,11 +1235,22 @@ static int ci_hdrc_probe(struct platform_device *pdev)
  	if (ci_otg_is_fsm_mode(ci))
  		ci_hdrc_otg_fsm_start(ci);
  
@@ -3443,7 +3444,7 @@ index aa40e510b..7f594d91f 100644
  stop:
  	if (ci->role_switch)
  		usb_role_switch_unregister(ci->role_switch);
-@@ -1222,6 +1273,8 @@ static int ci_hdrc_remove(struct platform_device *pdev)
+@@ -1231,6 +1282,8 @@ static int ci_hdrc_remove(struct platform_device *pdev)
  		pm_runtime_put_noidle(&pdev->dev);
  	}
  
@@ -3452,7 +3453,7 @@ index aa40e510b..7f594d91f 100644
  	dbg_remove_files(ci);
  	ci_role_destroy(ci);
  	ci_hdrc_enter_lpm(ci, true);
-@@ -1301,10 +1354,8 @@ static int ci_controller_resume(struct device *dev)
+@@ -1310,10 +1363,8 @@ static int ci_controller_resume(struct device *dev)
  
  	dev_dbg(dev, "at %s\n", __func__);
  
@@ -3464,7 +3465,7 @@ index aa40e510b..7f594d91f 100644
  
  	ci_hdrc_enter_lpm(ci, false);
  
-@@ -1337,6 +1388,7 @@ static int ci_suspend(struct device *dev)
+@@ -1346,6 +1397,7 @@ static int ci_suspend(struct device *dev)
  {
  	struct ci_hdrc *ci = dev_get_drvdata(dev);
  
@@ -3472,7 +3473,7 @@ index aa40e510b..7f594d91f 100644
  	if (ci->wq)
  		flush_workqueue(ci->wq);
  	/*
-@@ -1353,6 +1405,10 @@ static int ci_suspend(struct device *dev)
+@@ -1362,6 +1414,10 @@ static int ci_suspend(struct device *dev)
  		return 0;
  	}
  
@@ -3483,7 +3484,7 @@ index aa40e510b..7f594d91f 100644
  	if (device_may_wakeup(dev)) {
  		if (ci_otg_is_fsm_mode(ci))
  			ci_otg_fsm_suspend_for_srp(ci);
-@@ -1370,6 +1426,16 @@ static int ci_resume(struct device *dev)
+@@ -1379,6 +1435,16 @@ static int ci_resume(struct device *dev)
  {
  	struct ci_hdrc *ci = dev_get_drvdata(dev);
  	int ret;
@@ -3500,7 +3501,7 @@ index aa40e510b..7f594d91f 100644
  
  	if (device_may_wakeup(dev))
  		disable_irq_wake(ci->irq);
-@@ -1378,6 +1444,19 @@ static int ci_resume(struct device *dev)
+@@ -1387,6 +1453,19 @@ static int ci_resume(struct device *dev)
  	if (ret)
  		return ret;
  
@@ -3520,7 +3521,7 @@ index aa40e510b..7f594d91f 100644
  	if (ci->supports_runtime_pm) {
  		pm_runtime_disable(dev);
  		pm_runtime_set_active(dev);
-@@ -1394,10 +1473,8 @@ static int ci_runtime_suspend(struct device *dev)
+@@ -1403,10 +1482,8 @@ static int ci_runtime_suspend(struct device *dev)
  
  	dev_dbg(dev, "at %s\n", __func__);
  
@@ -4478,10 +4479,10 @@ index 99908d8d2..8f1a2f597 100644
  
  #ifdef	CONFIG_PM
 diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 95a9bae72..8e2c54051 100644
+index 3f406519d..e7c6210c7 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -4798,7 +4798,8 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
+@@ -4796,7 +4796,8 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
  			}
  			if (r) {
  				if (r != -ENODEV)
@@ -5554,38 +5555,38 @@ index 000000000..19b827455
 +MODULE_LICENSE("GPL v2");
 +MODULE_DESCRIPTION("DesignWare USB3 imx8mp Glue Layer");
 diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index b75fe5680..0e72ca3a1 100644
+index e9a87e1f4..892784ec1 100644
 --- a/drivers/usb/dwc3/gadget.c
 +++ b/drivers/usb/dwc3/gadget.c
-@@ -310,13 +310,24 @@ int dwc3_send_gadget_ep_cmd(struct dwc3_ep *dep, unsigned int cmd,
+@@ -310,24 +310,13 @@ int dwc3_send_gadget_ep_cmd(struct dwc3_ep *dep, unsigned int cmd,
  	if (DWC3_DEPCMD_CMD(cmd) == DWC3_DEPCMD_STARTTRANSFER) {
  		int link_state;
  
-+		/*
-+		 * Initiate remote wakeup if the link state is in U3 when
-+		 * operating in SS/SSP or L1/L2 when operating in HS/FS. If the
-+		 * link state is in U1/U2, no remote wakeup is needed. The Start
-+		 * Transfer command will initiate the link recovery.
-+		 */
+-		/*
+-		 * Initiate remote wakeup if the link state is in U3 when
+-		 * operating in SS/SSP or L1/L2 when operating in HS/FS. If the
+-		 * link state is in U1/U2, no remote wakeup is needed. The Start
+-		 * Transfer command will initiate the link recovery.
+-		 */
  		link_state = dwc3_gadget_get_link_state(dwc);
--		if (link_state == DWC3_LINK_STATE_U1 ||
--		    link_state == DWC3_LINK_STATE_U2 ||
--		    link_state == DWC3_LINK_STATE_U3) {
-+		switch (link_state) {
-+		case DWC3_LINK_STATE_U2:
-+			if (dwc->gadget->speed >= USB_SPEED_SUPER)
-+				break;
-+
-+			fallthrough;
-+		case DWC3_LINK_STATE_U3:
+-		switch (link_state) {
+-		case DWC3_LINK_STATE_U2:
+-			if (dwc->gadget->speed >= USB_SPEED_SUPER)
+-				break;
+-
+-			fallthrough;
+-		case DWC3_LINK_STATE_U3:
++		if (link_state == DWC3_LINK_STATE_U1 ||
++		    link_state == DWC3_LINK_STATE_U2 ||
++		    link_state == DWC3_LINK_STATE_U3) {
  			ret = __dwc3_gadget_wakeup(dwc);
  			dev_WARN_ONCE(dwc->dev, ret, "wakeup failed --> %d\n",
  					ret);
-+			break;
+-			break;
  		}
  	}
  
-@@ -2064,7 +2075,7 @@ static int dwc3_gadget_run_stop(struct dwc3 *dwc, int is_on, int suspend)
+@@ -2075,7 +2064,7 @@ static int dwc3_gadget_run_stop(struct dwc3 *dwc, int is_on, int suspend)
  	u32			reg;
  	u32			timeout = 500;
  
@@ -5594,7 +5595,7 @@ index b75fe5680..0e72ca3a1 100644
  		return 0;
  
  	reg = dwc3_readl(dwc->regs, DWC3_DCTL);
-@@ -3892,7 +3903,6 @@ int dwc3_gadget_init(struct dwc3 *dwc)
+@@ -3909,7 +3898,6 @@ int dwc3_gadget_init(struct dwc3 *dwc)
  		goto err3;
  	}
  
@@ -5602,7 +5603,7 @@ index b75fe5680..0e72ca3a1 100644
  	usb_initialize_gadget(dwc->dev, dwc->gadget, dwc_gadget_release);
  	dev				= &dwc->gadget->dev;
  	dev->platform_data		= dwc;
-@@ -3900,6 +3910,10 @@ int dwc3_gadget_init(struct dwc3 *dwc)
+@@ -3917,6 +3905,10 @@ int dwc3_gadget_init(struct dwc3 *dwc)
  	dwc->gadget->speed		= USB_SPEED_UNKNOWN;
  	dwc->gadget->sg_supported	= true;
  	dwc->gadget->name		= "dwc3-gadget";
@@ -5890,10 +5891,10 @@ index a826715ae..2cbf4f85b 100644
  	struct urb      *urb,
  	int             is_setup
 diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub.c
-index 8466527eb..c1a6e5558 100644
+index 41d5a46c1..4dd51d950 100644
 --- a/drivers/usb/host/xhci-hub.c
 +++ b/drivers/usb/host/xhci-hub.c
-@@ -1425,6 +1425,16 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
+@@ -1426,6 +1426,16 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
  			/* 4.19.6 Port Test Modes (USB2 Test Mode) */
  			if (hcd->speed != HCD_USB2)
  				goto error;
@@ -5910,7 +5911,7 @@ index 8466527eb..c1a6e5558 100644
  			if (test_mode > USB_TEST_FORCE_ENABLE ||
  			    test_mode < USB_TEST_J)
  				goto error;
-@@ -1599,6 +1609,7 @@ int xhci_bus_suspend(struct usb_hcd *hcd)
+@@ -1600,6 +1610,7 @@ int xhci_bus_suspend(struct usb_hcd *hcd)
  	struct xhci_hub *rhub;
  	struct xhci_port **ports;
  	u32 portsc_buf[USB_MAXCHILDREN];
@@ -5918,7 +5919,7 @@ index 8466527eb..c1a6e5558 100644
  	bool wake_enabled;
  
  	rhub = xhci_get_rhub(hcd);
-@@ -1707,6 +1718,7 @@ int xhci_bus_suspend(struct usb_hcd *hcd)
+@@ -1708,6 +1719,7 @@ int xhci_bus_suspend(struct usb_hcd *hcd)
  				xhci_stop_device(xhci, slot_id, 1);
  				spin_lock_irqsave(&xhci->lock, flags);
  			}
@@ -5926,7 +5927,7 @@ index 8466527eb..c1a6e5558 100644
  		}
  		writel(portsc_buf[port_index], ports[port_index]->addr);
  	}
-@@ -1714,7 +1726,7 @@ int xhci_bus_suspend(struct usb_hcd *hcd)
+@@ -1715,7 +1727,7 @@ int xhci_bus_suspend(struct usb_hcd *hcd)
  	bus_state->next_statechange = jiffies + msecs_to_jiffies(10);
  	spin_unlock_irqrestore(&xhci->lock, flags);
  
@@ -5935,7 +5936,7 @@ index 8466527eb..c1a6e5558 100644
  		usleep_range(5000, 10000);
  
  	return 0;
-@@ -1736,7 +1748,8 @@ static bool xhci_port_missing_cas_quirk(struct xhci_port *port)
+@@ -1737,7 +1749,8 @@ static bool xhci_port_missing_cas_quirk(struct xhci_port *port)
  		return false;
  
  	if (((portsc & PORT_PLS_MASK) != XDEV_POLLING) &&
@@ -6858,7 +6859,7 @@ index 67b39dc62..12952587e 100644
  };
  
 diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
-index c7356718a..605dd8c65 100644
+index 28ffe4e35..d5a805cbc 100644
 --- a/drivers/usb/serial/option.c
 +++ b/drivers/usb/serial/option.c
 @@ -236,6 +236,7 @@ static void option_instat_callback(struct urb *urb);
@@ -6902,7 +6903,7 @@ index c7356718a..605dd8c65 100644
  	{ USB_DEVICE(QUALCOMM_VENDOR_ID, UBLOX_PRODUCT_R6XX),
  	  .driver_info = RSVD(3) },
  	/* Quectel products using Quectel vendor ID */
-@@ -2133,6 +2146,7 @@ static struct usb_serial_driver option_1port_device = {
+@@ -2138,6 +2151,7 @@ static struct usb_serial_driver option_1port_device = {
  #ifdef CONFIG_PM
  	.suspend           = usb_wwan_suspend,
  	.resume            = usb_wwan_resume,
@@ -6910,7 +6911,7 @@ index c7356718a..605dd8c65 100644
  #endif
  };
  
-@@ -2157,6 +2171,28 @@ static int option_probe(struct usb_serial *serial,
+@@ -2162,6 +2176,28 @@ static int option_probe(struct usb_serial *serial,
  				&serial->interface->cur_altsetting->desc;
  	unsigned long device_flags = id->driver_info;
  
