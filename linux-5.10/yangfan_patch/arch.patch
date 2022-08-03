@@ -1,9 +1,9 @@
-From ae3640df5efd4dc58928107ba21759232535ff8d Mon Sep 17 00:00:00 2001
+From 2d480e56b70b74e37f406fa43bc31aa63c99927a Mon Sep 17 00:00:00 2001
 From: jiewangdp <jiewangdp@isoftstone.com>
-Date: Thu, 23 Jun 2022 17:28:49 +0800
+Date: Wed, 3 Aug 2022 09:22:54 +0800
 Subject: [PATCH] arch
 
-Change-Id: Iba333ae9276b9d2c6225e78f8593c890c8297bf6
+Change-Id: I1c6891b0d3af9e99497c0469a3bd3137cbb3823f
 ---
  arch/arm64/Kconfig.platforms                  |   3 -
  arch/arm64/Makefile                           |  15 +-
@@ -14,13 +14,12 @@ Change-Id: Iba333ae9276b9d2c6225e78f8593c890c8297bf6
  arch/arm64/boot/dts/rockchip/rk3399.dtsi      | 651 ++++++++++++++----
  arch/arm64/include/asm/system_info.h          |  14 +
  arch/arm64/kernel/cpuinfo.c                   |   6 +
- arch/arm64/kernel/ftrace.c                    |   1 +
  arch/arm64/kernel/process.c                   |   2 +
- 11 files changed, 961 insertions(+), 203 deletions(-)
+ 10 files changed, 960 insertions(+), 203 deletions(-)
  create mode 100644 arch/arm64/include/asm/system_info.h
 
 diff --git a/arch/arm64/Kconfig.platforms b/arch/arm64/Kconfig.platforms
-index 5c4ac1c9f4e0..8c0cda1d28d2 100644
+index 5c4ac1c9f..8c0cda1d2 100644
 --- a/arch/arm64/Kconfig.platforms
 +++ b/arch/arm64/Kconfig.platforms
 @@ -224,11 +224,8 @@ config ARCH_RENESAS
@@ -36,7 +35,7 @@ index 5c4ac1c9f4e0..8c0cda1d28d2 100644
  	  This enables support for the ARMv8 based Rockchip chipsets,
  	  like the RK3368.
 diff --git a/arch/arm64/Makefile b/arch/arm64/Makefile
-index 485b7dbd4f9e..06633207b0cf 100644
+index 485b7dbd4..06633207b 100644
 --- a/arch/arm64/Makefile
 +++ b/arch/arm64/Makefile
 @@ -44,7 +44,7 @@ ifeq ($(CONFIG_BROKEN_GAS_INST),y)
@@ -66,7 +65,7 @@ index 485b7dbd4f9e..06633207b0cf 100644
 +CLEAN_DIRS += out
 +CLEAN_FILES += boot.img kernel.img resource.img zboot.img
 diff --git a/arch/arm64/boot/dts/rockchip/rk3399-gru.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-gru.dtsi
-index 765b24a2bcbf..32dcaf210085 100644
+index 765b24a2b..32dcaf210 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3399-gru.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3399-gru.dtsi
 @@ -247,8 +247,8 @@ ppvar_sd_card_io: ppvar-sd-card-io {
@@ -81,7 +80,7 @@ index 765b24a2bcbf..32dcaf210085 100644
  		regulator-min-microvolt = <1800000>;
  		regulator-max-microvolt = <3000000>;
 diff --git a/arch/arm64/boot/dts/rockchip/rk3399-opp.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-opp.dtsi
-index d6f1095abb04..f9f2cc8abec7 100644
+index d6f1095ab..f9f2cc8ab 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3399-opp.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3399-opp.dtsi
 @@ -3,35 +3,99 @@
@@ -479,7 +478,7 @@ index d6f1095abb04..f9f2cc8abec7 100644
  
  &gpu {
 diff --git a/arch/arm64/boot/dts/rockchip/rk3399-roc-pc.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-roc-pc.dtsi
-index 35b7ab3bf10c..20309076dbac 100644
+index 35b7ab3bf..20309076d 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3399-roc-pc.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3399-roc-pc.dtsi
 @@ -384,7 +384,6 @@ regulator-state-mem {
@@ -500,7 +499,7 @@ index 35b7ab3bf10c..20309076dbac 100644
  
  		regulator-state-mem {
 diff --git a/arch/arm64/boot/dts/rockchip/rk3399-sapphire.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-sapphire.dtsi
-index 701a567d7638..881d2dd1996d 100644
+index 701a567d7..881d2dd19 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3399-sapphire.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3399-sapphire.dtsi
 @@ -11,15 +11,90 @@
@@ -760,7 +759,7 @@ index 701a567d7638..881d2dd1996d 100644
 +	};
 +};
 diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-index 4b6065dbba55..92b8d814088f 100644
+index 4b6065dbb..92b8d8140 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
 @@ -9,8 +9,13 @@
@@ -1932,7 +1931,7 @@ index 4b6065dbba55..92b8d814088f 100644
  };
 diff --git a/arch/arm64/include/asm/system_info.h b/arch/arm64/include/asm/system_info.h
 new file mode 100644
-index 000000000000..a82fe791b2f6
+index 000000000..a82fe791b
 --- /dev/null
 +++ b/arch/arm64/include/asm/system_info.h
 @@ -0,0 +1,14 @@
@@ -1951,7 +1950,7 @@ index 000000000000..a82fe791b2f6
 +
 +#endif /* __ASM_ARM_SYSTEM_INFO_H */
 diff --git a/arch/arm64/kernel/cpuinfo.c b/arch/arm64/kernel/cpuinfo.c
-index 61204ba07799..e0e2d919cf1a 100644
+index 61204ba07..e0e2d919c 100644
 --- a/arch/arm64/kernel/cpuinfo.c
 +++ b/arch/arm64/kernel/cpuinfo.c
 @@ -25,6 +25,12 @@
@@ -1967,20 +1966,8 @@ index 61204ba07799..e0e2d919cf1a 100644
  /*
   * In case the boot CPU is hotpluggable, we record its initial state and
   * current state separately. Certain system registers may contain different
-diff --git a/arch/arm64/kernel/ftrace.c b/arch/arm64/kernel/ftrace.c
-index 86a5cf9bc19a..2cbd1eb376a4 100644
---- a/arch/arm64/kernel/ftrace.c
-+++ b/arch/arm64/kernel/ftrace.c
-@@ -169,6 +169,7 @@ int ftrace_init_nop(struct module *mod, struct dyn_ftrace *rec)
- 	new = aarch64_insn_gen_move_reg(AARCH64_INSN_REG_9,
- 					AARCH64_INSN_REG_LR,
- 					AARCH64_INSN_VARIANT_64BIT);
-+	printk("wj --- p:%lu old:%d new %d\n",pc, old, new);
- 	return ftrace_modify_code(pc, old, new, true);
- }
- #endif
 diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-index 4999caff3281..b47d477f4ce7 100644
+index 4999caff3..b47d477f4 100644
 --- a/arch/arm64/kernel/process.c
 +++ b/arch/arm64/kernel/process.c
 @@ -191,6 +191,8 @@ void machine_restart(char *cmd)

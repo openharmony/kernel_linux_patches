@@ -1,9 +1,9 @@
-From 980ff955c56b21d181ba8bf7dc55d1ce42a2b5c2 Mon Sep 17 00:00:00 2001
+From 371736820591327d1b31f473fcb9a8db44290586 Mon Sep 17 00:00:00 2001
 From: jiewangdp <jiewangdp@isoftstone.com>
-Date: Sat, 25 Jun 2022 16:33:49 +0800
+Date: Wed, 3 Aug 2022 10:35:12 +0800
 Subject: [PATCH] include
 
-Change-Id: I279b5a56bf351e4cc1ac5d6374a53d56495bf60c
+Change-Id: I4f5b87cf6fa92b555c19ba31e2c3a1c7ae5bf06f
 ---
  include/drm/bridge/analogix_dp.h             |  21 +
  include/drm/bridge/dw_hdmi.h                 | 119 ++++-
@@ -22,7 +22,6 @@ Change-Id: I279b5a56bf351e4cc1ac5d6374a53d56495bf60c
  include/dt-bindings/soc/rockchip,boot-mode.h |  10 +-
  include/linux/blk_types.h                    |   1 +
  include/linux/bpf.h                          |   3 +-
- include/linux/cgroup-defs.h                  | 111 +++--
  include/linux/cgroup.h                       |  29 +-
  include/linux/clk-provider.h                 |   9 +
  include/linux/cpuset.h                       |   7 +-
@@ -50,15 +49,12 @@ Change-Id: I279b5a56bf351e4cc1ac5d6374a53d56495bf60c
  include/linux/reboot.h                       |  20 +
  include/linux/regulator/driver.h             |   3 +
  include/linux/regulator/fan53555.h           |   2 +
- include/linux/sched.h                        | 145 +-----
- include/linux/sched/cpufreq.h                |   3 -
+ include/linux/sched.h                        |   2 +-
  include/linux/sched/hotplug.h                |   4 +
  include/linux/sched/isolation.h              |  19 -
- include/linux/sched/stat.h                   |   9 -
  include/linux/sched/wake_q.h                 |   2 +
  include/linux/sched/xacct.h                  |   9 +
  include/linux/stmmac.h                       |   1 +
- include/linux/stop_machine.h                 |  25 +-
  include/linux/thermal.h                      |   5 +
  include/linux/usb/audio-v2.h                 |  17 +
  include/linux/usb/audio.h                    |   1 +
@@ -88,11 +84,11 @@ Change-Id: I279b5a56bf351e4cc1ac5d6374a53d56495bf60c
  include/uapi/linux/usb/video.h               |  58 +++
  include/uapi/linux/v4l2-controls.h           |   6 +
  include/uapi/linux/videodev2.h               |   1 +
- 83 files changed, 2125 insertions(+), 362 deletions(-)
+ 79 files changed, 2009 insertions(+), 187 deletions(-)
  create mode 100644 include/uapi/linux/usb/f_accessory.h
 
 diff --git a/include/drm/bridge/analogix_dp.h b/include/drm/bridge/analogix_dp.h
-index b0dcc07334a1..291eb87878be 100644
+index b0dcc0733..291eb8787 100644
 --- a/include/drm/bridge/analogix_dp.h
 +++ b/include/drm/bridge/analogix_dp.h
 @@ -8,6 +8,7 @@
@@ -151,7 +147,7 @@ index b0dcc07334a1..291eb87878be 100644
 +
  #endif /* _ANALOGIX_DP_H_ */
 diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
-index ea34ca146b82..0b7f860d9b9c 100644
+index ea34ca146..0b7f860d9 100644
 --- a/include/drm/bridge/dw_hdmi.h
 +++ b/include/drm/bridge/dw_hdmi.h
 @@ -6,12 +6,15 @@
@@ -350,7 +346,7 @@ index ea34ca146b82..0b7f860d9b9c 100644
  
  #endif /* __IMX_HDMI_H__ */
 diff --git a/include/drm/bridge/dw_mipi_dsi.h b/include/drm/bridge/dw_mipi_dsi.h
-index bda8aa7c2280..f89b0476aafd 100644
+index bda8aa7c2..f89b0476a 100644
 --- a/include/drm/bridge/dw_mipi_dsi.h
 +++ b/include/drm/bridge/dw_mipi_dsi.h
 @@ -66,5 +66,6 @@ void dw_mipi_dsi_remove(struct dw_mipi_dsi *dsi);
@@ -361,7 +357,7 @@ index bda8aa7c2280..f89b0476aafd 100644
  
  #endif /* __DW_MIPI_DSI__ */
 diff --git a/include/drm/drm_auth.h b/include/drm/drm_auth.h
-index f99d3417f304..6bf8b2b78991 100644
+index f99d3417f..6bf8b2b78 100644
 --- a/include/drm/drm_auth.h
 +++ b/include/drm/drm_auth.h
 @@ -107,7 +107,6 @@ struct drm_master {
@@ -373,7 +369,7 @@ index f99d3417f304..6bf8b2b78991 100644
  bool drm_is_current_master(struct drm_file *fpriv);
  
 diff --git a/include/drm/drm_connector.h b/include/drm/drm_connector.h
-index 928136556174..f8cd5d8e58ee 100644
+index 928136556..f8cd5d8e5 100644
 --- a/include/drm/drm_connector.h
 +++ b/include/drm/drm_connector.h
 @@ -175,6 +175,48 @@ struct drm_scdc {
@@ -452,7 +448,7 @@ index 928136556174..f8cd5d8e58ee 100644
  const char *drm_get_connector_status_name(enum drm_connector_status status);
  const char *drm_get_subpixel_order_name(enum subpixel_order order);
 diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
-index 59b51a09cae6..3a3d9d887cad 100644
+index 59b51a09c..3a3d9d887 100644
 --- a/include/drm/drm_crtc.h
 +++ b/include/drm/drm_crtc.h
 @@ -287,7 +287,16 @@ struct drm_crtc_state {
@@ -474,7 +470,7 @@ index 59b51a09cae6..3a3d9d887cad 100644
  	 * @target_vblank:
  	 *
 diff --git a/include/drm/drm_drv.h b/include/drm/drm_drv.h
-index e57d0440f00f..e395d1fc186e 100644
+index e57d0440f..e395d1fc1 100644
 --- a/include/drm/drm_drv.h
 +++ b/include/drm/drm_drv.h
 @@ -29,6 +29,7 @@
@@ -502,7 +498,7 @@ index e57d0440f00f..e395d1fc186e 100644
  	 * @dumb_create:
  	 *
 diff --git a/include/drm/drm_edid.h b/include/drm/drm_edid.h
-index e97daf6ffbb1..043491c74870 100644
+index e97daf6ff..043491c74 100644
 --- a/include/drm/drm_edid.h
 +++ b/include/drm/drm_edid.h
 @@ -229,6 +229,38 @@ struct detailed_timing {
@@ -667,7 +663,7 @@ index e97daf6ffbb1..043491c74870 100644
  
  #endif /* __DRM_EDID_H__ */
 diff --git a/include/drm/drm_file.h b/include/drm/drm_file.h
-index 42d04607d091..b81b3bfb08c8 100644
+index 42d04607d..b81b3bfb0 100644
 --- a/include/drm/drm_file.h
 +++ b/include/drm/drm_file.h
 @@ -226,27 +226,15 @@ struct drm_file {
@@ -712,7 +708,7 @@ index 42d04607d091..b81b3bfb08c8 100644
  struct file *mock_drm_getfile(struct drm_minor *minor, unsigned int flags);
  
 diff --git a/include/drm/drm_mipi_dsi.h b/include/drm/drm_mipi_dsi.h
-index 360e6377e84b..952f475a68d6 100644
+index 360e6377e..952f475a6 100644
 --- a/include/drm/drm_mipi_dsi.h
 +++ b/include/drm/drm_mipi_dsi.h
 @@ -19,12 +19,18 @@ struct drm_dsc_picture_parameter_set;
@@ -755,7 +751,7 @@ index 360e6377e84b..952f475a68d6 100644
  enum mipi_dsi_pixel_format {
  	MIPI_DSI_FMT_RGB888,
 diff --git a/include/drm/drm_mode_config.h b/include/drm/drm_mode_config.h
-index a18f73eb3cf6..76d114569484 100644
+index a18f73eb3..76d114569 100644
 --- a/include/drm/drm_mode_config.h
 +++ b/include/drm/drm_mode_config.h
 @@ -794,6 +794,19 @@ struct drm_mode_config {
@@ -779,7 +775,7 @@ index a18f73eb3cf6..76d114569484 100644
  	 * @suggested_x_property: Optional connector property with a hint for
  	 * the position of the output on the host's screen.
 diff --git a/include/drm/drm_mode_object.h b/include/drm/drm_mode_object.h
-index c34a3e8030e1..6292fa663844 100644
+index c34a3e803..6292fa663 100644
 --- a/include/drm/drm_mode_object.h
 +++ b/include/drm/drm_mode_object.h
 @@ -60,7 +60,7 @@ struct drm_mode_object {
@@ -792,7 +788,7 @@ index c34a3e8030e1..6292fa663844 100644
   * struct drm_object_properties - property tracking for &drm_mode_object
   */
 diff --git a/include/drm/drm_prime.h b/include/drm/drm_prime.h
-index 0f69f9fbf12c..a9d0c6b0854e 100644
+index 0f69f9fbf..a9d0c6b08 100644
 --- a/include/drm/drm_prime.h
 +++ b/include/drm/drm_prime.h
 @@ -107,5 +107,6 @@ void drm_prime_gem_destroy(struct drm_gem_object *obj, struct sg_table *sg);
@@ -803,7 +799,7 @@ index 0f69f9fbf12c..a9d0c6b0854e 100644
  
  #endif /* __DRM_PRIME_H__ */
 diff --git a/include/dt-bindings/clock/rk3399-cru.h b/include/dt-bindings/clock/rk3399-cru.h
-index 44e0a319f077..b541bdce1c9e 100644
+index 44e0a319f..b541bdce1 100644
 --- a/include/dt-bindings/clock/rk3399-cru.h
 +++ b/include/dt-bindings/clock/rk3399-cru.h
 @@ -7,6 +7,8 @@
@@ -892,7 +888,7 @@ index 44e0a319f077..b541bdce1c9e 100644
  #define SRST_P_TIMER_0			9
  #define SRST_P_TIMER_1			10
 diff --git a/include/dt-bindings/soc/rockchip,boot-mode.h b/include/dt-bindings/soc/rockchip,boot-mode.h
-index 4b0914c0989d..1436e1d32619 100644
+index 4b0914c09..1436e1d32 100644
 --- a/include/dt-bindings/soc/rockchip,boot-mode.h
 +++ b/include/dt-bindings/soc/rockchip,boot-mode.h
 @@ -10,7 +10,15 @@
@@ -913,7 +909,7 @@ index 4b0914c0989d..1436e1d32619 100644
  
  #endif
 diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
-index d9b69bbde5cc..ebfb4e7c1fd1 100644
+index d9b69bbde..ebfb4e7c1 100644
 --- a/include/linux/blk_types.h
 +++ b/include/linux/blk_types.h
 @@ -46,6 +46,7 @@ struct block_device {
@@ -925,7 +921,7 @@ index d9b69bbde5cc..ebfb4e7c1fd1 100644
  
  /*
 diff --git a/include/linux/bpf.h b/include/linux/bpf.h
-index 3a383a485190..f83f5fa0a997 100644
+index 3a383a485..f83f5fa0a 100644
 --- a/include/linux/bpf.h
 +++ b/include/linux/bpf.h
 @@ -173,7 +173,7 @@ struct bpf_map {
@@ -945,165 +941,8 @@ index 3a383a485190..f83f5fa0a997 100644
  void bpf_map_init_from_attr(struct bpf_map *map, union bpf_attr *attr);
  int  generic_map_lookup_batch(struct bpf_map *map,
  			      const union bpf_attr *attr,
-diff --git a/include/linux/cgroup-defs.h b/include/linux/cgroup-defs.h
-index 97ce0a12367c..8c193033604f 100644
---- a/include/linux/cgroup-defs.h
-+++ b/include/linux/cgroup-defs.h
-@@ -110,6 +110,7 @@ enum {
- 	CFTYPE_NO_PREFIX	= (1 << 3),	/* (DON'T USE FOR NEW FILES) no subsys prefix */
- 	CFTYPE_WORLD_WRITABLE	= (1 << 4),	/* (DON'T USE FOR NEW FILES) S_IWUGO */
- 	CFTYPE_DEBUG		= (1 << 5),	/* create when cgroup_debug */
-+	CFTYPE_PRESSURE		= (1 << 6),	/* only if pressure feature is enabled */
- 
- 	/* internal flags, do not use outside cgroup core proper */
- 	__CFTYPE_ONLY_ON_DFL	= (1 << 16),	/* only on default hierarchy */
-@@ -509,9 +510,6 @@ struct cgroup_root {
- 	/* Number of cgroups in the hierarchy, used only for /proc/cgroups */
- 	atomic_t nr_cgrps;
- 
--	/* Wait while cgroups are being destroyed */
--	wait_queue_head_t wait;
--
- 	/* A list running through the active hierarchies */
- 	struct list_head root_list;
- 
-@@ -766,54 +764,107 @@ static inline void cgroup_threadgroup_change_end(struct task_struct *tsk) {}
-  * sock_cgroup_data is embedded at sock->sk_cgrp_data and contains
-  * per-socket cgroup information except for memcg association.
-  *
-- * On legacy hierarchies, net_prio and net_cls controllers directly
-- * set attributes on each sock which can then be tested by the network
-- * layer. On the default hierarchy, each sock is associated with the
-- * cgroup it was created in and the networking layer can match the
-- * cgroup directly.
-+ * On legacy hierarchies, net_prio and net_cls controllers directly set
-+ * attributes on each sock which can then be tested by the network layer.
-+ * On the default hierarchy, each sock is associated with the cgroup it was
-+ * created in and the networking layer can match the cgroup directly.
-+ *
-+ * To avoid carrying all three cgroup related fields separately in sock,
-+ * sock_cgroup_data overloads (prioidx, classid) and the cgroup pointer.
-+ * On boot, sock_cgroup_data records the cgroup that the sock was created
-+ * in so that cgroup2 matches can be made; however, once either net_prio or
-+ * net_cls starts being used, the area is overriden to carry prioidx and/or
-+ * classid.  The two modes are distinguished by whether the lowest bit is
-+ * set.  Clear bit indicates cgroup pointer while set bit prioidx and
-+ * classid.
-+ *
-+ * While userland may start using net_prio or net_cls at any time, once
-+ * either is used, cgroup2 matching no longer works.  There is no reason to
-+ * mix the two and this is in line with how legacy and v2 compatibility is
-+ * handled.  On mode switch, cgroup references which are already being
-+ * pointed to by socks may be leaked.  While this can be remedied by adding
-+ * synchronization around sock_cgroup_data, given that the number of leaked
-+ * cgroups is bound and highly unlikely to be high, this seems to be the
-+ * better trade-off.
-  */
- struct sock_cgroup_data {
--	struct cgroup	*cgroup; /* v2 */
--#ifdef CONFIG_CGROUP_NET_CLASSID
--	u32		classid; /* v1 */
--#endif
--#ifdef CONFIG_CGROUP_NET_PRIO
--	u16		prioidx; /* v1 */
-+	union {
-+#ifdef __LITTLE_ENDIAN
-+		struct {
-+			u8	is_data : 1;
-+			u8	no_refcnt : 1;
-+			u8	unused : 6;
-+			u8	padding;
-+			u16	prioidx;
-+			u32	classid;
-+		} __packed;
-+#else
-+		struct {
-+			u32	classid;
-+			u16	prioidx;
-+			u8	padding;
-+			u8	unused : 6;
-+			u8	no_refcnt : 1;
-+			u8	is_data : 1;
-+		} __packed;
- #endif
-+		u64		val;
-+	};
- };
- 
-+/*
-+ * There's a theoretical window where the following accessors race with
-+ * updaters and return part of the previous pointer as the prioidx or
-+ * classid.  Such races are short-lived and the result isn't critical.
-+ */
- static inline u16 sock_cgroup_prioidx(const struct sock_cgroup_data *skcd)
- {
--#ifdef CONFIG_CGROUP_NET_PRIO
--	return READ_ONCE(skcd->prioidx);
--#else
--	return 1;
--#endif
-+	/* fallback to 1 which is always the ID of the root cgroup */
-+	return (skcd->is_data & 1) ? skcd->prioidx : 1;
- }
- 
- static inline u32 sock_cgroup_classid(const struct sock_cgroup_data *skcd)
- {
--#ifdef CONFIG_CGROUP_NET_CLASSID
--	return READ_ONCE(skcd->classid);
--#else
--	return 0;
--#endif
-+	/* fallback to 0 which is the unconfigured default classid */
-+	return (skcd->is_data & 1) ? skcd->classid : 0;
- }
- 
-+/*
-+ * If invoked concurrently, the updaters may clobber each other.  The
-+ * caller is responsible for synchronization.
-+ */
- static inline void sock_cgroup_set_prioidx(struct sock_cgroup_data *skcd,
- 					   u16 prioidx)
- {
--#ifdef CONFIG_CGROUP_NET_PRIO
--	WRITE_ONCE(skcd->prioidx, prioidx);
--#endif
-+	struct sock_cgroup_data skcd_buf = {{ .val = READ_ONCE(skcd->val) }};
-+
-+	if (sock_cgroup_prioidx(&skcd_buf) == prioidx)
-+		return;
-+
-+	if (!(skcd_buf.is_data & 1)) {
-+		skcd_buf.val = 0;
-+		skcd_buf.is_data = 1;
-+	}
-+
-+	skcd_buf.prioidx = prioidx;
-+	WRITE_ONCE(skcd->val, skcd_buf.val);	/* see sock_cgroup_ptr() */
- }
- 
- static inline void sock_cgroup_set_classid(struct sock_cgroup_data *skcd,
- 					   u32 classid)
- {
--#ifdef CONFIG_CGROUP_NET_CLASSID
--	WRITE_ONCE(skcd->classid, classid);
--#endif
-+	struct sock_cgroup_data skcd_buf = {{ .val = READ_ONCE(skcd->val) }};
-+
-+	if (sock_cgroup_classid(&skcd_buf) == classid)
-+		return;
-+
-+	if (!(skcd_buf.is_data & 1)) {
-+		skcd_buf.val = 0;
-+		skcd_buf.is_data = 1;
-+	}
-+
-+	skcd_buf.classid = classid;
-+	WRITE_ONCE(skcd->val, skcd_buf.val);	/* see sock_cgroup_ptr() */
- }
- 
- #else	/* CONFIG_SOCK_CGROUP_DATA */
 diff --git a/include/linux/cgroup.h b/include/linux/cgroup.h
-index 9c88b7da3245..14b808b02872 100644
+index 9c88b7da3..14b808b02 100644
 --- a/include/linux/cgroup.h
 +++ b/include/linux/cgroup.h
 @@ -676,6 +676,8 @@ static inline struct psi_group *cgroup_psi(struct cgroup *cgrp)
@@ -1163,7 +1002,7 @@ index 9c88b7da3245..14b808b02872 100644
  
  #else	/* CONFIG_CGROUP_DATA */
 diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 03a5de5f99f4..d9897d0b10a2 100644
+index 03a5de5f9..d9897d0b1 100644
 --- a/include/linux/clk-provider.h
 +++ b/include/linux/clk-provider.h
 @@ -599,6 +599,7 @@ struct clk_divider {
@@ -1218,7 +1057,7 @@ index 03a5de5f99f4..d9897d0b10a2 100644
  	const struct clk_ops	*mux_ops;
  	const struct clk_ops	*rate_ops;
 diff --git a/include/linux/cpuset.h b/include/linux/cpuset.h
-index 04c20de66afc..047f449d3658 100644
+index 04c20de66..047f449d3 100644
 --- a/include/linux/cpuset.h
 +++ b/include/linux/cpuset.h
 @@ -15,6 +15,7 @@
@@ -1257,7 +1096,7 @@ index 04c20de66afc..047f449d3658 100644
  
  #endif /* _LINUX_CPUSET_H */
 diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 0c5706abb7fe..fc3c3f21fc28 100644
+index 0c5706abb..fc3c3f21f 100644
 --- a/include/linux/dma-buf.h
 +++ b/include/linux/dma-buf.h
 @@ -209,6 +209,41 @@ struct dma_buf_ops {
@@ -1448,7 +1287,7 @@ index 0c5706abb7fe..fc3c3f21fc28 100644
  #ifdef CONFIG_DMABUF_PROCESS_INFO
  /**
 diff --git a/include/linux/dma-fence.h b/include/linux/dma-fence.h
-index 09e23adb351d..9f12efaaa93a 100644
+index 09e23adb3..9f12efaaa 100644
 --- a/include/linux/dma-fence.h
 +++ b/include/linux/dma-fence.h
 @@ -372,6 +372,9 @@ static inline void __dma_fence_might_wait(void) {}
@@ -1462,7 +1301,7 @@ index 09e23adb351d..9f12efaaa93a 100644
  				   bool intr, signed long timeout);
  int dma_fence_add_callback(struct dma_fence *fence,
 diff --git a/include/linux/dma-heap.h b/include/linux/dma-heap.h
-index 83b8cfb2d760..e8f0e92c27dd 100644
+index 83b8cfb2d..e8f0e92c2 100644
 --- a/include/linux/dma-heap.h
 +++ b/include/linux/dma-heap.h
 @@ -16,15 +16,17 @@ struct dma_heap;
@@ -1553,7 +1392,7 @@ index 83b8cfb2d760..e8f0e92c27dd 100644
 +			    unsigned int heap_flags);
  #endif /* _DMA_HEAPS_H */
 diff --git a/include/linux/dma-iommu.h b/include/linux/dma-iommu.h
-index 2112f21f73d8..f51561eda33b 100644
+index 2112f21f7..f51561eda 100644
 --- a/include/linux/dma-iommu.h
 +++ b/include/linux/dma-iommu.h
 @@ -37,6 +37,11 @@ void iommu_dma_compose_msi_msg(struct msi_desc *desc,
@@ -1586,7 +1425,7 @@ index 2112f21f73d8..f51561eda33b 100644
  #endif	/* CONFIG_IOMMU_DMA */
  #endif	/* __DMA_IOMMU_H */
 diff --git a/include/linux/dma-map-ops.h b/include/linux/dma-map-ops.h
-index a5f89fc4d6df..a3ff9280f7aa 100644
+index a5f89fc4d..a3ff9280f 100644
 --- a/include/linux/dma-map-ops.h
 +++ b/include/linux/dma-map-ops.h
 @@ -258,6 +258,14 @@ void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
@@ -1605,7 +1444,7 @@ index a5f89fc4d6df..a3ff9280f7aa 100644
  #else
  static inline pgprot_t dma_pgprot(struct device *dev, pgprot_t prot,
 diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index a7d70cdee25e..7270f12e2c78 100644
+index a7d70cdee..7270f12e2 100644
 --- a/include/linux/dma-mapping.h
 +++ b/include/linux/dma-mapping.h
 @@ -61,6 +61,23 @@
@@ -1633,7 +1472,7 @@ index a7d70cdee25e..7270f12e2c78 100644
   * A dma_addr_t can hold any valid DMA or bus address for the platform.  It can
   * be given to a device to use as a DMA source or target.  It is specific to a
 diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index dd357a747780..493a047ed0a2 100644
+index dd357a747..493a047ed 100644
 --- a/include/linux/dmaengine.h
 +++ b/include/linux/dmaengine.h
 @@ -418,6 +418,9 @@ enum dma_slave_buswidth {
@@ -1656,7 +1495,7 @@ index dd357a747780..493a047ed0a2 100644
  
  /**
 diff --git a/include/linux/energy_model.h b/include/linux/energy_model.h
-index 5f04a2b35e80..9ca1ea02fa72 100644
+index 5f04a2b35..9ca1ea02f 100644
 --- a/include/linux/energy_model.h
 +++ b/include/linux/energy_model.h
 @@ -29,6 +29,8 @@ struct em_perf_state {
@@ -1707,7 +1546,7 @@ index 5f04a2b35e80..9ca1ea02fa72 100644
  	return -EINVAL;
  }
 diff --git a/include/linux/extcon.h b/include/linux/extcon.h
-index 0c19010da77f..9c4ff7f7df29 100644
+index 0c19010da..9c4ff7f7d 100644
 --- a/include/linux/extcon.h
 +++ b/include/linux/extcon.h
 @@ -37,6 +37,7 @@
@@ -1719,7 +1558,7 @@ index 0c19010da77f..9c4ff7f7df29 100644
  /*
   * Charging external connector
 diff --git a/include/linux/freezer.h b/include/linux/freezer.h
-index 27828145ca09..f753c307b8b3 100644
+index 27828145c..f753c307b 100644
 --- a/include/linux/freezer.h
 +++ b/include/linux/freezer.h
 @@ -27,6 +27,11 @@ static inline bool frozen(struct task_struct *p)
@@ -1743,7 +1582,7 @@ index 27828145ca09..f753c307b8b3 100644
  static inline void __thaw_task(struct task_struct *t) {}
  
 diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-index e90c267e7f3e..f94cfde78201 100644
+index e90c267e7..f94cfde78 100644
 --- a/include/linux/iommu.h
 +++ b/include/linux/iommu.h
 @@ -31,6 +31,26 @@
@@ -1833,7 +1672,7 @@ index e90c267e7f3e..f94cfde78201 100644
  
  /**
 diff --git a/include/linux/iova.h b/include/linux/iova.h
-index a0637abffee8..58713bb72a48 100644
+index a0637abff..58713bb72 100644
 --- a/include/linux/iova.h
 +++ b/include/linux/iova.h
 @@ -95,6 +95,7 @@ struct iova_domain {
@@ -1845,7 +1684,7 @@ index a0637abffee8..58713bb72a48 100644
  
  static inline unsigned long iova_size(struct iova *iova)
 diff --git a/include/linux/irqchip/arm-gic-v3.h b/include/linux/irqchip/arm-gic-v3.h
-index f6d092fdb93d..ffb0a87055b1 100644
+index f6d092fdb..ffb0a8705 100644
 --- a/include/linux/irqchip/arm-gic-v3.h
 +++ b/include/linux/irqchip/arm-gic-v3.h
 @@ -708,6 +708,8 @@ static inline bool gic_enable_sre(void)
@@ -1858,7 +1697,7 @@ index f6d092fdb93d..ffb0a87055b1 100644
  
  #endif
 diff --git a/include/linux/irqchip/arm-gic-v4.h b/include/linux/irqchip/arm-gic-v4.h
-index 6976b8331b60..943c3411ca10 100644
+index 6976b8331..943c3411c 100644
 --- a/include/linux/irqchip/arm-gic-v4.h
 +++ b/include/linux/irqchip/arm-gic-v4.h
 @@ -39,6 +39,8 @@ struct its_vpe {
@@ -1887,7 +1726,7 @@ index 6976b8331b60..943c3411ca10 100644
  int its_map_vlpi(int irq, struct its_vlpi_map *map);
  int its_get_vlpi(int irq, struct its_vlpi_map *map);
 diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index 1a8d25f2e041..de15a4d153a4 100644
+index 1a8d25f2e..de15a4d15 100644
 --- a/include/linux/memblock.h
 +++ b/include/linux/memblock.h
 @@ -25,6 +25,10 @@ extern unsigned long max_pfn;
@@ -1984,7 +1823,7 @@ index 1a8d25f2e041..de15a4d153a4 100644
  	return memblock.bottom_up;
  }
 diff --git a/include/linux/mfd/rk808.h b/include/linux/mfd/rk808.h
-index e07f6e61cd38..7cdc5dfa4fce 100644
+index e07f6e61c..7cdc5dfa4 100644
 --- a/include/linux/mfd/rk808.h
 +++ b/include/linux/mfd/rk808.h
 @@ -113,6 +113,235 @@ enum rk808_reg {
@@ -2536,7 +2375,7 @@ index e07f6e61cd38..7cdc5dfa4fce 100644
  };
  #endif /* __LINUX_REGULATOR_RK808_H */
 diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
-index 40d7e98fc990..819f6119dff3 100644
+index 40d7e98fc..819f6119d 100644
 --- a/include/linux/mmc/host.h
 +++ b/include/linux/mmc/host.h
 @@ -141,6 +141,7 @@ struct mmc_host_ops {
@@ -2558,7 +2397,7 @@ index 40d7e98fc990..819f6119dff3 100644
  {
  	return (void *)host->private;
 diff --git a/include/linux/mmu_context.h b/include/linux/mmu_context.h
-index 03dee12d2b61..bc4ac3c525e6 100644
+index 03dee12d2..bc4ac3c52 100644
 --- a/include/linux/mmu_context.h
 +++ b/include/linux/mmu_context.h
 @@ -14,4 +14,12 @@
@@ -2575,7 +2414,7 @@ index 03dee12d2b61..bc4ac3c525e6 100644
 +
  #endif
 diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-index 81a55e974feb..aefa0b0bc4c4 100644
+index 81a55e974..aefa0b0bc 100644
 --- a/include/linux/power_supply.h
 +++ b/include/linux/power_supply.h
 @@ -49,6 +49,12 @@ enum {
@@ -2632,7 +2471,7 @@ index 81a55e974feb..aefa0b0bc4c4 100644
  					enum power_supply_property psp);
  extern void power_supply_external_power_changed(struct power_supply *psy);
 diff --git a/include/linux/psi_types.h b/include/linux/psi_types.h
-index b95f3211566a..4b73f0f19ef5 100644
+index b95f32115..4b73f0f19 100644
 --- a/include/linux/psi_types.h
 +++ b/include/linux/psi_types.h
 @@ -157,6 +157,7 @@ struct psi_group {
@@ -2644,7 +2483,7 @@ index b95f3211566a..4b73f0f19ef5 100644
  	/* Protects data used by the monitor */
  	struct mutex trigger_lock;
 diff --git a/include/linux/pwm.h b/include/linux/pwm.h
-index a13ff383fa1d..6b2a7fb80de8 100644
+index a13ff383f..6b2a7fb80 100644
 --- a/include/linux/pwm.h
 +++ b/include/linux/pwm.h
 @@ -59,6 +59,9 @@ struct pwm_state {
@@ -2658,7 +2497,7 @@ index a13ff383fa1d..6b2a7fb80de8 100644
  };
  
 diff --git a/include/linux/reboot.h b/include/linux/reboot.h
-index 3734cd8f38a8..1c8d7856c559 100644
+index 3734cd8f3..1c8d7856c 100644
 --- a/include/linux/reboot.h
 +++ b/include/linux/reboot.h
 @@ -49,6 +49,26 @@ extern int register_restart_handler(struct notifier_block *);
@@ -2689,7 +2528,7 @@ index 3734cd8f38a8..1c8d7856c559 100644
   * Architecture-specific implementations of sys_reboot commands.
   */
 diff --git a/include/linux/regulator/driver.h b/include/linux/regulator/driver.h
-index 11cade73726c..d7c77ee370f3 100644
+index 11cade737..d7c77ee37 100644
 --- a/include/linux/regulator/driver.h
 +++ b/include/linux/regulator/driver.h
 @@ -223,6 +223,8 @@ enum regulator_type {
@@ -2710,7 +2549,7 @@ index 11cade73726c..d7c77ee370f3 100644
  	int (*of_parse_cb)(struct device_node *,
  			    const struct regulator_desc *,
 diff --git a/include/linux/regulator/fan53555.h b/include/linux/regulator/fan53555.h
-index ce8df21863f0..e8703b6fc13d 100644
+index ce8df2186..e8703b6fc 100644
 --- a/include/linux/regulator/fan53555.h
 +++ b/include/linux/regulator/fan53555.h
 @@ -52,6 +52,8 @@ struct fan53555_platform_data {
@@ -2723,189 +2562,10 @@ index ce8df21863f0..e8703b6fc13d 100644
  
  #endif /* __FAN53555_H__ */
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 6ae4d7ae5a3b..433f2bd90fd8 100644
+index 4948f0925..eed4f9e52 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -34,14 +34,12 @@
- #include <linux/rseq.h>
- #include <linux/seqlock.h>
- #include <linux/kcsan.h>
--#include <linux/sched/rtg.h>
- 
- /* task_struct member predeclarations (sorted alphabetically): */
- struct audit_context;
- struct backing_dev_info;
- struct bio_list;
- struct blk_plug;
--struct bpf_run_ctx;
- struct capture_control;
- struct cfs_rq;
- struct fs_struct;
-@@ -217,56 +215,6 @@ struct io_uring_task;
- /* Task command name length: */
- #define TASK_COMM_LEN			16
- 
--enum task_event {
--	PUT_PREV_TASK   = 0,
--	PICK_NEXT_TASK  = 1,
--	TASK_WAKE       = 2,
--	TASK_MIGRATE    = 3,
--	TASK_UPDATE     = 4,
--	IRQ_UPDATE      = 5,
--};
--
--/* Note: this need to be in sync with migrate_type_names array */
--enum migrate_types {
--	GROUP_TO_RQ,
--	RQ_TO_GROUP,
--};
--
--#ifdef CONFIG_CPU_ISOLATION_OPT
--extern int sched_isolate_count(const cpumask_t *mask, bool include_offline);
--extern int sched_isolate_cpu(int cpu);
--extern int sched_unisolate_cpu(int cpu);
--extern int sched_unisolate_cpu_unlocked(int cpu);
--#else
--static inline int sched_isolate_count(const cpumask_t *mask,
--				      bool include_offline)
--{
--	cpumask_t count_mask;
--
--	if (include_offline)
--		cpumask_andnot(&count_mask, mask, cpu_online_mask);
--	else
--		return 0;
--
--	return cpumask_weight(&count_mask);
--}
--
--static inline int sched_isolate_cpu(int cpu)
--{
--	return 0;
--}
--
--static inline int sched_unisolate_cpu(int cpu)
--{
--	return 0;
--}
--
--static inline int sched_unisolate_cpu_unlocked(int cpu)
--{
--	return 0;
--}
--#endif
--
- extern void scheduler_tick(void);
- 
- #define	MAX_SCHEDULE_TIMEOUT		LONG_MAX
-@@ -549,53 +497,6 @@ struct sched_entity {
- #endif
- };
- 
--#ifdef CONFIG_SCHED_WALT
--extern void sched_exit(struct task_struct *p);
--extern int sched_set_init_task_load(struct task_struct *p, int init_load_pct);
--extern u32 sched_get_init_task_load(struct task_struct *p);
--extern void free_task_load_ptrs(struct task_struct *p);
--#define RAVG_HIST_SIZE_MAX  5
--struct ravg {
--	/*
--	 * 'mark_start' marks the beginning of an event (task waking up, task
--	 * starting to execute, task being preempted) within a window
--	 *
--	 * 'sum' represents how runnable a task has been within current
--	 * window. It incorporates both running time and wait time and is
--	 * frequency scaled.
--	 *
--	 * 'sum_history' keeps track of history of 'sum' seen over previous
--	 * RAVG_HIST_SIZE windows. Windows where task was entirely sleeping are
--	 * ignored.
--	 *
--	 * 'demand' represents maximum sum seen over previous
--	 * sysctl_sched_ravg_hist_size windows. 'demand' could drive frequency
--	 * demand for tasks.
--	 *
--	 * 'curr_window_cpu' represents task's contribution to cpu busy time on
--	 * various CPUs in the current window
--	 *
--	 * 'prev_window_cpu' represents task's contribution to cpu busy time on
--	 * various CPUs in the previous window
--	 *
--	 * 'curr_window' represents the sum of all entries in curr_window_cpu
--	 *
--	 * 'prev_window' represents the sum of all entries in prev_window_cpu
--	 *
--	 */
--	u64 mark_start;
--	u32 sum, demand;
--	u32 sum_history[RAVG_HIST_SIZE_MAX];
--	u32 *curr_window_cpu, *prev_window_cpu;
--	u32 curr_window, prev_window;
--	u16 active_windows;
--	u16 demand_scaled;
--};
--#else
--static inline void sched_exit(struct task_struct *p) { }
--static inline void free_task_load_ptrs(struct task_struct *p) { }
--#endif /* CONFIG_SCHED_WALT */
--
- struct sched_rt_entity {
- 	struct list_head		run_list;
- 	unsigned long			timeout;
-@@ -801,22 +702,6 @@ struct task_struct {
- 	const struct sched_class	*sched_class;
- 	struct sched_entity		se;
- 	struct sched_rt_entity		rt;
--#ifdef CONFIG_SCHED_WALT
--	struct ravg ravg;
--	/*
--	 * 'init_load_pct' represents the initial task load assigned to children
--	 * of this task
--	 */
--	u32 init_load_pct;
--	u64 last_sleep_ts;
--#endif
--
--#ifdef CONFIG_SCHED_RTG
--	int rtg_depth;
--	struct related_thread_group	*grp;
--	struct list_head		grp_list;
--#endif
--
- #ifdef CONFIG_CGROUP_SCHED
- 	struct task_group		*sched_task_group;
- #endif
-@@ -835,6 +720,10 @@ struct task_struct {
- 	struct uclamp_se		uclamp[UCLAMP_CNT];
- #endif
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+	struct list_head		percpu_kthread_node;
-+#endif
-+
- #ifdef CONFIG_PREEMPT_NOTIFIERS
- 	/* List of struct preempt_notifier: */
- 	struct hlist_head		preempt_notifiers;
-@@ -1014,6 +903,10 @@ struct task_struct {
- 	u64				stimescaled;
- #endif
- 	u64				gtime;
-+#ifdef CONFIG_CPU_FREQ_TIMES
-+	u64				*time_in_state;
-+	unsigned int			max_state;
-+#endif
- 	struct prev_cputime		prev_cputime;
- #ifdef CONFIG_VIRT_CPU_ACCOUNTING_GEN
- 	struct vtime			vtime;
-@@ -1125,6 +1018,7 @@ struct task_struct {
- 	raw_spinlock_t			pi_lock;
- 
- 	struct wake_q_node		wake_q;
-+	int				wake_q_count;
- 
- #ifdef CONFIG_RT_MUTEXES
- 	/* PI waiters blocked on a rt_mutex held by this task: */
-@@ -1349,7 +1243,7 @@ struct task_struct {
+@@ -1366,7 +1366,7 @@ struct task_struct {
  	u64				timer_slack_ns;
  	u64				default_timer_slack_ns;
  
@@ -2914,73 +2574,8 @@ index 6ae4d7ae5a3b..433f2bd90fd8 100644
  	unsigned int			kasan_depth;
  #endif
  
-@@ -1462,10 +1356,6 @@ struct task_struct {
- 	/* Used by LSM modules for access restriction: */
- 	void				*security;
- #endif
--#ifdef CONFIG_BPF_SYSCALL
--	/* Used for BPF run context */
--	struct bpf_run_ctx		*bpf_ctx;
--#endif
- 
- #ifdef CONFIG_GCC_PLUGIN_STACKLEAK
- 	unsigned long			lowest_stack;
-@@ -1480,9 +1370,7 @@ struct task_struct {
- 					mce_whole_page : 1,
- 					__mce_reserved : 62;
- 	struct callback_head		mce_kill_me;
--	int				mce_count;
- #endif
--
- #ifdef CONFIG_ACCESS_TOKENID
- 	u64				token;
- 	u64				ftoken;
-@@ -1719,7 +1607,7 @@ extern struct pid *cad_pid;
- #define tsk_used_math(p)			((p)->flags & PF_USED_MATH)
- #define used_math()				tsk_used_math(current)
- 
--static __always_inline bool is_percpu_thread(void)
-+static inline bool is_percpu_thread(void)
- {
- #ifdef CONFIG_SMP
- 	return (current->flags & PF_NO_SETAFFINITY) &&
-@@ -1789,9 +1677,20 @@ current_restore_flags(unsigned long orig_flags, unsigned long flags)
- 
- extern int cpuset_cpumask_can_shrink(const struct cpumask *cur, const struct cpumask *trial);
- extern int task_can_attach(struct task_struct *p, const struct cpumask *cs_cpus_allowed);
-+
-+#ifdef CONFIG_RT_SOFTINT_OPTIMIZATION
-+extern bool cpupri_check_rt(void);
-+#else
-+static inline bool cpupri_check_rt(void)
-+{
-+	return false;
-+}
-+#endif
-+
- #ifdef CONFIG_SMP
- extern void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask);
- extern int set_cpus_allowed_ptr(struct task_struct *p, const struct cpumask *new_mask);
-+extern void force_compatible_cpus_allowed_ptr(struct task_struct *p);
- #else
- static inline void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
- {
-diff --git a/include/linux/sched/cpufreq.h b/include/linux/sched/cpufreq.h
-index 94e7f84de227..3ed5aa18593f 100644
---- a/include/linux/sched/cpufreq.h
-+++ b/include/linux/sched/cpufreq.h
-@@ -9,9 +9,6 @@
-  */
- 
- #define SCHED_CPUFREQ_IOWAIT	(1U << 0)
--#define SCHED_CPUFREQ_WALT	(1U << 1)
--#define SCHED_CPUFREQ_CONTINUE	(1U << 2)
--#define SCHED_CPUFREQ_FORCE_UPDATE	(1U << 3)
- 
- #ifdef CONFIG_CPU_FREQ
- struct cpufreq_policy;
 diff --git a/include/linux/sched/hotplug.h b/include/linux/sched/hotplug.h
-index 9a62ffdd296f..89fb9b0278b0 100644
+index 9a62ffdd2..89fb9b027 100644
 --- a/include/linux/sched/hotplug.h
 +++ b/include/linux/sched/hotplug.h
 @@ -8,7 +8,11 @@
@@ -2996,7 +2591,7 @@ index 9a62ffdd296f..89fb9b0278b0 100644
  #ifdef CONFIG_HOTPLUG_CPU
  extern int sched_cpu_dying(unsigned int cpu);
 diff --git a/include/linux/sched/isolation.h b/include/linux/sched/isolation.h
-index 22420b45b393..cc9f393e2a70 100644
+index 22420b45b..cc9f393e2 100644
 --- a/include/linux/sched/isolation.h
 +++ b/include/linux/sched/isolation.h
 @@ -28,25 +28,10 @@ extern void __init housekeeping_init(void);
@@ -3037,28 +2632,8 @@ index 22420b45b393..cc9f393e2a70 100644
  }
  
  #endif /* _LINUX_SCHED_ISOLATION_H */
-diff --git a/include/linux/sched/stat.h b/include/linux/sched/stat.h
-index ca8b0d1ccf94..568286411b43 100644
---- a/include/linux/sched/stat.h
-+++ b/include/linux/sched/stat.h
-@@ -21,15 +21,6 @@ extern bool single_task_running(void);
- extern unsigned long nr_iowait(void);
- extern unsigned long nr_iowait_cpu(int cpu);
- 
--#ifdef CONFIG_SCHED_WALT
--extern unsigned int sched_get_cpu_util(int cpu);
--#else
--static inline unsigned int sched_get_cpu_util(int cpu)
--{
--	return 0;
--}
--#endif
--
- static inline int sched_info_on(void)
- {
- #ifdef CONFIG_SCHEDSTATS
 diff --git a/include/linux/sched/wake_q.h b/include/linux/sched/wake_q.h
-index 26a2013ac39c..1e05e5669713 100644
+index 26a2013ac..1e05e5669 100644
 --- a/include/linux/sched/wake_q.h
 +++ b/include/linux/sched/wake_q.h
 @@ -38,6 +38,7 @@
@@ -3078,7 +2653,7 @@ index 26a2013ac39c..1e05e5669713 100644
  
  static inline bool wake_q_empty(struct wake_q_head *head)
 diff --git a/include/linux/sched/xacct.h b/include/linux/sched/xacct.h
-index c078f0a94cec..9544c9d9d534 100644
+index c078f0a94..9544c9d9d 100644
 --- a/include/linux/sched/xacct.h
 +++ b/include/linux/sched/xacct.h
 @@ -28,6 +28,11 @@ static inline void inc_syscw(struct task_struct *tsk)
@@ -3105,7 +2680,7 @@ index c078f0a94cec..9544c9d9d534 100644
  
  #endif /* _LINUX_SCHED_XACCT_H */
 diff --git a/include/linux/stmmac.h b/include/linux/stmmac.h
-index b56e1dedcf2f..ba4246721dbf 100644
+index b56e1dedc..ba4246721 100644
 --- a/include/linux/stmmac.h
 +++ b/include/linux/stmmac.h
 @@ -183,6 +183,7 @@ struct plat_stmmacenet_data {
@@ -3116,58 +2691,8 @@ index b56e1dedcf2f..ba4246721dbf 100644
  	struct mac_device_info *(*setup)(void *priv);
  	void *bsp_priv;
  	struct clk *stmmac_clk;
-diff --git a/include/linux/stop_machine.h b/include/linux/stop_machine.h
-index 57908e344979..ddafb3cf4f48 100644
---- a/include/linux/stop_machine.h
-+++ b/include/linux/stop_machine.h
-@@ -28,16 +28,27 @@ struct cpu_stop_work {
- 	struct cpu_stop_done	*done;
- };
- 
-+/*
-+ * Structure to determine completion condition and record errors.  May
-+ * be shared by works on different cpus.
-+ */
-+struct cpu_stop_done {
-+	atomic_t		nr_todo;	/* nr left to execute */
-+	int			ret;		/* collected return value */
-+	struct completion	completion;	/* fired if nr_todo reaches 0 */
-+};
-+
- int stop_one_cpu(unsigned int cpu, cpu_stop_fn_t fn, void *arg);
- int stop_two_cpus(unsigned int cpu1, unsigned int cpu2, cpu_stop_fn_t fn, void *arg);
- bool stop_one_cpu_nowait(unsigned int cpu, cpu_stop_fn_t fn, void *arg,
- 			 struct cpu_stop_work *work_buf);
--#ifdef CONFIG_CPU_ISOLATION_OPT
--int stop_cpus(const struct cpumask *cpumask, cpu_stop_fn_t fn, void *arg);
--#endif
- void stop_machine_park(int cpu);
- void stop_machine_unpark(int cpu);
- void stop_machine_yield(const struct cpumask *cpumask);
-+int stop_one_cpu_async(unsigned int cpu, cpu_stop_fn_t fn, void *arg,
-+		       struct cpu_stop_work *work_buf,
-+		       struct cpu_stop_done *done);
-+void cpu_stop_work_wait(struct cpu_stop_work *work_buf);
- 
- #else	/* CONFIG_SMP */
- 
-@@ -83,14 +94,6 @@ static inline bool stop_one_cpu_nowait(unsigned int cpu,
- 	return false;
- }
- 
--static inline int stop_cpus(const struct cpumask *cpumask,
--			    cpu_stop_fn_t fn, void *arg)
--{
--	if (cpumask_test_cpu(raw_smp_processor_id(), cpumask))
--		return stop_one_cpu(raw_smp_processor_id(), fn, arg);
--	return -ENOENT;
--}
--
- #endif	/* CONFIG_SMP */
- 
- /*
 diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 176d9454e8f3..aa4b4114bb01 100644
+index 176d9454e..aa4b4114b 100644
 --- a/include/linux/thermal.h
 +++ b/include/linux/thermal.h
 @@ -399,6 +399,7 @@ void thermal_cdev_update(struct thermal_cooling_device *);
@@ -3190,7 +2715,7 @@ index 176d9454e8f3..aa4b4114bb01 100644
  
  #endif /* __THERMAL_H__ */
 diff --git a/include/linux/usb/audio-v2.h b/include/linux/usb/audio-v2.h
-index ead8c9a47c6a..899c84e7c738 100644
+index ead8c9a47..899c84e7c 100644
 --- a/include/linux/usb/audio-v2.h
 +++ b/include/linux/usb/audio-v2.h
 @@ -168,6 +168,20 @@ struct uac2_effect_unit_descriptor {
@@ -3225,7 +2750,7 @@ index ead8c9a47c6a..899c84e7c738 100644
  #define UAC2_PE_UNDEFINED		0x00
  #define UAC2_PE_ENABLE			0x01
 diff --git a/include/linux/usb/audio.h b/include/linux/usb/audio.h
-index 170acd500ea1..646cb0a8dcd6 100644
+index 170acd500..646cb0a8d 100644
 --- a/include/linux/usb/audio.h
 +++ b/include/linux/usb/audio.h
 @@ -31,6 +31,7 @@ struct usb_audio_control {
@@ -3237,7 +2762,7 @@ index 170acd500ea1..646cb0a8dcd6 100644
  
  struct usb_audio_control_selector {
 diff --git a/include/linux/usb/ch9.h b/include/linux/usb/ch9.h
-index 604c6c514a50..1cffa34740b0 100644
+index 604c6c514..1cffa3474 100644
 --- a/include/linux/usb/ch9.h
 +++ b/include/linux/usb/ch9.h
 @@ -36,62 +36,24 @@
@@ -3316,7 +2841,7 @@ index 604c6c514a50..1cffa34740b0 100644
  				   __u8 bRequest, __u16 wValue, __u16 wIndex,
  				   __u16 wLength);
 diff --git a/include/linux/usb/composite.h b/include/linux/usb/composite.h
-index a2d229ab63ba..4d352204e819 100644
+index a2d229ab6..4d352204e 100644
 --- a/include/linux/usb/composite.h
 +++ b/include/linux/usb/composite.h
 @@ -525,6 +525,8 @@ extern struct usb_string *usb_gstrings_attach(struct usb_composite_dev *cdev,
@@ -3337,7 +2862,7 @@ index a2d229ab63ba..4d352204e819 100644
  			      const char *name);
  	void (*free_func_inst)(struct usb_function_instance *inst);
 diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-index e7351d64f11f..a15700a400eb 100644
+index e7351d64f..a15700a40 100644
 --- a/include/linux/usb/gadget.h
 +++ b/include/linux/usb/gadget.h
 @@ -217,6 +217,7 @@ struct usb_ep_caps {
@@ -3391,7 +2916,7 @@ index e7351d64f11f..a15700a400eb 100644
  	const char			*name;
  	struct device			dev;
 diff --git a/include/linux/usb/pd.h b/include/linux/usb/pd.h
-index 433040ff840a..96b7ff66f074 100644
+index 433040ff8..96b7ff66f 100644
 --- a/include/linux/usb/pd.h
 +++ b/include/linux/usb/pd.h
 @@ -225,6 +225,7 @@ enum pd_pdo_type {
@@ -3431,7 +2956,7 @@ index 433040ff840a..96b7ff66f074 100644
 +
  #endif /* __LINUX_USB_PD_H */
 diff --git a/include/linux/usb/pd_ext_sdb.h b/include/linux/usb/pd_ext_sdb.h
-index 0eb83ce19597..b517ebc8f0ff 100644
+index 0eb83ce19..b517ebc8f 100644
 --- a/include/linux/usb/pd_ext_sdb.h
 +++ b/include/linux/usb/pd_ext_sdb.h
 @@ -24,8 +24,4 @@ enum usb_pd_ext_sdb_fields {
@@ -3444,7 +2969,7 @@ index 0eb83ce19597..b517ebc8f0ff 100644
 -
  #endif /* __LINUX_USB_PD_EXT_SDB_H */
 diff --git a/include/linux/usb/pd_vdo.h b/include/linux/usb/pd_vdo.h
-index 68bdc4e2f5a9..7f5e330a68a6 100644
+index 68bdc4e2f..7f5e330a6 100644
 --- a/include/linux/usb/pd_vdo.h
 +++ b/include/linux/usb/pd_vdo.h
 @@ -21,22 +21,24 @@
@@ -3887,7 +3412,7 @@ index 68bdc4e2f5a9..7f5e330a68a6 100644
   * SVDM Discover SVIDs request -> response
   *
 diff --git a/include/linux/usb/quirks.h b/include/linux/usb/quirks.h
-index 5e4c497f54d6..6567f7445c2d 100644
+index 5e4c497f5..6567f7445 100644
 --- a/include/linux/usb/quirks.h
 +++ b/include/linux/usb/quirks.h
 @@ -72,4 +72,7 @@
@@ -3899,7 +3424,7 @@ index 5e4c497f54d6..6567f7445c2d 100644
 +
  #endif /* __LINUX_USB_QUIRKS_H */
 diff --git a/include/linux/usb/tcpm.h b/include/linux/usb/tcpm.h
-index 09762d26fa0c..cb69546f87af 100644
+index 09762d26f..cb69546f8 100644
 --- a/include/linux/usb/tcpm.h
 +++ b/include/linux/usb/tcpm.h
 @@ -19,6 +19,10 @@ enum typec_cc_status {
@@ -4009,7 +3534,7 @@ index 09762d26fa0c..cb69546f87af 100644
  
  #endif /* __LINUX_USB_TCPM_H */
 diff --git a/include/linux/usb/typec.h b/include/linux/usb/typec.h
-index 6be558045942..91b4303ca305 100644
+index 6be558045..91b4303ca 100644
 --- a/include/linux/usb/typec.h
 +++ b/include/linux/usb/typec.h
 @@ -126,9 +126,12 @@ struct typec_altmode_desc {
@@ -4103,7 +3628,7 @@ index 6be558045942..91b4303ca305 100644
 +int typec_get_negotiated_svdm_version(struct typec_port *port);
  #endif /* __LINUX_USB_TYPEC_H */
 diff --git a/include/linux/usb/typec_altmode.h b/include/linux/usb/typec_altmode.h
-index 5e0a7b7647c3..65933cbe9129 100644
+index 5e0a7b764..65933cbe9 100644
 --- a/include/linux/usb/typec_altmode.h
 +++ b/include/linux/usb/typec_altmode.h
 @@ -132,6 +132,16 @@ typec_altmode_get_orientation(struct typec_altmode *altmode)
@@ -4124,7 +3649,7 @@ index 5e0a7b7647c3..65933cbe9129 100644
   * struct typec_altmode_driver - USB Type-C alternate mode device driver
   * @id_table: Null terminated array of SVIDs
 diff --git a/include/linux/usb/typec_tbt.h b/include/linux/usb/typec_tbt.h
-index 47c2d501ddce..63dd44b72e0c 100644
+index 47c2d501d..63dd44b72 100644
 --- a/include/linux/usb/typec_tbt.h
 +++ b/include/linux/usb/typec_tbt.h
 @@ -39,12 +39,16 @@ struct typec_thunderbolt_data {
@@ -4146,7 +3671,7 @@ index 47c2d501ddce..63dd44b72e0c 100644
  /* TBT3 Device Enter Mode VDO bits */
  #define TBT_ENTER_MODE_CABLE_SPEED(s)	TBT_SET_CABLE_SPEED(s)
 diff --git a/include/linux/usb/usbnet.h b/include/linux/usb/usbnet.h
-index 8110c29fab42..2e4f7721fc4e 100644
+index 8110c29fa..2e4f7721f 100644
 --- a/include/linux/usb/usbnet.h
 +++ b/include/linux/usb/usbnet.h
 @@ -83,8 +83,6 @@ struct usbnet {
@@ -4159,7 +3684,7 @@ index 8110c29fab42..2e4f7721fc4e 100644
  
  static inline struct usb_driver *driver_of(struct usb_interface *intf)
 diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 92cd9f038fed..03b43b0f706e 100644
+index 92cd9f038..03b43b0f7 100644
 --- a/include/media/v4l2-async.h
 +++ b/include/media/v4l2-async.h
 @@ -266,6 +266,21 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
@@ -4185,7 +3710,7 @@ index 92cd9f038fed..03b43b0f706e 100644
   * v4l2_async_notifier_unregister - unregisters a subdevice
   *	asynchronous notifier
 diff --git a/include/soc/rockchip/rockchip_sip.h b/include/soc/rockchip/rockchip_sip.h
-index c46a9ae2a2ab..4afba01c6628 100644
+index c46a9ae2a..4afba01c6 100644
 --- a/include/soc/rockchip/rockchip_sip.h
 +++ b/include/soc/rockchip/rockchip_sip.h
 @@ -15,6 +15,12 @@
@@ -4203,7 +3728,7 @@ index c46a9ae2a2ab..4afba01c6628 100644
  
  #endif
 diff --git a/include/sound/hdmi-codec.h b/include/sound/hdmi-codec.h
-index b55970859a13..4fc733c8c570 100644
+index b55970859..4fc733c8c 100644
 --- a/include/sound/hdmi-codec.h
 +++ b/include/sound/hdmi-codec.h
 @@ -34,6 +34,11 @@ struct hdmi_codec_daifmt {
@@ -4243,7 +3768,7 @@ index b55970859a13..4fc733c8c570 100644
  	 * Shuts down the audio stream.
  	 * Mandatory
 diff --git a/include/trace/events/cpuhp.h b/include/trace/events/cpuhp.h
-index ad16f77310c6..f302ab6dbfb8 100644
+index ad16f7731..f302ab6db 100644
 --- a/include/trace/events/cpuhp.h
 +++ b/include/trace/events/cpuhp.h
 @@ -89,6 +89,28 @@ TRACE_EVENT(cpuhp_exit,
@@ -4276,7 +3801,7 @@ index ad16f77310c6..f302ab6dbfb8 100644
  
  /* This part must be outside protection */
 diff --git a/include/trace/events/sched.h b/include/trace/events/sched.h
-index dd5fff2bb1b2..6c6a23b4b3c1 100644
+index 11b133fa9..421c9848c 100644
 --- a/include/trace/events/sched.h
 +++ b/include/trace/events/sched.h
 @@ -203,6 +203,7 @@ TRACE_EVENT(sched_migrate_task,
@@ -4304,7 +3829,7 @@ index dd5fff2bb1b2..6c6a23b4b3c1 100644
  
  DECLARE_EVENT_CLASS(sched_process_template,
 diff --git a/include/uapi/drm/drm_fourcc.h b/include/uapi/drm/drm_fourcc.h
-index 5498d7a6556a..5b5db0381729 100644
+index 5498d7a65..5b5db0381 100644
 --- a/include/uapi/drm/drm_fourcc.h
 +++ b/include/uapi/drm/drm_fourcc.h
 @@ -242,6 +242,8 @@ extern "C" {
@@ -4317,7 +3842,7 @@ index 5498d7a6556a..5b5db0381729 100644
  /*
   * 2 plane YCbCr MSB aligned
 diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 84fa53ffb13f..096f891d4ca2 100644
+index 84fa53ffb..096f891d4 100644
 --- a/include/uapi/linux/media-bus-format.h
 +++ b/include/uapi/linux/media-bus-format.h
 @@ -34,7 +34,7 @@
@@ -4341,7 +3866,7 @@ index 84fa53ffb13f..096f891d4ca2 100644
  /* YUV (including grey) - next is	0x202e */
  #define MEDIA_BUS_FMT_Y8_1X8			0x2001
 diff --git a/include/uapi/linux/serial_reg.h b/include/uapi/linux/serial_reg.h
-index f51bc8f36813..7e3fe68af328 100644
+index f51bc8f36..7e3fe68af 100644
 --- a/include/uapi/linux/serial_reg.h
 +++ b/include/uapi/linux/serial_reg.h
 @@ -30,6 +30,7 @@
@@ -4353,7 +3878,7 @@ index f51bc8f36813..7e3fe68af328 100644
  #define UART_IIR	2	/* In:  Interrupt ID Register */
  #define UART_IIR_NO_INT		0x01 /* No interrupts pending */
 diff --git a/include/uapi/linux/usb/ch9.h b/include/uapi/linux/usb/ch9.h
-index 0f865ae4ba89..17ce56198c9a 100644
+index 0f865ae4b..17ce56198 100644
 --- a/include/uapi/linux/usb/ch9.h
 +++ b/include/uapi/linux/usb/ch9.h
 @@ -968,9 +968,22 @@ struct usb_ssp_cap_descriptor {
@@ -4381,7 +3906,7 @@ index 0f865ae4ba89..17ce56198c9a 100644
  
 diff --git a/include/uapi/linux/usb/f_accessory.h b/include/uapi/linux/usb/f_accessory.h
 new file mode 100644
-index 000000000000..0baeb7d0d74c
+index 000000000..0baeb7d0d
 --- /dev/null
 +++ b/include/uapi/linux/usb/f_accessory.h
 @@ -0,0 +1,146 @@
@@ -4532,7 +4057,7 @@ index 000000000000..0baeb7d0d74c
 +
 +#endif /* _UAPI_LINUX_USB_F_ACCESSORY_H */
 diff --git a/include/uapi/linux/usb/g_uvc.h b/include/uapi/linux/usb/g_uvc.h
-index 652f169a019e..428926e35973 100644
+index 652f169a0..428926e35 100644
 --- a/include/uapi/linux/usb/g_uvc.h
 +++ b/include/uapi/linux/usb/g_uvc.h
 @@ -19,7 +19,9 @@
@@ -4547,7 +4072,7 @@ index 652f169a019e..428926e35973 100644
  struct uvc_request_data {
  	__s32 length;
 diff --git a/include/uapi/linux/usb/video.h b/include/uapi/linux/usb/video.h
-index bfdae12cdacf..b82436fd9140 100644
+index bfdae12cd..b82436fd9 100644
 --- a/include/uapi/linux/usb/video.h
 +++ b/include/uapi/linux/usb/video.h
 @@ -567,5 +567,63 @@ struct UVC_FRAME_MJPEG(n) {				\
@@ -4615,7 +4140,7 @@ index bfdae12cdacf..b82436fd9140 100644
  #endif /* __LINUX_USB_VIDEO_H */
  
 diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index a184c4939438..a3eb68372eef 100644
+index a184c4939..a3eb68372 100644
 --- a/include/uapi/linux/v4l2-controls.h
 +++ b/include/uapi/linux/v4l2-controls.h
 @@ -188,6 +188,12 @@ enum v4l2_colorfx {
@@ -4632,7 +4157,7 @@ index a184c4939438..a3eb68372eef 100644
   * We reserve 16 controls for this driver. */
  #define V4L2_CID_USER_IMX_BASE			(V4L2_CID_USER_BASE + 0x10b0)
 diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 534eaa4d39bc..eb01fb549b5c 100644
+index 534eaa4d3..eb01fb549 100644
 --- a/include/uapi/linux/videodev2.h
 +++ b/include/uapi/linux/videodev2.h
 @@ -689,6 +689,7 @@ struct v4l2_pix_format {
