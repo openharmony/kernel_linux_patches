@@ -1,5 +1,5 @@
 diff --git a/arch/arm64/kernel/vmlinux.lds.S b/arch/arm64/kernel/vmlinux.lds.S
-index 30c102978942..1d8b8de34f1c 100644
+index 71f4b5f24..7c55f7c61 100644
 --- a/arch/arm64/kernel/vmlinux.lds.S
 +++ b/arch/arm64/kernel/vmlinux.lds.S
 @@ -201,6 +201,15 @@ SECTIONS
@@ -19,7 +19,7 @@ index 30c102978942..1d8b8de34f1c 100644
  		EXIT_DATA
  	}
 diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 826b2b19d0b8..9a887e91b375 100644
+index 3584901f1..12e0cceac 100644
 --- a/drivers/Kconfig
 +++ b/drivers/Kconfig
 @@ -236,6 +236,8 @@ source "drivers/interconnect/Kconfig"
@@ -32,26 +32,27 @@ index 826b2b19d0b8..9a887e91b375 100644
  
  source "drivers/accesstokenid/Kconfig"
 diff --git a/drivers/Makefile b/drivers/Makefile
-index ecc494918773..79507aef0c21 100644
+index f13d70df6..8ec75883a 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
-@@ -191,5 +191,6 @@ obj-$(CONFIG_SIOX)		+= siox/
+@@ -191,6 +191,7 @@ obj-$(CONFIG_SIOX)		+= siox/
  obj-$(CONFIG_GNSS)		+= gnss/
  obj-$(CONFIG_INTERCONNECT)	+= interconnect/
  obj-$(CONFIG_COUNTER)		+= counter/
 +obj-$(CONFIG_DRIVERS_HDF)	+= hdf/
  obj-$(CONFIG_MOST)		+= most/
  obj-$(CONFIG_ACCESS_TOKENID)	+= accesstokenid/
+ obj-$(CONFIG_VENDOR_HOOKS)	+= hooks/
 diff --git a/drivers/hdf/Makefile b/drivers/hdf/Makefile
 new file mode 100644
-index 000000000000..5c5e1911c4f7
+index 000000000..5c5e1911c
 --- /dev/null
 +++ b/drivers/hdf/Makefile
 @@ -0,0 +1,2 @@
 +export PROJECT_ROOT := ../../../../../
 +obj-$(CONFIG_DRIVERS_HDF) += khdf/
 diff --git a/drivers/hid/Makefile b/drivers/hid/Makefile
-index 4acb583c92a6..ddcaf4cdcb9c 100644
+index 4acb583c9..ddcaf4cdc 100644
 --- a/drivers/hid/Makefile
 +++ b/drivers/hid/Makefile
 @@ -2,6 +2,15 @@
@@ -71,7 +72,7 @@ index 4acb583c92a6..ddcaf4cdcb9c 100644
  hid-$(CONFIG_DEBUG_FS)		+= hid-debug.o
  
 diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
-index 5550c943f985..f0503e2327a3 100644
+index 5550c943f..f0503e232 100644
 --- a/drivers/hid/hid-core.c
 +++ b/drivers/hid/hid-core.c
 @@ -33,6 +33,9 @@
@@ -216,7 +217,7 @@ index 5550c943f985..f0503e2327a3 100644
  	if (!--hdev->ll_open_count)
  		hdev->ll_driver->close(hdev);
 diff --git a/drivers/hid/hid-input.c b/drivers/hid/hid-input.c
-index 580d378342c4..fb945f4ce1ff 100644
+index 580d37834..fb945f4ce 100644
 --- a/drivers/hid/hid-input.c
 +++ b/drivers/hid/hid-input.c
 @@ -20,6 +20,10 @@
@@ -300,29 +301,29 @@ index 580d378342c4..fb945f4ce1ff 100644
  			goto out_unwind;
  		hidinput->registered = true;
 diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-index a48e5f2d859d..90d25f2248b1 100644
+index a48e5f2d8..90d25f224 100644
 --- a/drivers/input/misc/Makefile
 +++ b/drivers/input/misc/Makefile
 @@ -85,3 +85,17 @@ obj-$(CONFIG_INPUT_XEN_KBDDEV_FRONTEND)	+= xen-kbdfront.o
  obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
  obj-$(CONFIG_INPUT_IDEAPAD_SLIDEBAR)	+= ideapad_slidebar.o
  
-+ccflags-y +=-Idrivers/hdf/framework/model/input/driver \
-+             -Idrivers/hdf/framework/model/input/driver/input_bus_ops \
-+             -Idrivers/hdf/framework/include/core \
-+             -Idrivers/hdf/framework/core/common/include/host \
-+             -Idrivers/hdf/framework/include/utils \
-+             -Idrivers/hdf/framework/include/osal \
-+             -Idrivers/hdf/framework/include/platform \
-+             -Idrivers/hdf/framework/include/config \
-+             -Idrivers/hdf/framework/core/host/include \
-+             -Idrivers/hdf/framework/core/shared/include \
-+             -Idrivers/hdf/framework/utils/include \
-+             -Idrivers/hdf/khdf/osal/include
-+ccflags-y +=-Ibounds_checking_function/include \
-+             -Idrivers/hdf/evdev
++ccflags-y +=-I$(srctree)/drivers/hdf/framework/model/input/driver \
++             -I$(srctree)/drivers/hdf/framework/model/input/driver/input_bus_ops \
++             -I$(srctree)/drivers/hdf/framework/include/core \
++             -I$(srctree)/drivers/hdf/framework/core/common/include/host \
++             -I$(srctree)/drivers/hdf/framework/include/utils \
++             -I$(srctree)/drivers/hdf/framework/include/osal \
++             -I$(srctree)/drivers/hdf/framework/include/platform \
++             -I$(srctree)/drivers/hdf/framework/include/config \
++             -I$(srctree)/drivers/hdf/framework/core/host/include \
++             -I$(srctree)/drivers/hdf/framework/core/shared/include \
++             -I$(srctree)/drivers/hdf/framework/utils/include \
++             -I$(srctree)/drivers/hdf/khdf/osal/include
++ccflags-y +=-I$(srctree)/bounds_checking_function/include \
++             -I$(srctree)/drivers/hdf/evdev
 diff --git a/drivers/input/misc/rk805-pwrkey.c b/drivers/input/misc/rk805-pwrkey.c
-index 3fb64dbda1a2..394cd5912db0 100644
+index 3fb64dbda..c6b21aff9 100644
 --- a/drivers/input/misc/rk805-pwrkey.c
 +++ b/drivers/input/misc/rk805-pwrkey.c
 @@ -14,6 +14,9 @@
@@ -353,7 +354,7 @@ index 3fb64dbda1a2..394cd5912db0 100644
  	return IRQ_HANDLED;
  }
  
-+static InputDevice* HidRegisterHdfPowerKeyDev(void) 
++static InputDevice* HidRegisterHdfPowerKeyDev(void)
 +{
 +	InputDevice* inputDev = NULL;
 +	HidInfo Hid_keyInfo;
@@ -382,7 +383,7 @@ index 3fb64dbda1a2..394cd5912db0 100644
  }
  
 diff --git a/drivers/input/mousedev.c b/drivers/input/mousedev.c
-index 505c562a5daa..67d451beba08 100644
+index 505c562a5..67d451beb 100644
 --- a/drivers/input/mousedev.c
 +++ b/drivers/input/mousedev.c
 @@ -869,7 +869,7 @@ static struct mousedev *mousedev_create(struct input_dev *dev,
@@ -395,7 +396,7 @@ index 505c562a5daa..67d451beba08 100644
  		mousedev->close_device = mixdev_close_devices;
  	} else {
 diff --git a/include/linux/hid.h b/include/linux/hid.h
-index 6ed2a97eb55f..1d1445a23967 100644
+index fc56d53cc..90822e3d3 100644
 --- a/include/linux/hid.h
 +++ b/include/linux/hid.h
 @@ -622,6 +622,7 @@ struct hid_device {							/* device report descriptor */

@@ -1,9 +1,9 @@
-From 2b383580b6eb5843b3d4eb8002263442c2c8964a Mon Sep 17 00:00:00 2001
+From 8771c73e0de81aa054f998a35cf49022c3de8259 Mon Sep 17 00:00:00 2001
 From: jiewangdp <jiewangdp@isoftstone.com>
-Date: Sat, 25 Jun 2022 11:20:43 +0800
+Date: Tue, 26 Jul 2022 18:59:18 +0800
 Subject: [PATCH] net
 
-Change-Id: Ie4e61b14556ec020baa1fec637c89b2628f94904
+Change-Id: Id58b062d80497aea30a1f33d0a14429f4f703842
 ---
  net/bluetooth/l2cap_sock.c | 10 +--------
  net/bluetooth/sco.c        | 42 +++++++++++++++-----------------------
@@ -12,7 +12,7 @@ Change-Id: Ie4e61b14556ec020baa1fec637c89b2628f94904
  4 files changed, 29 insertions(+), 34 deletions(-)
 
 diff --git a/net/bluetooth/l2cap_sock.c b/net/bluetooth/l2cap_sock.c
-index 160c016a5dfb..c99d65ef13b1 100644
+index 160c016a5..c99d65ef1 100644
 --- a/net/bluetooth/l2cap_sock.c
 +++ b/net/bluetooth/l2cap_sock.c
 @@ -1508,9 +1508,6 @@ static void l2cap_sock_close_cb(struct l2cap_chan *chan)
@@ -48,7 +48,7 @@ index 160c016a5dfb..c99d65ef13b1 100644
  	if (l2cap_pi(sk)->rx_busy_skb) {
  		kfree_skb(l2cap_pi(sk)->rx_busy_skb);
 diff --git a/net/bluetooth/sco.c b/net/bluetooth/sco.c
-index 918df8d0e8b6..7c24a9acbc45 100644
+index cf165b0d1..2a14519a8 100644
 --- a/net/bluetooth/sco.c
 +++ b/net/bluetooth/sco.c
 @@ -93,10 +93,10 @@ static void sco_sock_timeout(struct work_struct *work)
@@ -64,7 +64,7 @@ index 918df8d0e8b6..7c24a9acbc45 100644
  
  	sock_put(sk);
  }
-@@ -192,10 +192,10 @@ static void sco_conn_del(struct hci_conn *hcon, int err)
+@@ -193,10 +193,10 @@ static void sco_conn_del(struct hci_conn *hcon, int err)
  
  	if (sk) {
  		sock_hold(sk);
@@ -75,9 +75,9 @@ index 918df8d0e8b6..7c24a9acbc45 100644
 -		release_sock(sk);
 +		bh_unlock_sock(sk);
  		sock_put(sk);
+ 	}
  
- 		/* Ensure no more work items will run before freeing conn. */
-@@ -281,8 +281,7 @@ static int sco_connect(struct hci_dev *hdev, struct sock *sk)
+@@ -280,8 +280,7 @@ static int sco_connect(struct hci_dev *hdev, struct sock *sk)
  	return err;
  }
  
@@ -87,7 +87,7 @@ index 918df8d0e8b6..7c24a9acbc45 100644
  {
  	struct sco_conn *conn = sco_pi(sk)->conn;
  	struct sk_buff *skb;
-@@ -294,11 +293,15 @@ static int sco_send_frame(struct sock *sk, void *buf, int len,
+@@ -293,11 +292,15 @@ static int sco_send_frame(struct sock *sk, void *buf, int len,
  
  	BT_DBG("sk %p len %d", sk, len);
  
@@ -105,7 +105,7 @@ index 918df8d0e8b6..7c24a9acbc45 100644
  	hci_send_sco(conn->hcon, skb);
  
  	return len;
-@@ -723,7 +726,6 @@ static int sco_sock_sendmsg(struct socket *sock, struct msghdr *msg,
+@@ -722,7 +725,6 @@ static int sco_sock_sendmsg(struct socket *sock, struct msghdr *msg,
  			    size_t len)
  {
  	struct sock *sk = sock->sk;
@@ -113,7 +113,7 @@ index 918df8d0e8b6..7c24a9acbc45 100644
  	int err;
  
  	BT_DBG("sock %p, sk %p", sock, sk);
-@@ -735,24 +737,14 @@ static int sco_sock_sendmsg(struct socket *sock, struct msghdr *msg,
+@@ -734,24 +736,14 @@ static int sco_sock_sendmsg(struct socket *sock, struct msghdr *msg,
  	if (msg->msg_flags & MSG_OOB)
  		return -EOPNOTSUPP;
  
@@ -139,7 +139,7 @@ index 918df8d0e8b6..7c24a9acbc45 100644
  	return err;
  }
  
-@@ -1109,10 +1101,10 @@ static void sco_conn_ready(struct sco_conn *conn)
+@@ -1108,10 +1100,10 @@ static void sco_conn_ready(struct sco_conn *conn)
  
  	if (sk) {
  		sco_sock_clear_timer(sk);
@@ -152,7 +152,7 @@ index 918df8d0e8b6..7c24a9acbc45 100644
  	} else {
  		sco_conn_lock(conn);
  
-@@ -1127,12 +1119,12 @@ static void sco_conn_ready(struct sco_conn *conn)
+@@ -1126,12 +1118,12 @@ static void sco_conn_ready(struct sco_conn *conn)
  			return;
  		}
  
@@ -167,7 +167,7 @@ index 918df8d0e8b6..7c24a9acbc45 100644
  			sco_conn_unlock(conn);
  			return;
  		}
-@@ -1153,7 +1145,7 @@ static void sco_conn_ready(struct sco_conn *conn)
+@@ -1152,7 +1144,7 @@ static void sco_conn_ready(struct sco_conn *conn)
  		/* Wake up parent */
  		parent->sk_data_ready(parent);
  
@@ -177,7 +177,7 @@ index 918df8d0e8b6..7c24a9acbc45 100644
  		sco_conn_unlock(conn);
  	}
 diff --git a/net/rfkill/Kconfig b/net/rfkill/Kconfig
-index 83a7af8982bb..33ab1f7a3cc0 100644
+index 83a7af898..33ab1f7a3 100644
 --- a/net/rfkill/Kconfig
 +++ b/net/rfkill/Kconfig
 @@ -32,3 +32,12 @@ config RFKILL_GPIO
@@ -194,7 +194,7 @@ index 83a7af8982bb..33ab1f7a3cc0 100644
 +	help
 +	  Rockchip rfkill driver for rk29/rk3X
 diff --git a/net/rfkill/Makefile b/net/rfkill/Makefile
-index dc47b6174ec5..beed5b506307 100644
+index dc47b6174..beed5b506 100644
 --- a/net/rfkill/Makefile
 +++ b/net/rfkill/Makefile
 @@ -7,3 +7,5 @@ rfkill-y			+= core.o

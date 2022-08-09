@@ -1,13 +1,13 @@
-From 18f7bfb31180181dcca1aaef1d003bcb7bbb92cb Mon Sep 17 00:00:00 2001
+From 4d2cb61b25430df48ab5e3f8422d3f8645496b9f Mon Sep 17 00:00:00 2001
 From: jiewangdp <jiewangdp@isoftstone.com>
-Date: Sat, 25 Jun 2022 10:23:29 +0800
+Date: Wed, 3 Aug 2022 09:43:39 +0800
 Subject: [PATCH] drivers
 
-Change-Id: I2bea7d386ae4985118091909c607f6bc1b4e3669
+Change-Id: Ib5e0e2445e7bee877e566849b5bb82305326bb33
 ---
  drivers/bluetooth/hci_bcm.c                   |    1 +
  drivers/bluetooth/hci_ldisc.c                 |    5 +
- drivers/char/Makefile                         |    1 +
+ drivers/char/Makefile                         |    3 +
  drivers/clk/Kconfig                           |    7 +
  drivers/clk/clk.c                             |    2 +-
  drivers/clk/rockchip/Kconfig                  |   42 +-
@@ -21,9 +21,8 @@ Change-Id: I2bea7d386ae4985118091909c607f6bc1b4e3669
  drivers/clk/rockchip/clk.h                    |  358 +-
  drivers/clocksource/Kconfig                   |    4 +-
  drivers/clocksource/timer-rockchip.c          |   33 +
- drivers/cpufreq/Kconfig                       |    7 +
  drivers/cpufreq/Kconfig.arm                   |   10 +
- drivers/cpufreq/Makefile                      |    6 +-
+ drivers/cpufreq/Makefile                      |    3 +-
  drivers/cpufreq/cpufreq-dt-platdev.c          |   37 +-
  drivers/cpufreq/cpufreq-dt.c                  |  168 +-
  drivers/cpufreq/cpufreq.c                     |    7 +-
@@ -245,7 +244,7 @@ Change-Id: I2bea7d386ae4985118091909c607f6bc1b4e3669
  drivers/video/Kconfig                         |    4 +
  drivers/video/Makefile                        |    1 +
  drivers/video/backlight/pwm_bl.c              |    2 +
- 240 files changed, 46983 insertions(+), 8936 deletions(-)
+ 239 files changed, 46975 insertions(+), 8936 deletions(-)
  create mode 100644 drivers/firmware/rockchip_sip.c
  create mode 100644 drivers/gpio/gpio-rockchip.c
  create mode 100644 drivers/gpu/drm/panel/panel-simple.h
@@ -260,7 +259,7 @@ Change-Id: I2bea7d386ae4985118091909c607f6bc1b4e3669
  create mode 100644 drivers/regulator/xz3216.c
 
 diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
-index 8ea5ca8d71d6..3764ceb6fa0d 100644
+index 8ea5ca8d7..3764ceb6f 100644
 --- a/drivers/bluetooth/hci_bcm.c
 +++ b/drivers/bluetooth/hci_bcm.c
 @@ -654,6 +654,7 @@ static const struct h4_recv_pkt bcm_recv_pkts[] = {
@@ -272,7 +271,7 @@ index 8ea5ca8d71d6..3764ceb6fa0d 100644
  	{ BCM_RECV_NULL,    .recv = hci_recv_diag  },
  	{ BCM_RECV_TYPE49,  .recv = hci_recv_diag  },
 diff --git a/drivers/bluetooth/hci_ldisc.c b/drivers/bluetooth/hci_ldisc.c
-index 637c5b8c2aa1..8ff9f4482907 100644
+index 637c5b8c2..8ff9f4482 100644
 --- a/drivers/bluetooth/hci_ldisc.c
 +++ b/drivers/bluetooth/hci_ldisc.c
 @@ -149,6 +149,11 @@ static void hci_uart_write_work(struct work_struct *work)
@@ -288,19 +287,21 @@ index 637c5b8c2aa1..8ff9f4482907 100644
  	 * and error value ?
  	 */
 diff --git a/drivers/char/Makefile b/drivers/char/Makefile
-index ffce287ef415..6a046e70b14f 100644
+index ffce287ef..dbaee0bee 100644
 --- a/drivers/char/Makefile
 +++ b/drivers/char/Makefile
-@@ -3,6 +3,7 @@
+@@ -3,6 +3,9 @@
  # Makefile for the kernel character device drivers.
  #
  
-+obj-y                           += smdtio/
++obj-y				+= jy.o
++obj-y				+= mcu.o
++obj-y				+= smdtio/
  obj-y				+= mem.o random.o
  obj-$(CONFIG_TTY_PRINTK)	+= ttyprintk.o
  obj-y				+= misc.o
 diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
-index c715d4681a0b..42bb63d80971 100644
+index c715d4681..42bb63d80 100644
 --- a/drivers/clk/Kconfig
 +++ b/drivers/clk/Kconfig
 @@ -38,6 +38,13 @@ menuconfig COMMON_CLK
@@ -318,7 +319,7 @@ index c715d4681a0b..42bb63d80971 100644
  	tristate "Clock driver for WM831x/2x PMICs"
  	depends on MFD_WM831X
 diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index 61c78714c095..5c825b523c6b 100644
+index 61c78714c..5c825b523 100644
 --- a/drivers/clk/clk.c
 +++ b/drivers/clk/clk.c
 @@ -1296,7 +1296,7 @@ static int __init clk_disable_unused(void)
@@ -331,7 +332,7 @@ index 61c78714c095..5c825b523c6b 100644
  static int clk_core_determine_round_nolock(struct clk_core *core,
  					   struct clk_rate_request *req)
 diff --git a/drivers/clk/rockchip/Kconfig b/drivers/clk/rockchip/Kconfig
-index 47cd6c5de837..4da08276f3df 100644
+index 47cd6c5de..4da08276f 100644
 --- a/drivers/clk/rockchip/Kconfig
 +++ b/drivers/clk/rockchip/Kconfig
 @@ -2,7 +2,7 @@
@@ -443,7 +444,7 @@ index 47cd6c5de837..4da08276f3df 100644
 +
  endif
 diff --git a/drivers/clk/rockchip/Makefile b/drivers/clk/rockchip/Makefile
-index a99e4d9bbae1..a966d999fae7 100644
+index a99e4d9bb..a966d999f 100644
 --- a/drivers/clk/rockchip/Makefile
 +++ b/drivers/clk/rockchip/Makefile
 @@ -13,6 +13,8 @@ clk-rockchip-y += clk-inverter.o
@@ -456,7 +457,7 @@ index a99e4d9bbae1..a966d999fae7 100644
  
  obj-$(CONFIG_CLK_PX30)          += clk-px30.o
 diff --git a/drivers/clk/rockchip/clk-cpu.c b/drivers/clk/rockchip/clk-cpu.c
-index 0dc478a19451..55416812bed2 100644
+index 0dc478a19..55416812b 100644
 --- a/drivers/clk/rockchip/clk-cpu.c
 +++ b/drivers/clk/rockchip/clk-cpu.c
 @@ -51,6 +51,7 @@
@@ -659,7 +660,7 @@ index 0dc478a19451..55416812bed2 100644
  		goto free_alt_parent;
  	}
 diff --git a/drivers/clk/rockchip/clk-ddr.c b/drivers/clk/rockchip/clk-ddr.c
-index 86718c54e56b..3c8bcbee2048 100644
+index 86718c54e..3c8bcbee2 100644
 --- a/drivers/clk/rockchip/clk-ddr.c
 +++ b/drivers/clk/rockchip/clk-ddr.c
 @@ -8,10 +8,20 @@
@@ -896,7 +897,7 @@ index 86718c54e56b..3c8bcbee2048 100644
  	ddrclk->mux_offset = mux_offset;
  	ddrclk->mux_shift = mux_shift;
 diff --git a/drivers/clk/rockchip/clk-half-divider.c b/drivers/clk/rockchip/clk-half-divider.c
-index ccd5c270c213..b978af08d84f 100644
+index ccd5c270c..b978af08d 100644
 --- a/drivers/clk/rockchip/clk-half-divider.c
 +++ b/drivers/clk/rockchip/clk-half-divider.c
 @@ -14,9 +14,9 @@ static bool _is_best_half_div(unsigned long rate, unsigned long now,
@@ -997,7 +998,7 @@ index ccd5c270c213..b978af08d84f 100644
  		div->width = div_width;
  		div->lock = lock;
 diff --git a/drivers/clk/rockchip/clk-pll.c b/drivers/clk/rockchip/clk-pll.c
-index bbbf9ce42867..f4946461609d 100644
+index bbbf9ce42..f49464616 100644
 --- a/drivers/clk/rockchip/clk-pll.c
 +++ b/drivers/clk/rockchip/clk-pll.c
 @@ -15,6 +15,9 @@
@@ -1931,7 +1932,7 @@ index bbbf9ce42867..f4946461609d 100644
 +#endif /* MODULE */
 +#endif /* CONFIG_DEBUG_FS */
 diff --git a/drivers/clk/rockchip/clk-rk3399.c b/drivers/clk/rockchip/clk-rk3399.c
-index 7df2f1e00347..d5071884b3d5 100644
+index 7df2f1e00..d5071884b 100644
 --- a/drivers/clk/rockchip/clk-rk3399.c
 +++ b/drivers/clk/rockchip/clk-rk3399.c
 @@ -15,6 +15,12 @@
@@ -3176,7 +3177,7 @@ index 7df2f1e00347..d5071884b3d5 100644
  CLK_OF_DECLARE(rk3399_cru_pmu, "rockchip,rk3399-pmucru", rk3399_pmu_clk_init);
  
 diff --git a/drivers/clk/rockchip/clk.c b/drivers/clk/rockchip/clk.c
-index b443169dd408..6c8e47067032 100644
+index b443169dd..6c8e47067 100644
 --- a/drivers/clk/rockchip/clk.c
 +++ b/drivers/clk/rockchip/clk.c
 @@ -38,6 +38,7 @@ static struct clk *rockchip_clk_register_branch(const char *name,
@@ -3513,7 +3514,7 @@ index b443169dd408..6c8e47067032 100644
  }
  EXPORT_SYMBOL_GPL(rockchip_register_restart_notifier);
 diff --git a/drivers/clk/rockchip/clk.h b/drivers/clk/rockchip/clk.h
-index 2271a84124b0..509087750eeb 100644
+index 2271a8412..509087750 100644
 --- a/drivers/clk/rockchip/clk.h
 +++ b/drivers/clk/rockchip/clk.h
 @@ -37,12 +37,25 @@ struct clk;
@@ -4082,10 +4083,10 @@ index 2271a84124b0..509087750eeb 100644
  
  #endif
 diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-index 39f4d8866200..668711048df8 100644
+index a0c6e88be..9d9cb5757 100644
 --- a/drivers/clocksource/Kconfig
 +++ b/drivers/clocksource/Kconfig
-@@ -84,7 +84,9 @@ config IXP4XX_TIMER
+@@ -85,7 +85,9 @@ config IXP4XX_TIMER
  	  Enables support for the Intel XScale IXP4xx SoC timer.
  
  config ROCKCHIP_TIMER
@@ -4097,7 +4098,7 @@ index 39f4d8866200..668711048df8 100644
  	select TIMER_OF
  	select CLKSRC_MMIO
 diff --git a/drivers/clocksource/timer-rockchip.c b/drivers/clocksource/timer-rockchip.c
-index 1f95d0aca08f..2f4e970d7433 100644
+index 1f95d0aca..2f4e970d7 100644
 --- a/drivers/clocksource/timer-rockchip.c
 +++ b/drivers/clocksource/timer-rockchip.c
 @@ -8,11 +8,13 @@
@@ -4190,26 +4191,8 @@ index 1f95d0aca08f..2f4e970d7433 100644
 +
 +MODULE_LICENSE("GPL");
 +#endif
-diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
-index 85de313ddec2..53f067d53ad8 100644
---- a/drivers/cpufreq/Kconfig
-+++ b/drivers/cpufreq/Kconfig
-@@ -34,6 +34,13 @@ config CPU_FREQ_STAT
- 
- 	  If in doubt, say N.
- 
-+config CPU_FREQ_TIMES
-+       bool "CPU frequency time-in-state statistics"
-+       help
-+         Export CPU time-in-state information through procfs.
-+
-+         If in doubt, say N.
-+
- choice
- 	prompt "Default CPUFreq governor"
- 	default CPU_FREQ_DEFAULT_GOV_USERSPACE if ARM_SA1100_CPUFREQ || ARM_SA1110_CPUFREQ
 diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
-index 1f73fa75b1a0..0faef5fc6df3 100644
+index 1f73fa75b..0faef5fc6 100644
 --- a/drivers/cpufreq/Kconfig.arm
 +++ b/drivers/cpufreq/Kconfig.arm
 @@ -158,6 +158,16 @@ config ARM_RASPBERRYPI_CPUFREQ
@@ -4230,22 +4213,19 @@ index 1f73fa75b1a0..0faef5fc6df3 100644
  	bool
  	help
 diff --git a/drivers/cpufreq/Makefile b/drivers/cpufreq/Makefile
-index f1b7e3dd6e5d..e880c40536e8 100644
+index f1b7e3dd6..ed260af8b 100644
 --- a/drivers/cpufreq/Makefile
 +++ b/drivers/cpufreq/Makefile
-@@ -5,7 +5,10 @@ obj-$(CONFIG_CPU_FREQ)			+= cpufreq.o freq_table.o
+@@ -5,7 +5,7 @@ obj-$(CONFIG_CPU_FREQ)			+= cpufreq.o freq_table.o
  # CPUfreq stats
  obj-$(CONFIG_CPU_FREQ_STAT)             += cpufreq_stats.o
  
 -# CPUfreq governors 
-+# CPUfreq times
-+obj-$(CONFIG_CPU_FREQ_TIMES)		+= cpufreq_times.o
-+
 +# CPUfreq governors
  obj-$(CONFIG_CPU_FREQ_GOV_PERFORMANCE)	+= cpufreq_performance.o
  obj-$(CONFIG_CPU_FREQ_GOV_POWERSAVE)	+= cpufreq_powersave.o
  obj-$(CONFIG_CPU_FREQ_GOV_USERSPACE)	+= cpufreq_userspace.o
-@@ -64,6 +67,7 @@ obj-$(CONFIG_PXA3xx)			+= pxa3xx-cpufreq.o
+@@ -64,6 +64,7 @@ obj-$(CONFIG_PXA3xx)			+= pxa3xx-cpufreq.o
  obj-$(CONFIG_ARM_QCOM_CPUFREQ_HW)	+= qcom-cpufreq-hw.o
  obj-$(CONFIG_ARM_QCOM_CPUFREQ_NVMEM)	+= qcom-cpufreq-nvmem.o
  obj-$(CONFIG_ARM_RASPBERRYPI_CPUFREQ) 	+= raspberrypi-cpufreq.o
@@ -4254,7 +4234,7 @@ index f1b7e3dd6e5d..e880c40536e8 100644
  obj-$(CONFIG_ARM_S3C2412_CPUFREQ)	+= s3c2412-cpufreq.o
  obj-$(CONFIG_ARM_S3C2416_CPUFREQ)	+= s3c2416-cpufreq.o
 diff --git a/drivers/cpufreq/cpufreq-dt-platdev.c b/drivers/cpufreq/cpufreq-dt-platdev.c
-index a3734014db47..0b91e3616a11 100644
+index a3734014d..0b91e3616 100644
 --- a/drivers/cpufreq/cpufreq-dt-platdev.c
 +++ b/drivers/cpufreq/cpufreq-dt-platdev.c
 @@ -66,21 +66,6 @@ static const struct of_device_id whitelist[] __initconst = {
@@ -4309,7 +4289,7 @@ index a3734014db47..0b91e3616a11 100644
  	{ .compatible = "st,stih407", },
  	{ .compatible = "st,stih410", },
 diff --git a/drivers/cpufreq/cpufreq-dt.c b/drivers/cpufreq/cpufreq-dt.c
-index e363ae04aac6..f1327e7fe361 100644
+index e363ae04a..f1327e7fe 100644
 --- a/drivers/cpufreq/cpufreq-dt.c
 +++ b/drivers/cpufreq/cpufreq-dt.c
 @@ -23,6 +23,9 @@
@@ -4599,7 +4579,7 @@ index e363ae04aac6..f1327e7fe361 100644
  		list_del(&priv->node);
  	}
 diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-index ebee0ad559fa..56fecf202164 100644
+index ebee0ad55..56fecf202 100644
 --- a/drivers/cpufreq/cpufreq.c
 +++ b/drivers/cpufreq/cpufreq.c
 @@ -688,8 +688,12 @@ static ssize_t show_##file_name				\
@@ -4625,7 +4605,7 @@ index ebee0ad559fa..56fecf202164 100644
  /**
   * cpufreq_update_policy - Re-evaluate an existing cpufreq policy.
 diff --git a/drivers/cpufreq/cpufreq_userspace.c b/drivers/cpufreq/cpufreq_userspace.c
-index 50a4d7846580..1f001d281718 100644
+index 50a4d7846..1f001d281 100644
 --- a/drivers/cpufreq/cpufreq_userspace.c
 +++ b/drivers/cpufreq/cpufreq_userspace.c
 @@ -78,20 +78,18 @@ static int cpufreq_userspace_policy_start(struct cpufreq_policy *policy)
@@ -4652,7 +4632,7 @@ index 50a4d7846580..1f001d281718 100644
  }
  
 diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
-index 4070e573bf43..557f59ac47a3 100644
+index 4070e573b..557f59ac4 100644
 --- a/drivers/cpuidle/driver.c
 +++ b/drivers/cpuidle/driver.c
 @@ -381,3 +381,4 @@ void cpuidle_driver_state_disabled(struct cpuidle_driver *drv, int idx,
@@ -4661,7 +4641,7 @@ index 4070e573bf43..557f59ac47a3 100644
  }
 +EXPORT_SYMBOL_GPL(cpuidle_driver_state_disabled);
 diff --git a/drivers/cpuidle/governor.c b/drivers/cpuidle/governor.c
-index 29acaf48e575..0e51ed25665e 100644
+index 29acaf48e..0e51ed256 100644
 --- a/drivers/cpuidle/governor.c
 +++ b/drivers/cpuidle/governor.c
 @@ -102,6 +102,7 @@ int cpuidle_register_governor(struct cpuidle_governor *gov)
@@ -4678,7 +4658,7 @@ index 29acaf48e575..0e51ed25665e 100644
  }
 +EXPORT_SYMBOL_GPL(cpuidle_governor_latency_req);
 diff --git a/drivers/devfreq/Kconfig b/drivers/devfreq/Kconfig
-index 37dc40d1fcfb..ab9c00a1b1c3 100644
+index 37dc40d1f..ab9c00a1b 100644
 --- a/drivers/devfreq/Kconfig
 +++ b/drivers/devfreq/Kconfig
 @@ -131,15 +131,20 @@ config ARM_TEGRA20_DEVFREQ
@@ -4707,7 +4687,7 @@ index 37dc40d1fcfb..ab9c00a1b1c3 100644
  	  from hardware.
  
 diff --git a/drivers/devfreq/Makefile b/drivers/devfreq/Makefile
-index 3ca1ad0ecb97..abea7adbc7da 100644
+index 3ca1ad0ec..abea7adbc 100644
 --- a/drivers/devfreq/Makefile
 +++ b/drivers/devfreq/Makefile
 @@ -11,7 +11,8 @@ obj-$(CONFIG_DEVFREQ_GOV_PASSIVE)	+= governor_passive.o
@@ -4721,7 +4701,7 @@ index 3ca1ad0ecb97..abea7adbc7da 100644
  obj-$(CONFIG_ARM_TEGRA20_DEVFREQ)	+= tegra20-devfreq.o
  
 diff --git a/drivers/devfreq/devfreq.c b/drivers/devfreq/devfreq.c
-index 829128c0cc68..16b6d8f8767d 100644
+index 829128c0c..16b6d8f87 100644
 --- a/drivers/devfreq/devfreq.c
 +++ b/drivers/devfreq/devfreq.c
 @@ -1763,6 +1763,40 @@ static ssize_t timer_store(struct device *dev, struct device_attribute *attr,
@@ -4774,7 +4754,7 @@ index 829128c0cc68..16b6d8f8767d 100644
  };
  ATTRIBUTE_GROUPS(devfreq);
 diff --git a/drivers/devfreq/event/Kconfig b/drivers/devfreq/event/Kconfig
-index 878825372f6f..4526c69c602e 100644
+index 878825372..4526c69c6 100644
 --- a/drivers/devfreq/event/Kconfig
 +++ b/drivers/devfreq/event/Kconfig
 @@ -39,4 +39,11 @@ config DEVFREQ_EVENT_ROCKCHIP_DFI
@@ -4790,7 +4770,7 @@ index 878825372f6f..4526c69c602e 100644
 +
  endif # PM_DEVFREQ_EVENT
 diff --git a/drivers/devfreq/event/Makefile b/drivers/devfreq/event/Makefile
-index 3c847e5d5a35..03d67f06c22e 100644
+index 3c847e5d5..03d67f06c 100644
 --- a/drivers/devfreq/event/Makefile
 +++ b/drivers/devfreq/event/Makefile
 @@ -4,3 +4,4 @@
@@ -4799,7 +4779,7 @@ index 3c847e5d5a35..03d67f06c22e 100644
  obj-$(CONFIG_DEVFREQ_EVENT_ROCKCHIP_DFI) += rockchip-dfi.o
 +obj-$(CONFIG_DEVFREQ_EVENT_ROCKCHIP_NOCP) += rockchip-nocp.o
 diff --git a/drivers/devfreq/event/rockchip-dfi.c b/drivers/devfreq/event/rockchip-dfi.c
-index 9a88faaf8b27..9fd6a82f79d6 100644
+index 9a88faaf8..9fd6a82f7 100644
 --- a/drivers/devfreq/event/rockchip-dfi.c
 +++ b/drivers/devfreq/event/rockchip-dfi.c
 @@ -20,23 +20,70 @@
@@ -5464,7 +5444,7 @@ index 9a88faaf8b27..9fd6a82f79d6 100644
  	platform_set_drvdata(pdev, data);
  
 diff --git a/drivers/dma-buf/Kconfig b/drivers/dma-buf/Kconfig
-index 594b77d8923c..366c8aeffbb2 100644
+index 594b77d89..366c8aeff 100644
 --- a/drivers/dma-buf/Kconfig
 +++ b/drivers/dma-buf/Kconfig
 @@ -21,7 +21,6 @@ config SW_SYNC
@@ -5485,7 +5465,7 @@ index 594b77d8923c..366c8aeffbb2 100644
  	   Choose this option to enable DMA-BUF sysfs statistics
  	   in location /sys/kernel/dmabuf/buffers.
 diff --git a/drivers/dma-buf/dma-buf-sysfs-stats.c b/drivers/dma-buf/dma-buf-sysfs-stats.c
-index 053baadcada9..943e395d1807 100644
+index 053baadca..943e395d1 100644
 --- a/drivers/dma-buf/dma-buf-sysfs-stats.c
 +++ b/drivers/dma-buf/dma-buf-sysfs-stats.c
 @@ -16,40 +16,6 @@
@@ -5726,7 +5706,7 @@ index 053baadcada9..943e395d1807 100644
  	kobject_put(&sysfs_entry->kobj);
  	dmabuf->sysfs_entry = NULL;
 diff --git a/drivers/dma-buf/dma-buf-sysfs-stats.h b/drivers/dma-buf/dma-buf-sysfs-stats.h
-index a49c6e2650cc..5f4703249117 100644
+index a49c6e265..5f4703249 100644
 --- a/drivers/dma-buf/dma-buf-sysfs-stats.h
 +++ b/drivers/dma-buf/dma-buf-sysfs-stats.h
 @@ -14,8 +14,23 @@ int dma_buf_init_sysfs_statistics(void);
@@ -5774,7 +5754,7 @@ index a49c6e2650cc..5f4703249117 100644
  #endif
  #endif // _DMA_BUF_SYSFS_STATS_H
 diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index b6ae42d5971e..0ce5bdd81395 100644
+index 89c10136b..4fa0d6de0 100644
 --- a/drivers/dma-buf/dma-buf.c
 +++ b/drivers/dma-buf/dma-buf.c
 @@ -32,8 +32,6 @@
@@ -5817,7 +5797,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  static char *dmabuffs_dname(struct dentry *dentry, char *buffer, int buflen)
  {
  	struct dma_buf *dmabuf;
-@@ -128,6 +150,54 @@ static struct file_system_type dma_buf_fs_type = {
+@@ -129,6 +151,54 @@ static struct file_system_type dma_buf_fs_type = {
  	.kill_sb = kill_anon_super,
  };
  
@@ -5872,7 +5852,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
  {
  	struct dma_buf *dmabuf;
-@@ -146,7 +216,7 @@ static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
+@@ -147,7 +217,7 @@ static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
  	    dmabuf->size >> PAGE_SHIFT)
  		return -EINVAL;
  
@@ -5881,7 +5861,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  }
  
  static loff_t dma_buf_llseek(struct file *file, loff_t offset, int whence)
-@@ -441,10 +511,11 @@ static const struct file_operations dma_buf_fops = {
+@@ -442,10 +512,11 @@ static const struct file_operations dma_buf_fops = {
  /*
   * is_dma_buf_file - Check if struct file* is associated with dma_buf
   */
@@ -5894,7 +5874,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  
  static struct file *dma_buf_getfile(struct dma_buf *dmabuf, int flags)
  {
-@@ -594,7 +665,6 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
+@@ -595,7 +666,6 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
  	list_add(&dmabuf->list_node, &db_list.head);
  	mutex_unlock(&db_list.lock);
  
@@ -5902,7 +5882,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  	return dmabuf;
  
  err_sysfs:
-@@ -709,6 +779,7 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
+@@ -710,6 +780,7 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
  {
  	struct dma_buf_attachment *attach;
  	int ret;
@@ -5910,7 +5890,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  
  	if (WARN_ON(!dmabuf || !dev))
  		return ERR_PTR(-EINVAL);
-@@ -734,8 +805,13 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
+@@ -735,8 +806,13 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
  	}
  	dma_resv_lock(dmabuf->resv, NULL);
  	list_add(&attach->node, &dmabuf->attachments);
@@ -5924,7 +5904,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  	/* When either the importer or the exporter can't handle dynamic
  	 * mappings we cache the mapping here to avoid issues with the
  	 * reservation object lock.
-@@ -762,6 +838,7 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
+@@ -763,6 +839,7 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
  			dma_resv_unlock(attach->dmabuf->resv);
  		attach->sgt = sgt;
  		attach->dir = DMA_BIDIRECTIONAL;
@@ -5932,7 +5912,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  	}
  
  	return attach;
-@@ -778,6 +855,7 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
+@@ -779,6 +856,7 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
  	if (dma_buf_is_dynamic(attach->dmabuf))
  		dma_resv_unlock(attach->dmabuf->resv);
  
@@ -5940,7 +5920,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  	dma_buf_detach(dmabuf, attach);
  	return ERR_PTR(ret);
  }
-@@ -816,6 +894,7 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
+@@ -817,6 +895,7 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
  			dma_resv_lock(attach->dmabuf->resv, NULL);
  
  		dmabuf->ops->unmap_dma_buf(attach, attach->sgt, attach->dir);
@@ -5948,7 +5928,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  
  		if (dma_buf_is_dynamic(attach->dmabuf)) {
  			dma_buf_unpin(attach);
-@@ -829,6 +908,7 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
+@@ -830,6 +909,7 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
  	if (dmabuf->ops->detach)
  		dmabuf->ops->detach(dmabuf, attach);
  
@@ -5956,7 +5936,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  	kfree(attach);
  }
  EXPORT_SYMBOL_GPL(dma_buf_detach);
-@@ -934,6 +1014,9 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
+@@ -935,6 +1015,9 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
  		attach->dir = direction;
  	}
  
@@ -5966,7 +5946,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  	return sg_table;
  }
  EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
-@@ -971,6 +1054,8 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+@@ -972,6 +1055,8 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
  	if (dma_buf_is_dynamic(attach->dmabuf) &&
  	    !IS_ENABLED(CONFIG_DMABUF_MOVE_NOTIFY))
  		dma_buf_unpin(attach);
@@ -5975,7 +5955,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  }
  EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
  
-@@ -1131,6 +1216,30 @@ int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
+@@ -1132,6 +1217,30 @@ int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
  }
  EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
  
@@ -6006,7 +5986,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  /**
   * dma_buf_end_cpu_access - Must be called after accessing a dma_buf from the
   * cpu in the kernel context. Calls end_cpu_access to allow exporter-specific
-@@ -1157,6 +1266,21 @@ int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
+@@ -1158,6 +1267,21 @@ int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
  }
  EXPORT_SYMBOL_GPL(dma_buf_end_cpu_access);
  
@@ -6028,7 +6008,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  
  /**
   * dma_buf_mmap - Setup up a userspace mmap with the given vma
-@@ -1285,6 +1409,32 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+@@ -1286,6 +1410,32 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
  }
  EXPORT_SYMBOL_GPL(dma_buf_vunmap);
  
@@ -6061,7 +6041,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  #ifdef CONFIG_DEBUG_FS
  static int dma_buf_debug_show(struct seq_file *s, void *unused)
  {
-@@ -1304,10 +1454,8 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
+@@ -1305,10 +1455,8 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
  		return ret;
  
  	seq_puts(s, "\nDma-buf Objects:\n");
@@ -6074,7 +6054,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  
  	list_for_each_entry(buf_obj, &db_list.head, list_node) {
  
-@@ -1315,16 +1463,13 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
+@@ -1316,16 +1464,13 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
  		if (ret)
  			goto error_unlock;
  
@@ -6093,7 +6073,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  
  		robj = buf_obj->resv;
  		while (true) {
-@@ -1405,7 +1550,6 @@ static int dma_buf_init_debugfs(void)
+@@ -1406,7 +1551,6 @@ static int dma_buf_init_debugfs(void)
  		err = PTR_ERR(d);
  	}
  
@@ -6101,7 +6081,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  	return err;
  }
  
-@@ -1423,19 +1567,6 @@ static inline void dma_buf_uninit_debugfs(void)
+@@ -1424,19 +1568,6 @@ static inline void dma_buf_uninit_debugfs(void)
  }
  #endif
  
@@ -6121,7 +6101,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  static int __init dma_buf_init(void)
  {
  	int ret;
-@@ -1451,7 +1582,6 @@ static int __init dma_buf_init(void)
+@@ -1452,7 +1583,6 @@ static int __init dma_buf_init(void)
  	mutex_init(&db_list.lock);
  	INIT_LIST_HEAD(&db_list.head);
  	dma_buf_init_debugfs();
@@ -6129,7 +6109,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  	return 0;
  }
  subsys_initcall(dma_buf_init);
-@@ -1461,6 +1591,5 @@ static void __exit dma_buf_deinit(void)
+@@ -1462,6 +1592,5 @@ static void __exit dma_buf_deinit(void)
  	dma_buf_uninit_debugfs();
  	kern_unmount(dma_buf_mnt);
  	dma_buf_uninit_sysfs_statistics();
@@ -6137,7 +6117,7 @@ index b6ae42d5971e..0ce5bdd81395 100644
  }
  __exitcall(dma_buf_deinit);
 diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-fence.c
-index 7475e09b0680..d64fc03929be 100644
+index 7475e09b0..d64fc0392 100644
 --- a/drivers/dma-buf/dma-fence.c
 +++ b/drivers/dma-buf/dma-fence.c
 @@ -312,22 +312,25 @@ void __dma_fence_might_wait(void)
@@ -6250,7 +6230,7 @@ index 7475e09b0680..d64fc03929be 100644
  
  	dma_fence_end_signalling(tmp);
 diff --git a/drivers/dma-buf/dma-heap.c b/drivers/dma-buf/dma-heap.c
-index 70e410c64c1c..4fb22001b2ca 100644
+index 70e410c64..4fb22001b 100644
 --- a/drivers/dma-buf/dma-heap.c
 +++ b/drivers/dma-buf/dma-heap.c
 @@ -30,6 +30,7 @@
@@ -6578,7 +6558,7 @@ index 70e410c64c1c..4fb22001b2ca 100644
  }
  subsys_initcall(dma_heap_init);
 diff --git a/drivers/dma-buf/heaps/Kconfig b/drivers/dma-buf/heaps/Kconfig
-index a5eef06c4226..ff52efa83f39 100644
+index a5eef06c4..ff52efa83 100644
 --- a/drivers/dma-buf/heaps/Kconfig
 +++ b/drivers/dma-buf/heaps/Kconfig
 @@ -1,12 +1,22 @@
@@ -6608,7 +6588,7 @@ index a5eef06c4226..ff52efa83f39 100644
  	help
  	  Choose this option to enable dma-buf CMA heap. This heap is backed
 diff --git a/drivers/dma-buf/heaps/Makefile b/drivers/dma-buf/heaps/Makefile
-index 6e54cdec3da0..4d4cd94a3a4a 100644
+index 6e54cdec3..4d4cd94a3 100644
 --- a/drivers/dma-buf/heaps/Makefile
 +++ b/drivers/dma-buf/heaps/Makefile
 @@ -1,4 +1,5 @@
@@ -6619,7 +6599,7 @@ index 6e54cdec3da0..4d4cd94a3a4a 100644
  obj-$(CONFIG_DMABUF_HEAPS_SYSTEM)	+= system_heap.o
  obj-$(CONFIG_DMABUF_HEAPS_CMA)		+= cma_heap.o
 diff --git a/drivers/dma-buf/heaps/cma_heap.c b/drivers/dma-buf/heaps/cma_heap.c
-index e55384dc115b..4931578df815 100644
+index e55384dc1..4931578df 100644
 --- a/drivers/dma-buf/heaps/cma_heap.c
 +++ b/drivers/dma-buf/heaps/cma_heap.c
 @@ -2,76 +2,304 @@
@@ -7033,7 +7013,7 @@ index e55384dc115b..4931578df815 100644
  
  static const struct dma_heap_ops cma_heap_ops = {
 diff --git a/drivers/dma-buf/heaps/system_heap.c b/drivers/dma-buf/heaps/system_heap.c
-index 0bf688e3c023..15796bc4c033 100644
+index 0bf688e3c..15796bc4c 100644
 --- a/drivers/dma-buf/heaps/system_heap.c
 +++ b/drivers/dma-buf/heaps/system_heap.c
 @@ -3,7 +3,11 @@
@@ -7674,7 +7654,7 @@ index 0bf688e3c023..15796bc4c033 100644
  module_init(system_heap_create);
  MODULE_LICENSE("GPL v2");
 diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
-index 348b3a9170fa..3daa6c76b8dd 100644
+index 348b3a917..3daa6c76b 100644
 --- a/drivers/dma-buf/sw_sync.c
 +++ b/drivers/dma-buf/sw_sync.c
 @@ -7,6 +7,8 @@
@@ -7701,7 +7681,7 @@ index 348b3a9170fa..3daa6c76b8dd 100644
 +
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/dma-buf/sync_debug.c b/drivers/dma-buf/sync_debug.c
-index 101394f16930..a2f906741ce0 100644
+index 101394f16..a2f906741 100644
 --- a/drivers/dma-buf/sync_debug.c
 +++ b/drivers/dma-buf/sync_debug.c
 @@ -8,6 +8,7 @@
@@ -7718,7 +7698,7 @@ index 101394f16930..a2f906741ce0 100644
  late_initcall(sync_debugfs_init);
 +#endif
 diff --git a/drivers/dma-buf/sync_debug.h b/drivers/dma-buf/sync_debug.h
-index 6176e52ba2d7..ee84997da6b4 100644
+index 6176e52ba..ee84997da 100644
 --- a/drivers/dma-buf/sync_debug.h
 +++ b/drivers/dma-buf/sync_debug.h
 @@ -62,11 +62,18 @@ struct sync_pt {
@@ -7741,7 +7721,7 @@ index 6176e52ba2d7..ee84997da6b4 100644
  
  #endif /* _LINUX_SYNC_H */
 diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
-index c08968c5ddf8..d9dbfda3c5f2 100644
+index c08968c5d..d9dbfda3c 100644
 --- a/drivers/firmware/Kconfig
 +++ b/drivers/firmware/Kconfig
 @@ -9,7 +9,7 @@ menu "Firmware Drivers"
@@ -7768,7 +7748,7 @@ index c08968c5ddf8..d9dbfda3c5f2 100644
  	tristate "TI System Control Interface (TISCI) Message Protocol"
  	depends on TI_MESSAGE_MANAGER
 diff --git a/drivers/firmware/Makefile b/drivers/firmware/Makefile
-index 5e013b6a3692..850970fbacbc 100644
+index 5e013b6a3..850970fba 100644
 --- a/drivers/firmware/Makefile
 +++ b/drivers/firmware/Makefile
 @@ -16,6 +16,7 @@ obj-$(CONFIG_ISCSI_IBFT_FIND)	+= iscsi_ibft_find.o
@@ -7781,7 +7761,7 @@ index 5e013b6a3692..850970fbacbc 100644
  obj-$(CONFIG_TI_SCI_PROTOCOL)	+= ti_sci.o
 diff --git a/drivers/firmware/rockchip_sip.c b/drivers/firmware/rockchip_sip.c
 new file mode 100644
-index 000000000000..7dc30106ef0b
+index 000000000..7dc30106e
 --- /dev/null
 +++ b/drivers/firmware/rockchip_sip.c
 @@ -0,0 +1,587 @@
@@ -8373,7 +8353,7 @@ index 000000000000..7dc30106ef0b
 +MODULE_DESCRIPTION("Rockchip SIP Call");
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index d1300fc003ed..9a4110ad1c20 100644
+index d1300fc00..9a4110ad1 100644
 --- a/drivers/gpio/Kconfig
 +++ b/drivers/gpio/Kconfig
 @@ -495,6 +495,14 @@ config GPIO_REG
@@ -8392,7 +8372,7 @@ index d1300fc003ed..9a4110ad1c20 100644
  	tristate "SAMA5D2 PIOBU GPIO support"
  	depends on MFD_SYSCON
 diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
-index 09dada80ac34..ce6cafb6d3de 100644
+index 09dada80a..ce6cafb6d 100644
 --- a/drivers/gpio/Makefile
 +++ b/drivers/gpio/Makefile
 @@ -125,6 +125,7 @@ obj-$(CONFIG_GPIO_RCAR)			+= gpio-rcar.o
@@ -8405,7 +8385,7 @@ index 09dada80ac34..ce6cafb6d3de 100644
  obj-$(CONFIG_GPIO_SCH311X)		+= gpio-sch311x.o
 diff --git a/drivers/gpio/gpio-rockchip.c b/drivers/gpio/gpio-rockchip.c
 new file mode 100644
-index 000000000000..1d1e9a64cceb
+index 000000000..1d1e9a64c
 --- /dev/null
 +++ b/drivers/gpio/gpio-rockchip.c
 @@ -0,0 +1,746 @@
@@ -9156,7 +9136,7 @@ index 000000000000..1d1e9a64cceb
 +MODULE_LICENSE("GPL v2");
 +MODULE_DEVICE_TABLE(of, rockchip_gpio_match);
 diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index 2f895a2b8411..be9002d622d5 100644
+index 2f895a2b8..be9002d62 100644
 --- a/drivers/gpio/gpiolib-of.c
 +++ b/drivers/gpio/gpiolib-of.c
 @@ -1039,3 +1039,14 @@ void of_gpiochip_remove(struct gpio_chip *chip)
@@ -9175,7 +9155,7 @@ index 2f895a2b8411..be9002d622d5 100644
 +		gdev->dev.fwnode = of_fwnode_handle(gdev->dev.of_node);
 +}
 diff --git a/drivers/gpio/gpiolib-of.h b/drivers/gpio/gpiolib-of.h
-index ed26664f1537..8af2bc899aab 100644
+index ed26664f1..8af2bc899 100644
 --- a/drivers/gpio/gpiolib-of.h
 +++ b/drivers/gpio/gpiolib-of.h
 @@ -15,6 +15,7 @@ int of_gpiochip_add(struct gpio_chip *gc);
@@ -9198,7 +9178,7 @@ index ed26664f1537..8af2bc899aab 100644
  
  extern struct notifier_block gpio_of_notifier;
 diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
-index ca868271f4c4..f7954773a1c1 100644
+index ca868271f..f7954773a 100644
 --- a/drivers/gpu/drm/Kconfig
 +++ b/drivers/gpu/drm/Kconfig
 @@ -9,10 +9,10 @@ menuconfig DRM
@@ -9246,7 +9226,7 @@ index ca868271f4c4..f7954773a1c1 100644
  	bool "DRM DP AUX Interface"
  	depends on DRM
 diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
-index 81569009f884..a53dc7b0bc0e 100644
+index 81569009f..a53dc7b0b 100644
 --- a/drivers/gpu/drm/Makefile
 +++ b/drivers/gpu/drm/Makefile
 @@ -7,7 +7,7 @@ drm-y       :=	drm_auth.o drm_cache.o \
@@ -9290,7 +9270,7 @@ index 81569009f884..a53dc7b0bc0e 100644
  drm_kms_helper-$(CONFIG_DRM_DP_CEC) += drm_dp_cec.o
  
 diff --git a/drivers/gpu/drm/amd/display/Kconfig b/drivers/gpu/drm/amd/display/Kconfig
-index f3274eb6b341..3c410d236c49 100644
+index f3274eb6b..3c410d236 100644
 --- a/drivers/gpu/drm/amd/display/Kconfig
 +++ b/drivers/gpu/drm/amd/display/Kconfig
 @@ -33,8 +33,6 @@ config DRM_AMD_DC_HDCP
@@ -9303,7 +9283,7 @@ index f3274eb6b341..3c410d236c49 100644
  	help
  	  Choose this option to enable new AMD DC support for SI asics
 diff --git a/drivers/gpu/drm/bridge/Kconfig b/drivers/gpu/drm/bridge/Kconfig
-index 4e82647a621e..3ac1c5725faa 100644
+index 4e82647a6..3ac1c5725 100644
 --- a/drivers/gpu/drm/bridge/Kconfig
 +++ b/drivers/gpu/drm/bridge/Kconfig
 @@ -126,6 +126,22 @@ config DRM_PARADE_PS8640
@@ -9330,7 +9310,7 @@ index 4e82647a621e..3ac1c5725faa 100644
  	tristate "Silicon Image SII8620 HDMI/MHL bridge"
  	depends on OF
 diff --git a/drivers/gpu/drm/bridge/Makefile b/drivers/gpu/drm/bridge/Makefile
-index 2b3aff104e46..519e916ed045 100644
+index 2b3aff104..519e916ed 100644
 --- a/drivers/gpu/drm/bridge/Makefile
 +++ b/drivers/gpu/drm/bridge/Makefile
 @@ -8,6 +8,8 @@ obj-$(CONFIG_DRM_MEGACHIPS_STDPXXXX_GE_B850V3_FW) += megachips-stdpxxxx-ge-b850v
@@ -9343,7 +9323,7 @@ index 2b3aff104e46..519e916ed045 100644
  obj-$(CONFIG_DRM_SII902X) += sii902x.o
  obj-$(CONFIG_DRM_SII9234) += sii9234.o
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index aa1bb86293fd..1965fb1bdd77 100644
+index aa1bb8629..1965fb1bd 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -8,11 +8,13 @@
@@ -10867,7 +10847,7 @@ index aa1bb86293fd..1965fb1bdd77 100644
  int analogix_dp_start_crc(struct drm_connector *connector)
  {
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.h b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.h
-index c051502d7fbf..ebc9b51e39ad 100644
+index c051502d7..ebc9b51e3 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.h
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.h
 @@ -10,6 +10,7 @@
@@ -11015,7 +10995,7 @@ index c051502d7fbf..ebc9b51e39ad 100644
  
  #endif /* _ANALOGIX_DP_CORE_H */
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
-index 914c569ab8c1..be64c0cf1146 100644
+index 914c569ab..be64c0cf1 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
 @@ -11,30 +11,44 @@
@@ -12698,7 +12678,7 @@ index 914c569ab8c1..be64c0cf1146 100644
 +	analogix_dp_init_aux(dp);
 +}
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.h b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.h
-index e284ee8da58b..7658ff853dcc 100644
+index e284ee8da..7658ff853 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.h
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.h
 @@ -15,9 +15,27 @@
@@ -12880,7 +12860,7 @@ index e284ee8da58b..7658ff853dcc 100644
 +
  #endif /* _ANALOGIX_DP_REG_H */
 diff --git a/drivers/gpu/drm/bridge/display-connector.c b/drivers/gpu/drm/bridge/display-connector.c
-index 4d278573cdb9..d24f5b90feab 100644
+index 4d278573c..d24f5b90f 100644
 --- a/drivers/gpu/drm/bridge/display-connector.c
 +++ b/drivers/gpu/drm/bridge/display-connector.c
 @@ -11,7 +11,9 @@
@@ -13082,7 +13062,7 @@ index 4d278573cdb9..d24f5b90feab 100644
  	{},
  };
 diff --git a/drivers/gpu/drm/bridge/lontium-lt9611.c b/drivers/gpu/drm/bridge/lontium-lt9611.c
-index 29b1ce2140ab..c1926154eda8 100644
+index 29b1ce214..c1926154e 100644
 --- a/drivers/gpu/drm/bridge/lontium-lt9611.c
 +++ b/drivers/gpu/drm/bridge/lontium-lt9611.c
 @@ -867,14 +867,8 @@ static enum drm_mode_status lt9611_bridge_mode_valid(struct drm_bridge *bridge,
@@ -13102,7 +13082,7 @@ index 29b1ce2140ab..c1926154eda8 100644
  
  static void lt9611_bridge_pre_enable(struct drm_bridge *bridge)
 diff --git a/drivers/gpu/drm/bridge/nwl-dsi.c b/drivers/gpu/drm/bridge/nwl-dsi.c
-index 6cac2e58cd15..c65ca860712d 100644
+index 6cac2e58c..c65ca8607 100644
 --- a/drivers/gpu/drm/bridge/nwl-dsi.c
 +++ b/drivers/gpu/drm/bridge/nwl-dsi.c
 @@ -196,7 +196,7 @@ static u32 ps2bc(struct nwl_dsi *dsi, unsigned long long ps)
@@ -13115,7 +13095,7 @@ index 6cac2e58cd15..c65ca860712d 100644
  
  /*
 diff --git a/drivers/gpu/drm/bridge/sii902x.c b/drivers/gpu/drm/bridge/sii902x.c
-index 89558e581530..33a302a5432c 100644
+index 89558e581..33a302a54 100644
 --- a/drivers/gpu/drm/bridge/sii902x.c
 +++ b/drivers/gpu/drm/bridge/sii902x.c
 @@ -24,10 +24,12 @@
@@ -13529,7 +13509,7 @@ index 89558e581530..33a302a5432c 100644
  				       sii902x->supplies);
  	}
 diff --git a/drivers/gpu/drm/bridge/synopsys/Makefile b/drivers/gpu/drm/bridge/synopsys/Makefile
-index 91d746ad5de1..4e788dbdcfbe 100644
+index 91d746ad5..4e788dbdc 100644
 --- a/drivers/gpu/drm/bridge/synopsys/Makefile
 +++ b/drivers/gpu/drm/bridge/synopsys/Makefile
 @@ -1,7 +1,8 @@
@@ -13545,7 +13525,7 @@ index 91d746ad5de1..4e788dbdcfbe 100644
  
  obj-$(CONFIG_DRM_DW_MIPI_DSI) += dw-mipi-dsi.o
 diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.c
-index 70ab4fbdc23e..48fc36d56bc2 100644
+index 70ab4fbdc..48fc36d56 100644
 --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.c
 +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.c
 @@ -12,6 +12,7 @@
@@ -13566,7 +13546,7 @@ index 70ab4fbdc23e..48fc36d56bc2 100644
  	cec->adap->owner = THIS_MODULE;
  
 diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index 0c79a9ba48bb..52374e943c57 100644
+index 0c79a9ba4..52374e943 100644
 --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
 +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
 @@ -9,6 +9,8 @@
@@ -15996,7 +15976,7 @@ index 0c79a9ba48bb..52374e943c57 100644
  EXPORT_SYMBOL_GPL(dw_hdmi_resume);
  
 diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.h b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.h
-index 1999db05bc3b..50973280048c 100644
+index 1999db05b..509732800 100644
 --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.h
 +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.h
 @@ -509,6 +509,51 @@
@@ -16083,7 +16063,7 @@ index 1999db05bc3b..50973280048c 100644
  
  /*
 diff --git a/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c b/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
-index 6b268f9445b3..fa00e24c128c 100644
+index 6b268f944..fa00e24c1 100644
 --- a/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
 +++ b/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
 @@ -244,7 +244,7 @@ struct dw_mipi_dsi {
@@ -16334,7 +16314,7 @@ index 6b268f9445b3..fa00e24c128c 100644
  MODULE_AUTHOR("Philippe Cornu <philippe.cornu@st.com>");
  MODULE_DESCRIPTION("DW MIPI DSI host controller driver");
 diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
-index 8a871e5c3e26..9418d0847630 100644
+index 8a871e5c3..9418d0847 100644
 --- a/drivers/gpu/drm/drm_atomic_helper.c
 +++ b/drivers/gpu/drm/drm_atomic_helper.c
 @@ -296,12 +296,14 @@ update_connector_routing(struct drm_atomic_state *state,
@@ -16375,7 +16355,7 @@ index 8a871e5c3e26..9418d0847630 100644
  
  	ret = drm_atomic_commit(state);
 diff --git a/drivers/gpu/drm/drm_atomic_state_helper.c b/drivers/gpu/drm/drm_atomic_state_helper.c
-index 9ad74045158e..c29183d2aa4e 100644
+index 9ad740451..c29183d2a 100644
 --- a/drivers/gpu/drm/drm_atomic_state_helper.c
 +++ b/drivers/gpu/drm/drm_atomic_state_helper.c
 @@ -141,6 +141,10 @@ void __drm_atomic_helper_crtc_duplicate_state(struct drm_crtc *crtc,
@@ -16400,7 +16380,7 @@ index 9ad74045158e..c29183d2aa4e 100644
  EXPORT_SYMBOL(__drm_atomic_helper_crtc_destroy_state);
  
 diff --git a/drivers/gpu/drm/drm_atomic_uapi.c b/drivers/gpu/drm/drm_atomic_uapi.c
-index 25c269bc4681..975ece7e00a4 100644
+index 25c269bc4..975ece7e0 100644
 --- a/drivers/gpu/drm/drm_atomic_uapi.c
 +++ b/drivers/gpu/drm/drm_atomic_uapi.c
 @@ -459,6 +459,16 @@ static int drm_atomic_crtc_set_property(struct drm_crtc *crtc,
@@ -16432,7 +16412,7 @@ index 25c269bc4681..975ece7e00a4 100644
  		*val = 0;
  	else if (crtc->funcs->atomic_get_property)
 diff --git a/drivers/gpu/drm/drm_auth.c b/drivers/gpu/drm/drm_auth.c
-index c7adbeaf10b1..232abbba3686 100644
+index c7adbeaf1..232abbba3 100644
 --- a/drivers/gpu/drm/drm_auth.c
 +++ b/drivers/gpu/drm/drm_auth.c
 @@ -135,18 +135,16 @@ static void drm_set_master(struct drm_device *dev, struct drm_file *fpriv,
@@ -16507,7 +16487,7 @@ index c7adbeaf10b1..232abbba3686 100644
  {
  	struct drm_master *master = container_of(kref, struct drm_master, refcount);
 diff --git a/drivers/gpu/drm/drm_color_mgmt.c b/drivers/gpu/drm/drm_color_mgmt.c
-index 138ff34b31db..7b270b68ade4 100644
+index 138ff34b3..7b270b68a 100644
 --- a/drivers/gpu/drm/drm_color_mgmt.c
 +++ b/drivers/gpu/drm/drm_color_mgmt.c
 @@ -33,7 +33,7 @@
@@ -16575,7 +16555,7 @@ index 138ff34b31db..7b270b68ade4 100644
   *	Setting this to NULL (blob property value set to 0) means a
   *	linear/pass-thru gamma table should be used. This is generally the
 diff --git a/drivers/gpu/drm/drm_crtc_internal.h b/drivers/gpu/drm/drm_crtc_internal.h
-index da96b2f64d7e..ad54131ab728 100644
+index da96b2f64..ad54131ab 100644
 --- a/drivers/gpu/drm/drm_crtc_internal.h
 +++ b/drivers/gpu/drm/drm_crtc_internal.h
 @@ -276,7 +276,29 @@ int drm_mode_page_flip_ioctl(struct drm_device *dev,
@@ -16609,7 +16589,7 @@ index da96b2f64d7e..ad54131ab728 100644
 +}
 +#endif
 diff --git a/drivers/gpu/drm/drm_debugfs.c b/drivers/gpu/drm/drm_debugfs.c
-index b0a826489488..3d7182001004 100644
+index b0a826489..3d7182001 100644
 --- a/drivers/gpu/drm/drm_debugfs.c
 +++ b/drivers/gpu/drm/drm_debugfs.c
 @@ -91,7 +91,6 @@ static int drm_clients_info(struct seq_file *m, void *data)
@@ -16630,7 +16610,7 @@ index b0a826489488..3d7182001004 100644
  			   from_kuid_munged(seq_user_ns(m), uid),
  			   priv->magic);
 diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
-index add317bd8d55..cfb96e181b93 100644
+index add317bd8..cfb96e181 100644
 --- a/drivers/gpu/drm/drm_edid.c
 +++ b/drivers/gpu/drm/drm_edid.c
 @@ -1835,20 +1835,11 @@ static void connector_bad_edid(struct drm_connector *connector,
@@ -16779,7 +16759,7 @@ index add317bd8d55..cfb96e181b93 100644
  }
  
 diff --git a/drivers/gpu/drm/drm_file.c b/drivers/gpu/drm/drm_file.c
-index 537e7de8e9c3..01670305df3d 100644
+index 537e7de8e..01670305d 100644
 --- a/drivers/gpu/drm/drm_file.c
 +++ b/drivers/gpu/drm/drm_file.c
 @@ -177,7 +177,6 @@ struct drm_file *drm_file_alloc(struct drm_minor *minor)
@@ -16891,7 +16871,7 @@ index 537e7de8e9c3..01670305df3d 100644
  }
  EXPORT_SYMBOL(drm_send_event);
 diff --git a/drivers/gpu/drm/drm_fourcc.c b/drivers/gpu/drm/drm_fourcc.c
-index 722c7ebe4e88..e2241a5fde33 100644
+index 722c7ebe4..e2241a5fd 100644
 --- a/drivers/gpu/drm/drm_fourcc.c
 +++ b/drivers/gpu/drm/drm_fourcc.c
 @@ -278,6 +278,16 @@ const struct drm_format_info *__drm_format_info(u32 format)
@@ -16912,7 +16892,7 @@ index 722c7ebe4e88..e2241a5fde33 100644
  		  .num_planes = 3, .char_per_block = { 2, 2, 2 },
  		  .block_w = { 1, 1, 1 }, .block_h = { 1, 1, 1 }, .hsub = 0,
 diff --git a/drivers/gpu/drm/drm_ioctl.c b/drivers/gpu/drm/drm_ioctl.c
-index 4606cc938b36..83fc51b13615 100644
+index 4606cc938..83fc51b13 100644
 --- a/drivers/gpu/drm/drm_ioctl.c
 +++ b/drivers/gpu/drm/drm_ioctl.c
 @@ -537,6 +537,7 @@ int drm_version(struct drm_device *dev, void *data,
@@ -16945,7 +16925,7 @@ index 4606cc938b36..83fc51b13615 100644
  	DRM_IOCTL_DEF(DRM_IOCTL_MODE_OBJ_SETPROPERTY, drm_mode_obj_set_property_ioctl, DRM_MASTER),
  	DRM_IOCTL_DEF(DRM_IOCTL_MODE_CURSOR2, drm_mode_cursor2_ioctl, DRM_MASTER),
 diff --git a/drivers/gpu/drm/drm_lease.c b/drivers/gpu/drm/drm_lease.c
-index aef22634005e..da4f085fc09e 100644
+index aef226340..da4f085fc 100644
 --- a/drivers/gpu/drm/drm_lease.c
 +++ b/drivers/gpu/drm/drm_lease.c
 @@ -107,19 +107,10 @@ static bool _drm_has_leased(struct drm_master *master, int id)
@@ -17182,7 +17162,7 @@ index aef22634005e..da4f085fc09e 100644
  	return ret;
  }
 diff --git a/drivers/gpu/drm/drm_mipi_dsi.c b/drivers/gpu/drm/drm_mipi_dsi.c
-index 5dd475e82995..c73aaab95e0f 100644
+index 5dd475e82..c73aaab95 100644
 --- a/drivers/gpu/drm/drm_mipi_dsi.c
 +++ b/drivers/gpu/drm/drm_mipi_dsi.c
 @@ -355,6 +355,7 @@ static ssize_t mipi_dsi_device_transfer(struct mipi_dsi_device *dsi,
@@ -17194,7 +17174,7 @@ index 5dd475e82995..c73aaab95e0f 100644
  	return ops->transfer(dsi->host, msg);
  }
 diff --git a/drivers/gpu/drm/drm_mode_config.c b/drivers/gpu/drm/drm_mode_config.c
-index f1affc1bb679..f7f21dfc4f47 100644
+index f1affc1bb..f7f21dfc4 100644
 --- a/drivers/gpu/drm/drm_mode_config.c
 +++ b/drivers/gpu/drm/drm_mode_config.c
 @@ -364,6 +364,22 @@ static int drm_mode_create_standard_properties(struct drm_device *dev)
@@ -17221,7 +17201,7 @@ index f1affc1bb679..f7f21dfc4f47 100644
  				   DRM_MODE_PROP_IMMUTABLE | DRM_MODE_PROP_BLOB,
  				   "IN_FORMATS", 0);
 diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 0f99e5453f15..39b092e33e71 100644
+index 0f99e5453..39b092e33 100644
 --- a/drivers/gpu/drm/drm_modes.c
 +++ b/drivers/gpu/drm/drm_modes.c
 @@ -1290,8 +1290,7 @@ EXPORT_SYMBOL(drm_mode_prune_invalid);
@@ -17251,7 +17231,7 @@ index 0f99e5453f15..39b092e33e71 100644
  /**
   * drm_mode_is_420_only - if a given videomode can be only supported in YCBCR420
 diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
-index 9f955f2010c2..ca6d13eb3190 100644
+index 9f955f201..ca6d13eb3 100644
 --- a/drivers/gpu/drm/drm_prime.c
 +++ b/drivers/gpu/drm/drm_prime.c
 @@ -780,6 +780,28 @@ int drm_gem_dmabuf_mmap(struct dma_buf *dma_buf, struct vm_area_struct *vma)
@@ -17292,7 +17272,7 @@ index 9f955f2010c2..ca6d13eb3190 100644
  
  /**
 diff --git a/drivers/gpu/drm/drm_vblank.c b/drivers/gpu/drm/drm_vblank.c
-index f135b79593dd..286edbe1bf7a 100644
+index f135b7959..286edbe1b 100644
 --- a/drivers/gpu/drm/drm_vblank.c
 +++ b/drivers/gpu/drm/drm_vblank.c
 @@ -1000,7 +1000,14 @@ static void send_vblank_event(struct drm_device *dev,
@@ -17312,7 +17292,7 @@ index f135b79593dd..286edbe1bf7a 100644
  
  /**
 diff --git a/drivers/gpu/drm/hisilicon/kirin/kirin_ade_reg.h b/drivers/gpu/drm/hisilicon/kirin/kirin_ade_reg.h
-index e2ac09894a6d..6d7f2e8a0479 100644
+index e2ac09894..6d7f2e8a0 100644
 --- a/drivers/gpu/drm/hisilicon/kirin/kirin_ade_reg.h
 +++ b/drivers/gpu/drm/hisilicon/kirin/kirin_ade_reg.h
 @@ -1,7 +1,7 @@
@@ -17326,7 +17306,7 @@ index e2ac09894a6d..6d7f2e8a0479 100644
  
  #ifndef __KIRIN_ADE_REG_H__
 diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
-index 6153972e0127..b9dbedf8f15e 100644
+index 6153972e0..b9dbedf8f 100644
 --- a/drivers/gpu/drm/panel/Kconfig
 +++ b/drivers/gpu/drm/panel/Kconfig
 @@ -233,7 +233,6 @@ config DRM_PANEL_OLIMEX_LCD_OLINUXINO
@@ -17338,7 +17318,7 @@ index 6153972e0127..b9dbedf8f15e 100644
  	  The panel is used with different sizes LCDs, from 480x272 to
  	  1280x800, and 24 bit per pixel.
 diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-index 204674fccd64..68553c28c802 100644
+index 204674fcc..68553c28c 100644
 --- a/drivers/gpu/drm/panel/panel-simple.c
 +++ b/drivers/gpu/drm/panel/panel-simple.c
 @@ -30,6 +30,7 @@
@@ -18048,7 +18028,7 @@ index 204674fccd64..68553c28c802 100644
  	dsi->lanes = desc->lanes;
 diff --git a/drivers/gpu/drm/panel/panel-simple.h b/drivers/gpu/drm/panel/panel-simple.h
 new file mode 100644
-index 000000000000..1958926d9738
+index 000000000..1958926d9
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-simple.h
 @@ -0,0 +1,19 @@
@@ -18072,7 +18052,7 @@ index 000000000000..1958926d9738
 +#endif
 +#endif
 diff --git a/drivers/gpu/drm/panfrost/panfrost_device.h b/drivers/gpu/drm/panfrost/panfrost_device.h
-index 4c6bdea5537b..597cf1459b0a 100644
+index 4c6bdea55..597cf1459 100644
 --- a/drivers/gpu/drm/panfrost/panfrost_device.h
 +++ b/drivers/gpu/drm/panfrost/panfrost_device.h
 @@ -120,12 +120,8 @@ struct panfrost_device {
@@ -18100,7 +18080,7 @@ index 4c6bdea5537b..597cf1459b0a 100644
  
  static inline struct panfrost_device *to_panfrost_device(struct drm_device *ddev)
 diff --git a/drivers/gpu/drm/panfrost/panfrost_drv.c b/drivers/gpu/drm/panfrost/panfrost_drv.c
-index a70261809cdd..689be734ed20 100644
+index a70261809..689be734e 100644
 --- a/drivers/gpu/drm/panfrost/panfrost_drv.c
 +++ b/drivers/gpu/drm/panfrost/panfrost_drv.c
 @@ -417,7 +417,7 @@ static int panfrost_ioctl_madvise(struct drm_device *dev, void *data,
@@ -18189,7 +18169,7 @@ index a70261809cdd..689be734ed20 100644
  }
  
 diff --git a/drivers/gpu/drm/panfrost/panfrost_gem.c b/drivers/gpu/drm/panfrost/panfrost_gem.c
-index 1d917cea5ceb..57a31dd0ffed 100644
+index 1d917cea5..57a31dd0f 100644
 --- a/drivers/gpu/drm/panfrost/panfrost_gem.c
 +++ b/drivers/gpu/drm/panfrost/panfrost_gem.c
 @@ -60,7 +60,7 @@ panfrost_gem_mapping_get(struct panfrost_gem_object *bo,
@@ -18254,7 +18234,7 @@ index 1d917cea5ceb..57a31dd0ffed 100644
  			list_del(&iter->node);
  			break;
 diff --git a/drivers/gpu/drm/panfrost/panfrost_job.c b/drivers/gpu/drm/panfrost/panfrost_job.c
-index 7e1a5664d452..04e6f6f9b742 100644
+index 7e1a5664d..04e6f6f9b 100644
 --- a/drivers/gpu/drm/panfrost/panfrost_job.c
 +++ b/drivers/gpu/drm/panfrost/panfrost_job.c
 @@ -165,7 +165,7 @@ static void panfrost_job_hw_submit(struct panfrost_job *job, int js)
@@ -18276,7 +18256,7 @@ index 7e1a5664d452..04e6f6f9b742 100644
  
  				dma_fence_signal_locked(job->done_fence);
 diff --git a/drivers/gpu/drm/panfrost/panfrost_mmu.c b/drivers/gpu/drm/panfrost/panfrost_mmu.c
-index 7fc45b13a52c..21e552d1ac71 100644
+index 7fc45b13a..21e552d1a 100644
 --- a/drivers/gpu/drm/panfrost/panfrost_mmu.c
 +++ b/drivers/gpu/drm/panfrost/panfrost_mmu.c
 @@ -1,8 +1,5 @@
@@ -18576,7 +18556,7 @@ index 7fc45b13a52c..21e552d1ac71 100644
  		u32 fault_status)
  {
 diff --git a/drivers/gpu/drm/panfrost/panfrost_mmu.h b/drivers/gpu/drm/panfrost/panfrost_mmu.h
-index cc2a0d307feb..44fc2edf63ce 100644
+index cc2a0d307..44fc2edf6 100644
 --- a/drivers/gpu/drm/panfrost/panfrost_mmu.h
 +++ b/drivers/gpu/drm/panfrost/panfrost_mmu.h
 @@ -18,8 +18,7 @@ void panfrost_mmu_reset(struct panfrost_device *pfdev);
@@ -18591,7 +18571,7 @@ index cc2a0d307feb..44fc2edf63ce 100644
  
  #endif
 diff --git a/drivers/gpu/drm/panfrost/panfrost_regs.h b/drivers/gpu/drm/panfrost/panfrost_regs.h
-index 2ae3a4d301d3..eddaa62ad8b0 100644
+index 2ae3a4d30..eddaa62ad 100644
 --- a/drivers/gpu/drm/panfrost/panfrost_regs.h
 +++ b/drivers/gpu/drm/panfrost/panfrost_regs.h
 @@ -318,8 +318,6 @@
@@ -18604,7 +18584,7 @@ index 2ae3a4d301d3..eddaa62ad8b0 100644
  #define gpu_read(dev, reg) readl(dev->iomem + reg)
  
 diff --git a/drivers/gpu/drm/rockchip/Kconfig b/drivers/gpu/drm/rockchip/Kconfig
-index 310aa1546893..9808da44c3d0 100644
+index 310aa1546..9808da44c 100644
 --- a/drivers/gpu/drm/rockchip/Kconfig
 +++ b/drivers/gpu/drm/rockchip/Kconfig
 @@ -1,7 +1,7 @@
@@ -18732,7 +18712,7 @@ index 310aa1546893..9808da44c3d0 100644
 +
  endif
 diff --git a/drivers/gpu/drm/rockchip/Makefile b/drivers/gpu/drm/rockchip/Makefile
-index 17a9e7eb2130..04a76c8aabe7 100644
+index 17a9e7eb2..04a76c8aa 100644
 --- a/drivers/gpu/drm/rockchip/Makefile
 +++ b/drivers/gpu/drm/rockchip/Makefile
 @@ -4,16 +4,28 @@
@@ -18767,7 +18747,7 @@ index 17a9e7eb2130..04a76c8aabe7 100644
  
  obj-$(CONFIG_DRM_ROCKCHIP) += rockchipdrm.o
 diff --git a/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
-index ade2327a10e2..edad62bc7056 100644
+index ade2327a1..edad62bc7 100644
 --- a/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
 +++ b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
 @@ -16,6 +16,7 @@
@@ -19403,7 +19383,7 @@ index ade2327a10e2..edad62bc7056 100644
  
  static const struct of_device_id rockchip_dp_dt_ids[] = {
 diff --git a/drivers/gpu/drm/rockchip/cdn-dp-core.c b/drivers/gpu/drm/rockchip/cdn-dp-core.c
-index dec54c70e008..261490fcb5f9 100644
+index dec54c70e..261490fcb 100644
 --- a/drivers/gpu/drm/rockchip/cdn-dp-core.c
 +++ b/drivers/gpu/drm/rockchip/cdn-dp-core.c
 @@ -6,7 +6,6 @@
@@ -19678,7 +19658,7 @@ index dec54c70e008..261490fcb5f9 100644
  	}
  
 diff --git a/drivers/gpu/drm/rockchip/cdn-dp-core.h b/drivers/gpu/drm/rockchip/cdn-dp-core.h
-index 81ac9b658a70..519900c673cb 100644
+index 81ac9b658..519900c67 100644
 --- a/drivers/gpu/drm/rockchip/cdn-dp-core.h
 +++ b/drivers/gpu/drm/rockchip/cdn-dp-core.h
 @@ -53,8 +53,6 @@ struct cdn_firmware_header {
@@ -19702,7 +19682,7 @@ index 81ac9b658a70..519900c673cb 100644
  	struct mutex lock;
  	bool connected;
 diff --git a/drivers/gpu/drm/rockchip/dw-mipi-dsi-rockchip.c b/drivers/gpu/drm/rockchip/dw-mipi-dsi-rockchip.c
-index d0c9610ad220..96e130da4953 100644
+index d0c9610ad..96e130da4 100644
 --- a/drivers/gpu/drm/rockchip/dw-mipi-dsi-rockchip.c
 +++ b/drivers/gpu/drm/rockchip/dw-mipi-dsi-rockchip.c
 @@ -16,8 +16,9 @@
@@ -20654,7 +20634,7 @@ index d0c9610ad220..96e130da4953 100644
  	},
  };
 diff --git a/drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c b/drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c
-index 23de359a1dec..4da342c9fcf0 100644
+index 23de359a1..4da342c9f 100644
 --- a/drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c
 +++ b/drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c
 @@ -4,21 +4,31 @@
@@ -24124,7 +24104,7 @@ index 23de359a1dec..4da342c9fcf0 100644
  		.name = "dwhdmi-rockchip",
  		.pm = &dw_hdmi_rockchip_pm,
 diff --git a/drivers/gpu/drm/rockchip/inno_hdmi.c b/drivers/gpu/drm/rockchip/inno_hdmi.c
-index 7afdc54eb3ec..67ffb23faecb 100644
+index 7afdc54eb..67ffb23fa 100644
 --- a/drivers/gpu/drm/rockchip/inno_hdmi.c
 +++ b/drivers/gpu/drm/rockchip/inno_hdmi.c
 @@ -602,7 +602,7 @@ static int inno_hdmi_register(struct drm_device *drm, struct inno_hdmi *hdmi)
@@ -24137,7 +24117,7 @@ index 7afdc54eb3ec..67ffb23faecb 100644
  	/*
  	 * If we failed to find the CRTC(s) which this encoder is
 diff --git a/drivers/gpu/drm/rockchip/rk3066_hdmi.c b/drivers/gpu/drm/rockchip/rk3066_hdmi.c
-index 1c546c3a8998..58b366f4f3a9 100644
+index 1c546c3a8..58b366f4f 100644
 --- a/drivers/gpu/drm/rockchip/rk3066_hdmi.c
 +++ b/drivers/gpu/drm/rockchip/rk3066_hdmi.c
 @@ -542,7 +542,7 @@ rk3066_hdmi_register(struct drm_device *drm, struct rk3066_hdmi *hdmi)
@@ -24150,7 +24130,7 @@ index 1c546c3a8998..58b366f4f3a9 100644
  	/*
  	 * If we failed to find the CRTC(s) which this encoder is
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_drv.c b/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
-index 0f3eb392fe39..9d7c160b60f5 100644
+index 0f3eb392f..9d7c160b6 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
 @@ -6,17 +6,24 @@
@@ -25797,7 +25777,7 @@ index 0f3eb392fe39..9d7c160b60f5 100644
  
  err_unreg_drivers:
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_drv.h b/drivers/gpu/drm/rockchip/rockchip_drm_drv.h
-index e33c2dcd0d4b..ca2bf65288d8 100644
+index e33c2dcd0..ca2bf6528 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_drv.h
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_drv.h
 @@ -9,32 +9,375 @@
@@ -26289,7 +26269,7 @@ index e33c2dcd0d4b..ca2bf65288d8 100644
 +extern struct platform_driver vvop_platform_driver;
  #endif /* _ROCKCHIP_DRM_DRV_H_ */
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_fb.c b/drivers/gpu/drm/rockchip/rockchip_drm_fb.c
-index 3aa37e177667..401f7a57638d 100644
+index 3aa37e177..401f7a576 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_fb.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_fb.c
 @@ -5,6 +5,7 @@
@@ -26503,7 +26483,7 @@ index 3aa37e177667..401f7a57638d 100644
  	dev->mode_config.funcs = &rockchip_drm_mode_config_funcs;
  	dev->mode_config.helper_private = &rockchip_mode_config_helpers;
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_fb.h b/drivers/gpu/drm/rockchip/rockchip_drm_fb.h
-index 1a696521096d..e5577c2bb7c0 100644
+index 1a6965210..e5577c2bb 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_fb.h
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_fb.h
 @@ -7,6 +7,10 @@
@@ -26538,7 +26518,7 @@ index 1a696521096d..e5577c2bb7c0 100644
 +
  #endif /* _ROCKCHIP_DRM_FB_H */
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c b/drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c
-index 2fdc455c4ad7..065fa7fde336 100644
+index 2fdc455c4..065fa7fde 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c
 @@ -15,14 +15,12 @@
@@ -26601,7 +26581,7 @@ index 2fdc455c4ad7..065fa7fde336 100644
  	drm_fb_helper_unregister_fbi(helper);
  
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c b/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
-index 62e5d0970525..4ed34f8477cd 100644
+index 62e5d0970..4ed34f847 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
 @@ -4,7 +4,7 @@
@@ -27439,7 +27419,7 @@ index 62e5d0970525..4ed34f8477cd 100644
 +	return 0;
 +}
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_gem.h b/drivers/gpu/drm/rockchip/rockchip_drm_gem.h
-index 7ffc541bea07..6a1d8e55b35a 100644
+index 7ffc541be..6a1d8e55b 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.h
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_gem.h
 @@ -7,14 +7,24 @@
@@ -27515,7 +27495,7 @@ index 7ffc541bea07..6a1d8e55b35a 100644
 +void rockchip_gem_get_ddr_info(void);
  #endif /* _ROCKCHIP_DRM_GEM_H */
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-index 0f23144491e4..031de4f6b5e5 100644
+index 0f2314449..031de4f6b 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
 @@ -6,21 +6,28 @@
@@ -33031,7 +33011,7 @@ index 0f23144491e4..031de4f6b5e5 100644
  
  const struct component_ops vop_component_ops = {
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.h b/drivers/gpu/drm/rockchip/rockchip_drm_vop.h
-index 857d97cdc67c..c992de1842da 100644
+index 857d97cdc..c992de184 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.h
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.h
 @@ -7,6 +7,9 @@
@@ -34335,7 +34315,7 @@ index 857d97cdc67c..c992de1842da 100644
 +extern const struct component_ops vop2_component_ops;
  #endif /* _ROCKCHIP_DRM_VOP_H */
 diff --git a/drivers/gpu/drm/rockchip/rockchip_lvds.c b/drivers/gpu/drm/rockchip/rockchip_lvds.c
-index 7c20b4a24a7e..ca2838db89eb 100644
+index 7c20b4a24..ca2838db8 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_lvds.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_lvds.c
 @@ -6,98 +6,141 @@
@@ -35504,7 +35484,7 @@ index 7c20b4a24a7e..ca2838db89eb 100644
  	.probe = rockchip_lvds_probe,
  	.remove = rockchip_lvds_remove,
 diff --git a/drivers/gpu/drm/rockchip/rockchip_rgb.c b/drivers/gpu/drm/rockchip/rockchip_rgb.c
-index 9a771af5d0c9..40af4dc26dbf 100644
+index 9a771af5d..40af4dc26 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_rgb.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_rgb.c
 @@ -6,29 +6,183 @@
@@ -36143,7 +36123,7 @@ index 9a771af5d0c9..40af4dc26dbf 100644
 +	},
 +};
 diff --git a/drivers/gpu/drm/rockchip/rockchip_rgb.h b/drivers/gpu/drm/rockchip/rockchip_rgb.h
-index 27b9635124bc..8973232e0caa 100644
+index 27b963512..8973232e0 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_rgb.h
 +++ b/drivers/gpu/drm/rockchip/rockchip_rgb.h
 @@ -8,12 +8,14 @@
@@ -36164,7 +36144,7 @@ index 27b9635124bc..8973232e0caa 100644
  	return NULL;
  }
 diff --git a/drivers/gpu/drm/rockchip/rockchip_vop_reg.c b/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
-index a6fe03c3748a..e9b60533723d 100644
+index a6fe03c37..e9b605337 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
 @@ -5,36 +5,36 @@
@@ -38945,7 +38925,7 @@ index a6fe03c3748a..e9b60533723d 100644
  };
  MODULE_DEVICE_TABLE(of, vop_driver_dt_match);
 diff --git a/drivers/gpu/drm/rockchip/rockchip_vop_reg.h b/drivers/gpu/drm/rockchip/rockchip_vop_reg.h
-index 6e9fa5815d4d..864d663831c2 100644
+index 6e9fa5815..864d66383 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_vop_reg.h
 +++ b/drivers/gpu/drm/rockchip/rockchip_vop_reg.h
 @@ -113,6 +113,11 @@
@@ -39815,7 +39795,7 @@ index 6e9fa5815d4d..864d663831c2 100644
  
  #endif /* _ROCKCHIP_VOP_REG_H */
 diff --git a/drivers/i2c/busses/i2c-rk3x.c b/drivers/i2c/busses/i2c-rk3x.c
-index 819ab4ee517e..0b3adca2e2a4 100644
+index 819ab4ee5..0b3adca2e 100644
 --- a/drivers/i2c/busses/i2c-rk3x.c
 +++ b/drivers/i2c/busses/i2c-rk3x.c
 @@ -23,6 +23,8 @@
@@ -40508,7 +40488,7 @@ index 819ab4ee517e..0b3adca2e2a4 100644
  MODULE_DESCRIPTION("Rockchip RK3xxx I2C Bus driver");
  MODULE_AUTHOR("Max Schwarz <max.schwarz@online.de>");
 diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index bdce6d3e5327..c0315596d5cd 100644
+index bdce6d3e5..c0315596d 100644
 --- a/drivers/i2c/i2c-core-base.c
 +++ b/drivers/i2c/i2c-core-base.c
 @@ -61,6 +61,7 @@
@@ -40613,7 +40593,7 @@ index bdce6d3e5327..c0315596d5cd 100644
  	unsigned	cmd;
  	void		*arg;
 diff --git a/drivers/iio/adc/Kconfig b/drivers/iio/adc/Kconfig
-index e39b679126a2..2760f1e52b97 100644
+index e39b67912..2760f1e52 100644
 --- a/drivers/iio/adc/Kconfig
 +++ b/drivers/iio/adc/Kconfig
 @@ -876,6 +876,13 @@ config ROCKCHIP_SARADC
@@ -40631,7 +40611,7 @@ index e39b679126a2..2760f1e52b97 100644
  	tristate "Spreadtrum SC27xx series PMICs ADC"
  	depends on MFD_SC27XX_PMIC || COMPILE_TEST
 diff --git a/drivers/iio/adc/rockchip_saradc.c b/drivers/iio/adc/rockchip_saradc.c
-index 12584f1631d8..c266169dfe61 100644
+index 12584f163..c266169df 100644
 --- a/drivers/iio/adc/rockchip_saradc.c
 +++ b/drivers/iio/adc/rockchip_saradc.c
 @@ -35,7 +35,7 @@
@@ -40860,7 +40840,7 @@ index 12584f1631d8..c266169dfe61 100644
  }
  
 diff --git a/drivers/input/Kconfig b/drivers/input/Kconfig
-index 1efd3154b68d..31a41c147f59 100644
+index 1efd3154b..31a41c147 100644
 --- a/drivers/input/Kconfig
 +++ b/drivers/input/Kconfig
 @@ -197,6 +197,8 @@ source "drivers/input/tablet/Kconfig"
@@ -40873,7 +40853,7 @@ index 1efd3154b68d..31a41c147f59 100644
  
  source "drivers/input/rmi4/Kconfig"
 diff --git a/drivers/input/Makefile b/drivers/input/Makefile
-index e35650930371..c03a47c073dc 100644
+index e35650930..c03a47c07 100644
 --- a/drivers/input/Makefile
 +++ b/drivers/input/Makefile
 @@ -24,6 +24,7 @@ obj-$(CONFIG_INPUT_MOUSE)	+= mouse/
@@ -40885,7 +40865,7 @@ index e35650930371..c03a47c073dc 100644
  
  obj-$(CONFIG_INPUT_APMPOWER)	+= apm-power.o
 diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-index cc18f54ea887..ca98b297e597 100644
+index cc18f54ea..ca98b297e 100644
 --- a/drivers/input/touchscreen/Kconfig
 +++ b/drivers/input/touchscreen/Kconfig
 @@ -404,6 +404,15 @@ config TOUCHSCREEN_GOODIX
@@ -40905,7 +40885,7 @@ index cc18f54ea887..ca98b297e597 100644
  	tristate "HiDeep Touch IC"
  	depends on I2C
 diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
-index 6233541e9173..bde0bf53bb03 100644
+index 6233541e9..bde0bf53b 100644
 --- a/drivers/input/touchscreen/Makefile
 +++ b/drivers/input/touchscreen/Makefile
 @@ -45,6 +45,7 @@ obj-$(CONFIG_TOUCHSCREEN_EGALAX_SERIAL)	+= egalax_ts_serial.o
@@ -40917,7 +40897,7 @@ index 6233541e9173..bde0bf53bb03 100644
  obj-$(CONFIG_TOUCHSCREEN_ILI210X)	+= ili210x.o
  obj-$(CONFIG_TOUCHSCREEN_IMX6UL_TSC)	+= imx6ul_tsc.o
 diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-index 04878caf6da4..fe1256b01f7e 100644
+index 04878caf6..fe1256b01 100644
 --- a/drivers/iommu/Kconfig
 +++ b/drivers/iommu/Kconfig
 @@ -160,7 +160,8 @@ config OMAP_IOMMU_DEBUG
@@ -40931,7 +40911,7 @@ index 04878caf6da4..fe1256b01f7e 100644
  	select IOMMU_API
  	select ARM_DMA_USE_IOMMU
 diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index d1539b7399a9..d5020a7299a3 100644
+index d1539b739..d5020a729 100644
 --- a/drivers/iommu/dma-iommu.c
 +++ b/drivers/iommu/dma-iommu.c
 @@ -372,6 +372,52 @@ static int iommu_dma_deferred_attach(struct device *dev,
@@ -40999,7 +40979,7 @@ index d1539b7399a9..d5020a7299a3 100644
  	switch (dir) {
  	case DMA_BIDIRECTIONAL:
 diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-index bcf060b5cf85..c8605ebc039c 100644
+index bcf060b5c..c8605ebc0 100644
 --- a/drivers/iommu/iommu.c
 +++ b/drivers/iommu/iommu.c
 @@ -8,6 +8,7 @@
@@ -41251,7 +41231,7 @@ index bcf060b5cf85..c8605ebc039c 100644
  
  out_err:
 diff --git a/drivers/iommu/rockchip-iommu.c b/drivers/iommu/rockchip-iommu.c
-index e5d86b7177de..b359fcf2c1b0 100644
+index e5d86b717..b359fcf2c 100644
 --- a/drivers/iommu/rockchip-iommu.c
 +++ b/drivers/iommu/rockchip-iommu.c
 @@ -19,6 +19,7 @@
@@ -42410,7 +42390,7 @@ index e5d86b7177de..b359fcf2c1b0 100644
 +MODULE_ALIAS("platform:rockchip-iommu");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index dc062e8c2caf..122f81a0912b 100644
+index dc062e8c2..122f81a09 100644
 --- a/drivers/irqchip/Kconfig
 +++ b/drivers/irqchip/Kconfig
 @@ -416,8 +416,9 @@ config IRQ_UNIPHIER_AIDET
@@ -42426,7 +42406,7 @@ index dc062e8c2caf..122f81a0912b 100644
         help
           Support Meson SoC Family GPIO Interrupt Multiplexer
 diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 95e0b82b6c66..effd2bbb9e9e 100644
+index 95e0b82b6..effd2bbb9 100644
 --- a/drivers/irqchip/irq-gic-v3-its.c
 +++ b/drivers/irqchip/irq-gic-v3-its.c
 @@ -2167,6 +2167,8 @@ static struct page *its_allocate_prop_table(gfp_t gfp_flags)
@@ -42609,7 +42589,7 @@ index 95e0b82b6c66..effd2bbb9e9e 100644
  		if (!(tmp & GITS_CBASER_SHAREABILITY_MASK)) {
  			/*
 diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 1bdb7acf445f..0145d142b322 100644
+index 1bdb7acf4..0145d142b 100644
 --- a/drivers/irqchip/irq-gic-v3.c
 +++ b/drivers/irqchip/irq-gic-v3.c
 @@ -18,6 +18,9 @@
@@ -42667,7 +42647,7 @@ index 1bdb7acf445f..0145d142b322 100644
  	if (gic_dist_supports_lpis()) {
  		its_init(handle, &gic_data.rdists, gic_data.domain);
 diff --git a/drivers/irqchip/irq-gic-v4.c b/drivers/irqchip/irq-gic-v4.c
-index 0c18714ae13e..5d1dc9915272 100644
+index 0c18714ae..5d1dc9915 100644
 --- a/drivers/irqchip/irq-gic-v4.c
 +++ b/drivers/irqchip/irq-gic-v4.c
 @@ -232,6 +232,8 @@ int its_make_vpe_non_resident(struct its_vpe *vpe, bool db)
@@ -42704,7 +42684,7 @@ index 0c18714ae13e..5d1dc9915272 100644
  {
  	struct its_cmd_info info = {
 diff --git a/drivers/irqchip/irq-meson-gpio.c b/drivers/irqchip/irq-meson-gpio.c
-index bc7aebcc96e9..e3b462bd3981 100644
+index bc7aebcc9..e3b462bd3 100644
 --- a/drivers/irqchip/irq-meson-gpio.c
 +++ b/drivers/irqchip/irq-meson-gpio.c
 @@ -15,6 +15,7 @@
@@ -42851,7 +42831,7 @@ index bc7aebcc96e9..e3b462bd3981 100644
 +MODULE_LICENSE("GPL v2");
 +MODULE_ALIAS("platform:meson-gpio-intc");
 diff --git a/drivers/mailbox/rockchip-mailbox.c b/drivers/mailbox/rockchip-mailbox.c
-index 979acc810f30..99b9421b8494 100644
+index 979acc810..99b9421b8 100644
 --- a/drivers/mailbox/rockchip-mailbox.c
 +++ b/drivers/mailbox/rockchip-mailbox.c
 @@ -11,6 +11,7 @@
@@ -43084,7 +43064,7 @@ index 979acc810f30..99b9421b8494 100644
  
  	ret = devm_mbox_controller_register(&pdev->dev, &mb->mbox);
 diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 878f66ef2719..166f897a5c2f 100644
+index 878f66ef2..166f897a5 100644
 --- a/drivers/media/i2c/Kconfig
 +++ b/drivers/media/i2c/Kconfig
 @@ -384,6 +384,19 @@ config VIDEO_TC358743_CEC
@@ -43143,7 +43123,7 @@ index 878f66ef2719..166f897a5c2f 100644
  	tristate "Hynix Hi-556 sensor support"
  	depends on I2C && VIDEO_V4L2
 diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index f0a77473979d..022cf0114ba9 100644
+index f0a774739..022cf0114 100644
 --- a/drivers/media/i2c/Makefile
 +++ b/drivers/media/i2c/Makefile
 @@ -108,9 +108,12 @@ obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
@@ -43160,7 +43140,7 @@ index f0a77473979d..022cf0114ba9 100644
  obj-$(CONFIG_VIDEO_IMX214)	+= imx214.o
  obj-$(CONFIG_VIDEO_IMX219)	+= imx219.o
 diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 7e152bbb4fa6..51d069028c3d 100644
+index 7e152bbb4..51d069028 100644
 --- a/drivers/media/platform/Kconfig
 +++ b/drivers/media/platform/Kconfig
 @@ -153,6 +153,9 @@ source "drivers/media/platform/xilinx/Kconfig"
@@ -43174,7 +43154,7 @@ index 7e152bbb4fa6..51d069028c3d 100644
  config VIDEO_TI_CAL
  	tristate "TI CAL (Camera Adaptation Layer) driver"
 diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 62b6cdc8c730..c7cb2135bb56 100644
+index 62b6cdc8c..c7cb2135b 100644
 --- a/drivers/media/platform/Makefile
 +++ b/drivers/media/platform/Makefile
 @@ -53,6 +53,9 @@ obj-$(CONFIG_VIDEO_RENESAS_JPU)		+= rcar_jpu.o
@@ -43188,7 +43168,7 @@ index 62b6cdc8c730..c7cb2135bb56 100644
  obj-y	+= omap/
  
 diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 282f3d2388cc..5f3f90123123 100644
+index 447b6a198..f8bdc1950 100644
 --- a/drivers/media/usb/uvc/uvc_driver.c
 +++ b/drivers/media/usb/uvc/uvc_driver.c
 @@ -12,6 +12,7 @@
@@ -43199,7 +43179,7 @@ index 282f3d2388cc..5f3f90123123 100644
  #include <linux/videodev2.h>
  #include <linux/vmalloc.h>
  #include <linux/wait.h>
-@@ -2341,7 +2342,11 @@ static int uvc_probe(struct usb_interface *intf,
+@@ -2346,7 +2347,11 @@ static int uvc_probe(struct usb_interface *intf,
  	}
  
  	uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
@@ -43213,7 +43193,7 @@ index 282f3d2388cc..5f3f90123123 100644
  
  error:
 diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 33babe6e8b3a..1b5d4d99ec68 100644
+index 33babe6e8..1b5d4d99e 100644
 --- a/drivers/media/v4l2-core/v4l2-async.c
 +++ b/drivers/media/v4l2-core/v4l2-async.c
 @@ -555,6 +555,60 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
@@ -43278,7 +43258,7 @@ index 33babe6e8b3a..1b5d4d99ec68 100644
  					struct v4l2_async_notifier *notifier)
  {
 diff --git a/drivers/mfd/rk808.c b/drivers/mfd/rk808.c
-index d109b9f14407..fd755d98af84 100644
+index d109b9f14..fd755d98a 100644
 --- a/drivers/mfd/rk808.c
 +++ b/drivers/mfd/rk808.c
 @@ -2,7 +2,7 @@
@@ -44514,7 +44494,7 @@ index d109b9f14407..fd755d98af84 100644
  MODULE_LICENSE("GPL");
  MODULE_AUTHOR("Chris Zhong <zyw@rock-chips.com>");
 diff --git a/drivers/mmc/core/block.c b/drivers/mmc/core/block.c
-index 99b981a05b6c..ea72d4a420c4 100644
+index 99b981a05..ea72d4a42 100644
 --- a/drivers/mmc/core/block.c
 +++ b/drivers/mmc/core/block.c
 @@ -2893,6 +2893,9 @@ static void mmc_blk_remove_debugfs(struct mmc_card *card,
@@ -44528,7 +44508,7 @@ index 99b981a05b6c..ea72d4a420c4 100644
  {
  	struct mmc_blk_data *md, *part_md;
 diff --git a/drivers/mmc/core/block.h b/drivers/mmc/core/block.h
-index 31153f656f41..b71b3ec148f3 100644
+index 31153f656..b71b3ec14 100644
 --- a/drivers/mmc/core/block.h
 +++ b/drivers/mmc/core/block.h
 @@ -17,4 +17,5 @@ struct work_struct;
@@ -44538,7 +44518,7 @@ index 31153f656f41..b71b3ec148f3 100644
 +extern struct mmc_card *this_card;
  #endif
 diff --git a/drivers/mmc/core/core.h b/drivers/mmc/core/core.h
-index db3c9c68875d..842b679251f8 100644
+index db3c9c688..842b67925 100644
 --- a/drivers/mmc/core/core.h
 +++ b/drivers/mmc/core/core.h
 @@ -80,6 +80,8 @@ int mmc_attach_mmc(struct mmc_host *host);
@@ -44551,7 +44531,7 @@ index db3c9c68875d..842b679251f8 100644
  extern bool use_spi_crc;
  
 diff --git a/drivers/mmc/core/host.c b/drivers/mmc/core/host.c
-index 58112999a69a..f4d000a16637 100644
+index 58112999a..f4d000a16 100644
 --- a/drivers/mmc/core/host.c
 +++ b/drivers/mmc/core/host.c
 @@ -504,6 +504,9 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
@@ -44611,7 +44591,7 @@ index 58112999a69a..f4d000a16637 100644
 +}
 +EXPORT_SYMBOL(mmc_host_rescan);
 diff --git a/drivers/mmc/core/sdio.c b/drivers/mmc/core/sdio.c
-index 1b0853a82189..0482a37a0d2f 100644
+index 1b0853a82..0482a37a0 100644
 --- a/drivers/mmc/core/sdio.c
 +++ b/drivers/mmc/core/sdio.c
 @@ -3,9 +3,15 @@
@@ -45322,7 +45302,7 @@ index 1b0853a82189..0482a37a0d2f 100644
 +}
 +EXPORT_SYMBOL(sdio_reset_comm);
 diff --git a/drivers/mmc/host/Makefile b/drivers/mmc/host/Makefile
-index 451c25fc2c69..6dfb791fa621 100644
+index 451c25fc2..6dfb791fa 100644
 --- a/drivers/mmc/host/Makefile
 +++ b/drivers/mmc/host/Makefile
 @@ -61,6 +61,7 @@ obj-$(CONFIG_MMC_DW_HI3798CV200) += dw_mmc-hi3798cv200.o
@@ -45334,7 +45314,7 @@ index 451c25fc2c69..6dfb791fa621 100644
  obj-$(CONFIG_MMC_SH_MMCIF)	+= sh_mmcif.o
  obj-$(CONFIG_MMC_JZ4740)	+= jz4740_mmc.o
 diff --git a/drivers/mmc/host/dw_mmc-rockchip.c b/drivers/mmc/host/dw_mmc-rockchip.c
-index 753502ce3c85..ac2ef5ea0c8d 100644
+index 753502ce3..ac2ef5ea0 100644
 --- a/drivers/mmc/host/dw_mmc-rockchip.c
 +++ b/drivers/mmc/host/dw_mmc-rockchip.c
 @@ -22,6 +22,9 @@ struct dw_mci_rockchip_priv_data {
@@ -45511,7 +45491,7 @@ index 753502ce3c85..ac2ef5ea0c8d 100644
  	return 0;
  }
 diff --git a/drivers/mmc/host/dw_mmc.h b/drivers/mmc/host/dw_mmc.h
-index da5923a92e60..0b53484e9306 100644
+index da5923a92..0b53484e9 100644
 --- a/drivers/mmc/host/dw_mmc.h
 +++ b/drivers/mmc/host/dw_mmc.h
 @@ -230,6 +230,8 @@ struct dw_mci {
@@ -45525,7 +45505,7 @@ index da5923a92e60..0b53484e9306 100644
  /* DMA ops for Internal/External DMAC interface */
 diff --git a/drivers/mmc/host/rk_sdmmc_ops.c b/drivers/mmc/host/rk_sdmmc_ops.c
 new file mode 100644
-index 000000000000..10b15505103e
+index 000000000..10b155051
 --- /dev/null
 +++ b/drivers/mmc/host/rk_sdmmc_ops.c
 @@ -0,0 +1,194 @@
@@ -45725,7 +45705,7 @@ index 000000000000..10b15505103e
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/mmc/host/rk_sdmmc_ops.h b/drivers/mmc/host/rk_sdmmc_ops.h
 new file mode 100644
-index 000000000000..8261d69f561d
+index 000000000..8261d69f5
 --- /dev/null
 +++ b/drivers/mmc/host/rk_sdmmc_ops.h
 @@ -0,0 +1,11 @@
@@ -45741,7 +45721,7 @@ index 000000000000..8261d69f561d
 +
 +#endif
 diff --git a/drivers/mmc/host/sdhci-of-dwcmshc.c b/drivers/mmc/host/sdhci-of-dwcmshc.c
-index 59d8d96ce206..f344bd300018 100644
+index 59d8d96ce..f344bd300 100644
 --- a/drivers/mmc/host/sdhci-of-dwcmshc.c
 +++ b/drivers/mmc/host/sdhci-of-dwcmshc.c
 @@ -9,9 +9,12 @@
@@ -46097,7 +46077,7 @@ index 59d8d96ce206..f344bd300018 100644
  MODULE_DEVICE_TABLE(of, sdhci_dwcmshc_dt_ids);
  
 diff --git a/drivers/net/ethernet/stmicro/stmmac/Makefile b/drivers/net/ethernet/stmicro/stmmac/Makefile
-index 24e6145d4eae..be661832cef8 100644
+index 24e6145d4..be661832c 100644
 --- a/drivers/net/ethernet/stmicro/stmmac/Makefile
 +++ b/drivers/net/ethernet/stmicro/stmmac/Makefile
 @@ -19,7 +19,8 @@ obj-$(CONFIG_DWMAC_MEDIATEK)	+= dwmac-mediatek.o
@@ -46111,7 +46091,7 @@ index 24e6145d4eae..be661832cef8 100644
  obj-$(CONFIG_DWMAC_STI)		+= dwmac-sti.o
  obj-$(CONFIG_DWMAC_STM32)	+= dwmac-stm32.o
 diff --git a/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c b/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
-index 6ef30252bfe0..bb0c0e44b5cb 100644
+index 6ef30252b..bb0c0e44b 100644
 --- a/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
 +++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
 @@ -11,6 +11,7 @@
@@ -47330,7 +47310,7 @@ index 6ef30252bfe0..bb0c0e44b5cb 100644
  };
  MODULE_DEVICE_TABLE(of, rk_gmac_dwmac_match);
 diff --git a/drivers/net/wireless/Kconfig b/drivers/net/wireless/Kconfig
-index 170a64e67709..46f5cc40788a 100644
+index 170a64e67..46f5cc407 100644
 --- a/drivers/net/wireless/Kconfig
 +++ b/drivers/net/wireless/Kconfig
 @@ -48,6 +48,7 @@ source "drivers/net/wireless/st/Kconfig"
@@ -47342,7 +47322,7 @@ index 170a64e67709..46f5cc40788a 100644
  config PCMCIA_RAYCS
  	tristate "Aviator/Raytheon 2.4GHz wireless support"
 diff --git a/drivers/net/wireless/Makefile b/drivers/net/wireless/Makefile
-index 80b324499786..5671364ae98d 100644
+index 80b324499..5671364ae 100644
 --- a/drivers/net/wireless/Makefile
 +++ b/drivers/net/wireless/Makefile
 @@ -30,3 +30,4 @@ obj-$(CONFIG_USB_NET_RNDIS_WLAN)	+= rndis_wlan.o
@@ -47351,7 +47331,7 @@ index 80b324499786..5671364ae98d 100644
  obj-$(CONFIG_VIRT_WIFI)	+= virt_wifi.o
 +obj-$(CONFIG_WL_ROCKCHIP)	+= rockchip_wlan/
 diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
-index 6b170083cd24..a8d527cda933 100644
+index 6b170083c..a8d527cda 100644
 --- a/drivers/nvmem/core.c
 +++ b/drivers/nvmem/core.c
 @@ -1665,7 +1665,11 @@ static void __exit nvmem_exit(void)
@@ -47367,7 +47347,7 @@ index 6b170083cd24..a8d527cda933 100644
  
  MODULE_AUTHOR("Srinivas Kandagatla <srinivas.kandagatla@linaro.org");
 diff --git a/drivers/nvmem/rockchip-efuse.c b/drivers/nvmem/rockchip-efuse.c
-index e4579de5d014..f8901837698a 100644
+index e4579de5d..f89018376 100644
 --- a/drivers/nvmem/rockchip-efuse.c
 +++ b/drivers/nvmem/rockchip-efuse.c
 @@ -7,6 +7,7 @@
@@ -47839,7 +47819,7 @@ index e4579de5d014..f8901837698a 100644
  MODULE_DESCRIPTION("rockchip_efuse driver");
  MODULE_LICENSE("GPL v2");
 diff --git a/drivers/nvmem/rockchip-otp.c b/drivers/nvmem/rockchip-otp.c
-index 9f53bcce2f87..824461fb4aca 100644
+index 9f53bcce2..824461fb4 100644
 --- a/drivers/nvmem/rockchip-otp.c
 +++ b/drivers/nvmem/rockchip-otp.c
 @@ -263,6 +263,26 @@ static struct platform_driver rockchip_otp_driver = {
@@ -47871,7 +47851,7 @@ index 9f53bcce2f87..824461fb4aca 100644
  MODULE_DESCRIPTION("Rockchip OTP driver");
  MODULE_LICENSE("GPL v2");
 diff --git a/drivers/opp/debugfs.c b/drivers/opp/debugfs.c
-index 596c185b5dda..0f45d812309e 100644
+index 596c185b5..0f45d8123 100644
 --- a/drivers/opp/debugfs.c
 +++ b/drivers/opp/debugfs.c
 @@ -239,11 +239,55 @@ void opp_debug_unregister(struct opp_device *opp_dev,
@@ -47931,7 +47911,7 @@ index 596c185b5dda..0f45d812309e 100644
  }
  core_initcall(opp_debug_init);
 diff --git a/drivers/opp/of.c b/drivers/opp/of.c
-index f83f4f6d7034..b90e69b881c8 100644
+index 5de46aa99..446862368 100644
 --- a/drivers/opp/of.c
 +++ b/drivers/opp/of.c
 @@ -1328,7 +1328,7 @@ int dev_pm_opp_of_register_em(struct device *dev, struct cpumask *cpus)
@@ -47944,7 +47924,7 @@ index f83f4f6d7034..b90e69b881c8 100644
  		goto failed;
  
 diff --git a/drivers/pci/controller/Makefile b/drivers/pci/controller/Makefile
-index 04c6edc285c5..43933fcd7277 100644
+index 04c6edc28..43933fcd7 100644
 --- a/drivers/pci/controller/Makefile
 +++ b/drivers/pci/controller/Makefile
 @@ -23,9 +23,9 @@ obj-$(CONFIG_PCIE_IPROC_PLATFORM) += pcie-iproc-platform.o
@@ -47961,7 +47941,7 @@ index 04c6edc285c5..43933fcd7277 100644
  obj-$(CONFIG_PCIE_TANGO_SMP8759) += pcie-tango.o
  obj-$(CONFIG_VMD) += vmd.o
 diff --git a/drivers/pci/controller/dwc/Kconfig b/drivers/pci/controller/dwc/Kconfig
-index bc049865f8e0..d13b0a55da46 100644
+index bc049865f..d13b0a55d 100644
 --- a/drivers/pci/controller/dwc/Kconfig
 +++ b/drivers/pci/controller/dwc/Kconfig
 @@ -82,6 +82,15 @@ config PCIE_DW_PLAT_EP
@@ -47981,7 +47961,7 @@ index bc049865f8e0..d13b0a55da46 100644
  	bool "Samsung Exynos PCIe controller"
  	depends on SOC_EXYNOS5440 || COMPILE_TEST
 diff --git a/drivers/pci/controller/dwc/Makefile b/drivers/pci/controller/dwc/Makefile
-index a751553fa0db..3876d3b14769 100644
+index a751553fa..3876d3b14 100644
 --- a/drivers/pci/controller/dwc/Makefile
 +++ b/drivers/pci/controller/dwc/Makefile
 @@ -20,6 +20,7 @@ obj-$(CONFIG_PCI_MESON) += pci-meson.o
@@ -47993,7 +47973,7 @@ index a751553fa0db..3876d3b14769 100644
  # The following drivers are for devices that use the generic ACPI
  # pci_root.c driver but don't support standard ECAM config access.
 diff --git a/drivers/pci/controller/dwc/pcie-designware.h b/drivers/pci/controller/dwc/pcie-designware.h
-index 9d2f511f13fa..c098ecc33ae3 100644
+index 9d2f511f1..c098ecc33 100644
 --- a/drivers/pci/controller/dwc/pcie-designware.h
 +++ b/drivers/pci/controller/dwc/pcie-designware.h
 @@ -42,6 +42,7 @@
@@ -48006,7 +47986,7 @@ index 9d2f511f13fa..c098ecc33ae3 100644
  #define PORT_LINK_MODE_MASK		GENMASK(21, 16)
 diff --git a/drivers/pci/controller/dwc/pcie-dw-rockchip.c b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
 new file mode 100644
-index 000000000000..fa40f51e469d
+index 000000000..fa40f51e4
 --- /dev/null
 +++ b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
 @@ -0,0 +1,1789 @@
@@ -49800,7 +49780,7 @@ index 000000000000..fa40f51e469d
 +MODULE_DESCRIPTION("RockChip PCIe Controller driver");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/pci/controller/pcie-rockchip.c b/drivers/pci/controller/pcie-rockchip.c
-index 990a00e08bc5..92cced721d20 100644
+index 990a00e08..92cced721 100644
 --- a/drivers/pci/controller/pcie-rockchip.c
 +++ b/drivers/pci/controller/pcie-rockchip.c
 @@ -14,6 +14,7 @@
@@ -49821,7 +49801,7 @@ index 990a00e08bc5..92cced721d20 100644
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/pci/controller/rockchip-pcie-dma.h b/drivers/pci/controller/rockchip-pcie-dma.h
 new file mode 100644
-index 000000000000..50e203b7f51f
+index 000000000..50e203b7f
 --- /dev/null
 +++ b/drivers/pci/controller/rockchip-pcie-dma.h
 @@ -0,0 +1,199 @@
@@ -50025,7 +50005,7 @@ index 000000000000..50e203b7f51f
 +}
 +#endif
 diff --git a/drivers/phy/rockchip/Kconfig b/drivers/phy/rockchip/Kconfig
-index c2f22f90736c..9efa2cc9d9fc 100644
+index c2f22f907..9efa2cc9d 100644
 --- a/drivers/phy/rockchip/Kconfig
 +++ b/drivers/phy/rockchip/Kconfig
 @@ -2,6 +2,15 @@
@@ -50168,7 +50148,7 @@ index c2f22f90736c..9efa2cc9d9fc 100644
 +	  Enable this to support the Rockchip USB3.0/DP
 +	  combo PHY with Samsung IP block.
 diff --git a/drivers/phy/rockchip/Makefile b/drivers/phy/rockchip/Makefile
-index c3cfc7f0af5c..813ec962a8df 100644
+index c3cfc7f0a..813ec962a 100644
 --- a/drivers/phy/rockchip/Makefile
 +++ b/drivers/phy/rockchip/Makefile
 @@ -1,10 +1,20 @@
@@ -50194,7 +50174,7 @@ index c3cfc7f0af5c..813ec962a8df 100644
  obj-$(CONFIG_PHY_ROCKCHIP_USB)		+= phy-rockchip-usb.o
 +obj-$(CONFIG_PHY_ROCKCHIP_USBDP)	+= phy-rockchip-usbdp.o
 diff --git a/drivers/phy/rockchip/phy-rockchip-inno-dsidphy.c b/drivers/phy/rockchip/phy-rockchip-inno-dsidphy.c
-index 8af8c6c5cc02..92462fee95f5 100644
+index 8af8c6c5c..92462fee9 100644
 --- a/drivers/phy/rockchip/phy-rockchip-inno-dsidphy.c
 +++ b/drivers/phy/rockchip/phy-rockchip-inno-dsidphy.c
 @@ -83,9 +83,31 @@
@@ -50874,7 +50854,7 @@ index 8af8c6c5cc02..92462fee95f5 100644
  };
  MODULE_DEVICE_TABLE(of, inno_dsidphy_of_match);
 diff --git a/drivers/phy/rockchip/phy-rockchip-inno-usb2.c b/drivers/phy/rockchip/phy-rockchip-inno-usb2.c
-index 46ebdb1460a3..df337765f739 100644
+index 46ebdb146..df337765f 100644
 --- a/drivers/phy/rockchip/phy-rockchip-inno-usb2.c
 +++ b/drivers/phy/rockchip/phy-rockchip-inno-usb2.c
 @@ -22,15 +22,22 @@
@@ -54134,7 +54114,7 @@ index 46ebdb1460a3..df337765f739 100644
  	},
  };
 diff --git a/drivers/phy/rockchip/phy-rockchip-pcie.c b/drivers/phy/rockchip/phy-rockchip-pcie.c
-index 75216091d901..2f47a3e7fd88 100644
+index 75216091d..2f47a3e7f 100644
 --- a/drivers/phy/rockchip/phy-rockchip-pcie.c
 +++ b/drivers/phy/rockchip/phy-rockchip-pcie.c
 @@ -182,6 +182,12 @@ static int rockchip_pcie_phy_power_on(struct phy *phy)
@@ -54164,7 +54144,7 @@ index 75216091d901..2f47a3e7fd88 100644
  	 * No documented timeout value for phy operation below,
  	 * so we make it large enough here. And we use loop-break
 diff --git a/drivers/phy/rockchip/phy-rockchip-typec.c b/drivers/phy/rockchip/phy-rockchip-typec.c
-index 70a31251b202..676c213ce177 100644
+index 70a31251b..676c213ce 100644
 --- a/drivers/phy/rockchip/phy-rockchip-typec.c
 +++ b/drivers/phy/rockchip/phy-rockchip-typec.c
 @@ -54,6 +54,7 @@
@@ -55093,7 +55073,7 @@ index 70a31251b202..676c213ce177 100644
  }
  
 diff --git a/drivers/phy/rockchip/phy-rockchip-usb.c b/drivers/phy/rockchip/phy-rockchip-usb.c
-index 8454285977eb..a891018fe72e 100644
+index 845428597..a891018fe 100644
 --- a/drivers/phy/rockchip/phy-rockchip-usb.c
 +++ b/drivers/phy/rockchip/phy-rockchip-usb.c
 @@ -8,20 +8,26 @@
@@ -55825,7 +55805,7 @@ index 8454285977eb..a891018fe72e 100644
  }
  
 diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
-index 815095326e2d..d14f4f5c0a8e 100644
+index 815095326..d14f4f5c0 100644
 --- a/drivers/pinctrl/Kconfig
 +++ b/drivers/pinctrl/Kconfig
 @@ -207,13 +207,18 @@ config PINCTRL_OXNAS
@@ -55849,7 +55829,7 @@ index 815095326e2d..d14f4f5c0a8e 100644
  config PINCTRL_SINGLE
  	tristate "One-register-per-pin type device tree based pinctrl driver"
 diff --git a/drivers/pinctrl/pinctrl-rk805.c b/drivers/pinctrl/pinctrl-rk805.c
-index c6f4229eb106..46e426cf4e20 100644
+index c6f4229eb..46e426cf4 100644
 --- a/drivers/pinctrl/pinctrl-rk805.c
 +++ b/drivers/pinctrl/pinctrl-rk805.c
 @@ -78,6 +78,7 @@ struct rk805_pctrl_info {
@@ -56338,7 +56318,7 @@ index c6f4229eb106..46e426cf4e20 100644
  MODULE_DESCRIPTION("RK805 pin control and GPIO driver");
  MODULE_AUTHOR("Joseph Chen <chenjh@rock-chips.com>");
 diff --git a/drivers/pinctrl/pinctrl-rockchip.c b/drivers/pinctrl/pinctrl-rockchip.c
-index 53a0badc6b03..c03815d27e7d 100644
+index 53a0badc6..c03815d27 100644
 --- a/drivers/pinctrl/pinctrl-rockchip.c
 +++ b/drivers/pinctrl/pinctrl-rockchip.c
 @@ -16,12 +16,14 @@
@@ -59675,7 +59655,7 @@ index 53a0badc6b03..c03815d27e7d 100644
 +MODULE_DEVICE_TABLE(of, rockchip_pinctrl_dt_match);
 diff --git a/drivers/pinctrl/pinctrl-rockchip.h b/drivers/pinctrl/pinctrl-rockchip.h
 new file mode 100644
-index 000000000000..cd1662db5c97
+index 000000000..cd1662db5
 --- /dev/null
 +++ b/drivers/pinctrl/pinctrl-rockchip.h
 @@ -0,0 +1,277 @@
@@ -59957,7 +59937,7 @@ index 000000000000..cd1662db5c97
 +
 +#endif
 diff --git a/drivers/power/reset/gpio-poweroff.c b/drivers/power/reset/gpio-poweroff.c
-index 1c5af2fef142..c5067eb75370 100644
+index 1c5af2fef..c5067eb75 100644
 --- a/drivers/power/reset/gpio-poweroff.c
 +++ b/drivers/power/reset/gpio-poweroff.c
 @@ -90,7 +90,6 @@ static const struct of_device_id of_gpio_poweroff_match[] = {
@@ -59970,7 +59950,7 @@ index 1c5af2fef142..c5067eb75370 100644
  	.probe = gpio_poweroff_probe,
 diff --git a/drivers/power/reset/reboot-mode.h b/drivers/power/reset/reboot-mode.h
 new file mode 100644
-index 000000000000..342df786d043
+index 000000000..342df786d
 --- /dev/null
 +++ b/drivers/power/reset/reboot-mode.h
 @@ -0,0 +1,7 @@
@@ -59982,7 +59962,7 @@ index 000000000000..342df786d043
 +
 +#endif
 diff --git a/drivers/power/supply/Kconfig b/drivers/power/supply/Kconfig
-index 0aa46b451017..4c43f58c7805 100644
+index 0aa46b451..4c43f58c7 100644
 --- a/drivers/power/supply/Kconfig
 +++ b/drivers/power/supply/Kconfig
 @@ -692,8 +692,7 @@ config BATTERY_GOLDFISH
@@ -60015,7 +59995,7 @@ index 0aa46b451017..4c43f58c7805 100644
 +
  endif # POWER_SUPPLY
 diff --git a/drivers/power/supply/Makefile b/drivers/power/supply/Makefile
-index dd4b86318cd9..3a69bc602702 100644
+index dd4b86318..3a69bc602 100644
 --- a/drivers/power/supply/Makefile
 +++ b/drivers/power/supply/Makefile
 @@ -98,3 +98,5 @@ obj-$(CONFIG_CHARGER_BD70528)	+= bd70528-charger.o
@@ -60026,7 +60006,7 @@ index dd4b86318cd9..3a69bc602702 100644
 +obj-$(CONFIG_CHARGER_RK817)	+= rk817_charger.o
 diff --git a/drivers/power/supply/rk817_battery.c b/drivers/power/supply/rk817_battery.c
 new file mode 100644
-index 000000000000..d9003ad9e534
+index 000000000..d9003ad9e
 --- /dev/null
 +++ b/drivers/power/supply/rk817_battery.c
 @@ -0,0 +1,3418 @@
@@ -63450,7 +63430,7 @@ index 000000000000..d9003ad9e534
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/power/supply/rk817_charger.c b/drivers/power/supply/rk817_charger.c
 new file mode 100644
-index 000000000000..b7e4f7627bdb
+index 000000000..b7e4f7627
 --- /dev/null
 +++ b/drivers/power/supply/rk817_charger.c
 @@ -0,0 +1,1798 @@
@@ -65253,7 +65233,7 @@ index 000000000000..b7e4f7627bdb
 +MODULE_DESCRIPTION("RK817 Charge driver");
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-index 63be5362fd3a..ca5db43118d4 100644
+index 63be5362f..ca5db4311 100644
 --- a/drivers/pwm/Kconfig
 +++ b/drivers/pwm/Kconfig
 @@ -408,6 +408,12 @@ config PWM_ROCKCHIP
@@ -65270,7 +65250,7 @@ index 63be5362fd3a..ca5db43118d4 100644
  	tristate "Samsung PWM support"
  	depends on PLAT_SAMSUNG || ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
 diff --git a/drivers/pwm/pwm-rockchip.c b/drivers/pwm/pwm-rockchip.c
-index 1f3079562b38..e6394eb8176b 100644
+index 1f3079562..e6394eb81 100644
 --- a/drivers/pwm/pwm-rockchip.c
 +++ b/drivers/pwm/pwm-rockchip.c
 @@ -11,6 +11,7 @@
@@ -65554,7 +65534,7 @@ index 1f3079562b38..e6394eb8176b 100644
  MODULE_AUTHOR("Beniamino Galvani <b.galvani@gmail.com>");
  MODULE_DESCRIPTION("Rockchip SoC PWM driver");
 diff --git a/drivers/pwm/sysfs.c b/drivers/pwm/sysfs.c
-index 9903c3a7eced..54619969dce6 100644
+index 9903c3a7e..54619969d 100644
 --- a/drivers/pwm/sysfs.c
 +++ b/drivers/pwm/sysfs.c
 @@ -103,6 +103,43 @@ static ssize_t duty_cycle_store(struct device *child,
@@ -65622,7 +65602,7 @@ index 9903c3a7eced..54619969dce6 100644
  	&dev_attr_polarity.attr,
  	&dev_attr_capture.attr,
 diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index 020a00d6696b..39011a37e349 100644
+index 020a00d66..39011a37e 100644
 --- a/drivers/regulator/Kconfig
 +++ b/drivers/regulator/Kconfig
 @@ -904,11 +904,11 @@ config REGULATOR_RC5T583
@@ -65652,7 +65632,7 @@ index 020a00d6696b..39011a37e349 100644
  endif
  
 diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-index 6ebae516258e..1c73773701c4 100644
+index 6ebae5162..1c7377370 100644
 --- a/drivers/regulator/Makefile
 +++ b/drivers/regulator/Makefile
 @@ -157,5 +157,6 @@ obj-$(CONFIG_REGULATOR_WM831X) += wm831x-ldo.o
@@ -65663,7 +65643,7 @@ index 6ebae516258e..1c73773701c4 100644
  
  ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
 diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index a6d27334a71d..470354ae07a4 100644
+index a6d27334a..470354ae0 100644
 --- a/drivers/regulator/core.c
 +++ b/drivers/regulator/core.c
 @@ -51,6 +51,7 @@ static LIST_HEAD(regulator_map_list);
@@ -66063,7 +66043,7 @@ index a6d27334a71d..470354ae07a4 100644
  static int regulator_late_cleanup(struct device *dev, void *data)
  {
 diff --git a/drivers/regulator/fan53555.c b/drivers/regulator/fan53555.c
-index aa426183b6a1..5d83e1311983 100644
+index aa426183b..5d83e1311 100644
 --- a/drivers/regulator/fan53555.c
 +++ b/drivers/regulator/fan53555.c
 @@ -20,10 +20,23 @@
@@ -66756,7 +66736,7 @@ index aa426183b6a1..5d83e1311983 100644
  };
  
 diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
-index 06c0b15fe4c0..564f928eb1db 100644
+index 06c0b15fe..564f928eb 100644
 --- a/drivers/regulator/of_regulator.c
 +++ b/drivers/regulator/of_regulator.c
 @@ -413,8 +413,12 @@ device_node *regulator_of_get_init_node(struct device *dev,
@@ -66775,7 +66755,7 @@ index 06c0b15fe4c0..564f928eb1db 100644
  		if (!strcmp(desc->of_match, name)) {
  			of_node_put(search);
 diff --git a/drivers/regulator/rk808-regulator.c b/drivers/regulator/rk808-regulator.c
-index e926c1a85846..bb8b2f604a24 100644
+index e926c1a85..bb8b2f604 100644
 --- a/drivers/regulator/rk808-regulator.c
 +++ b/drivers/regulator/rk808-regulator.c
 @@ -34,6 +34,11 @@
@@ -67665,7 +67645,7 @@ index e926c1a85846..bb8b2f604a24 100644
  MODULE_AUTHOR("Zhang Qing <zhangqing@rock-chips.com>");
 diff --git a/drivers/regulator/xz3216.c b/drivers/regulator/xz3216.c
 new file mode 100644
-index 000000000000..54182559b161
+index 000000000..54182559b
 --- /dev/null
 +++ b/drivers/regulator/xz3216.c
 @@ -0,0 +1,404 @@
@@ -68074,7 +68054,7 @@ index 000000000000..54182559b161
 +MODULE_AUTHOR("zhangqing <zhangqing@rock-chips.com>");
 +MODULE_DESCRIPTION("xz3216 PMIC driver");
 diff --git a/drivers/rtc/class.c b/drivers/rtc/class.c
-index 7c88d190c51f..af55ff89f6bf 100644
+index 7c88d190c..af55ff89f 100644
 --- a/drivers/rtc/class.c
 +++ b/drivers/rtc/class.c
 @@ -72,7 +72,7 @@ static void rtc_hctosys(struct rtc_device *rtc)
@@ -68087,7 +68067,7 @@ index 7c88d190c51f..af55ff89f6bf 100644
  
  err_read:
 diff --git a/drivers/rtc/rtc-hym8563.c b/drivers/rtc/rtc-hym8563.c
-index 0fb79c4afb46..b0f3c560c371 100644
+index 0fb79c4af..b0f3c560c 100644
 --- a/drivers/rtc/rtc-hym8563.c
 +++ b/drivers/rtc/rtc-hym8563.c
 @@ -96,13 +96,13 @@ static int hym8563_rtc_read_time(struct device *dev, struct rtc_time *tm)
@@ -68205,7 +68185,7 @@ index 0fb79c4afb46..b0f3c560c371 100644
  						&hym8563_rtc_ops, THIS_MODULE);
  	if (IS_ERR(hym8563->rtc))
 diff --git a/drivers/soc/rockchip/Kconfig b/drivers/soc/rockchip/Kconfig
-index 25eb2c1e31bb..19bcdde1b18a 100644
+index 25eb2c1e3..19bcdde1b 100644
 --- a/drivers/soc/rockchip/Kconfig
 +++ b/drivers/soc/rockchip/Kconfig
 @@ -1,19 +1,49 @@
@@ -68359,7 +68339,7 @@ index 25eb2c1e31bb..19bcdde1b18a 100644
 +
  endif
 diff --git a/drivers/soc/rockchip/Makefile b/drivers/soc/rockchip/Makefile
-index 875032f7344e..60e9176597ad 100644
+index 875032f73..60e917659 100644
 --- a/drivers/soc/rockchip/Makefile
 +++ b/drivers/soc/rockchip/Makefile
 @@ -2,6 +2,19 @@
@@ -68383,7 +68363,7 @@ index 875032f7344e..60e9176597ad 100644
 +obj-$(CONFIG_ROCKCHIP_SYSTEM_MONITOR) += rockchip_system_monitor.o
 +obj-$(CONFIG_ROCKCHIP_DEBUG) += rockchip_debug.o
 diff --git a/drivers/soc/rockchip/grf.c b/drivers/soc/rockchip/grf.c
-index 494cf2b5bf7b..a252b07a696a 100644
+index 494cf2b5b..a252b07a6 100644
 --- a/drivers/soc/rockchip/grf.c
 +++ b/drivers/soc/rockchip/grf.c
 @@ -7,6 +7,7 @@
@@ -68500,7 +68480,7 @@ index 494cf2b5bf7b..a252b07a696a 100644
 +MODULE_DESCRIPTION("Rockchip GRF");
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/soc/rockchip/io-domain.c b/drivers/soc/rockchip/io-domain.c
-index b29e829e815e..7bedfdab09a0 100644
+index b29e829e8..7bedfdab0 100644
 --- a/drivers/soc/rockchip/io-domain.c
 +++ b/drivers/soc/rockchip/io-domain.c
 @@ -51,6 +51,10 @@
@@ -68664,7 +68644,7 @@ index b29e829e815e..7bedfdab09a0 100644
  			supply->reg = NULL;
  			goto unreg_notify;
 diff --git a/drivers/soc/rockchip/pm_domains.c b/drivers/soc/rockchip/pm_domains.c
-index 54eb6cfc5d5b..3ae1676bcfcf 100644
+index 54eb6cfc5..3ae1676bc 100644
 --- a/drivers/soc/rockchip/pm_domains.c
 +++ b/drivers/soc/rockchip/pm_domains.c
 @@ -5,6 +5,7 @@
@@ -69898,7 +69878,7 @@ index 54eb6cfc5d5b..3ae1676bcfcf 100644
 +MODULE_DESCRIPTION("ROCKCHIP PM Domain Driver");
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/spi/spi-rockchip.c b/drivers/spi/spi-rockchip.c
-index 624273d0e727..b50f84809f3f 100644
+index 624273d0e..b50f84809 100644
 --- a/drivers/spi/spi-rockchip.c
 +++ b/drivers/spi/spi-rockchip.c
 @@ -10,6 +10,7 @@
@@ -70286,7 +70266,7 @@ index 624273d0e727..b50f84809f3f 100644
  	if (ret < 0) {
  		dev_err(&pdev->dev, "Failed to register controller\n");
 diff --git a/drivers/spi/spidev.c b/drivers/spi/spidev.c
-index 859910ec8d9f..da816d5ba2d7 100644
+index 859910ec8..da816d5ba 100644
 --- a/drivers/spi/spidev.c
 +++ b/drivers/spi/spidev.c
 @@ -682,6 +682,7 @@ static const struct of_device_id spidev_dt_ids[] = {
@@ -70298,7 +70278,7 @@ index 859910ec8d9f..da816d5ba2d7 100644
  };
  MODULE_DEVICE_TABLE(of, spidev_dt_ids);
 diff --git a/drivers/staging/blackbox/blackbox_common.c b/drivers/staging/blackbox/blackbox_common.c
-index 8416517eb583..09b0362dde20 100644
+index 8416517eb..09b0362dd 100644
 --- a/drivers/staging/blackbox/blackbox_common.c
 +++ b/drivers/staging/blackbox/blackbox_common.c
 @@ -193,7 +193,7 @@ unsigned long long get_ticks(void)
@@ -70320,7 +70300,7 @@ index 8416517eb583..09b0362dde20 100644
  	if (dentry->d_parent == parent) {
  		dget(dentry);
 diff --git a/drivers/staging/blackbox/blackbox_core.c b/drivers/staging/blackbox/blackbox_core.c
-index f90a69c733be..979e6fb98f0a 100644
+index f90a69c73..979e6fb98 100644
 --- a/drivers/staging/blackbox/blackbox_core.c
 +++ b/drivers/staging/blackbox/blackbox_core.c
 @@ -111,7 +111,7 @@ struct error_info *temp_error_info;
@@ -70489,7 +70469,7 @@ index f90a69c733be..979e6fb98f0a 100644
  	return 0;
  }
 diff --git a/drivers/thermal/rockchip_thermal.c b/drivers/thermal/rockchip_thermal.c
-index aa9e0e31ef98..e1c667e8fe2a 100644
+index aa9e0e31e..e1c667e8f 100644
 --- a/drivers/thermal/rockchip_thermal.c
 +++ b/drivers/thermal/rockchip_thermal.c
 @@ -18,6 +18,7 @@
@@ -71452,7 +71432,7 @@ index aa9e0e31ef98..e1c667e8fe2a 100644
  
  module_platform_driver(rockchip_thermal_driver);
 diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 17de8a9b991e..c83fb45e1d67 100644
+index 17de8a9b9..c83fb45e1 100644
 --- a/drivers/thermal/thermal_core.c
 +++ b/drivers/thermal/thermal_core.c
 @@ -540,6 +540,7 @@ int thermal_zone_device_is_enabled(struct thermal_zone_device *tz)
@@ -71464,7 +71444,7 @@ index 17de8a9b991e..c83fb45e1d67 100644
  void thermal_zone_device_update(struct thermal_zone_device *tz,
  				enum thermal_notify_event event)
 diff --git a/drivers/thermal/thermal_core.h b/drivers/thermal/thermal_core.h
-index 681209db42a8..5e80cb3264d9 100644
+index 681209db4..5e80cb326 100644
 --- a/drivers/thermal/thermal_core.h
 +++ b/drivers/thermal/thermal_core.h
 @@ -179,6 +179,4 @@ of_thermal_get_trip_points(struct thermal_zone_device *tz)
@@ -71475,7 +71455,7 @@ index 681209db42a8..5e80cb3264d9 100644
 -
  #endif /* __THERMAL_CORE_H__ */
 diff --git a/drivers/tty/serial/8250/8250.h b/drivers/tty/serial/8250/8250.h
-index 34aa2714f3c9..71ace116fe6b 100644
+index 34aa2714f..71ace116f 100644
 --- a/drivers/tty/serial/8250/8250.h
 +++ b/drivers/tty/serial/8250/8250.h
 @@ -48,6 +48,9 @@ struct uart_8250_dma {
@@ -71522,7 +71502,7 @@ index 34aa2714f3c9..71ace116fe6b 100644
  static inline int serial8250_request_dma(struct uart_8250_port *p)
  {
 diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index cae61d1ebec5..fc81bbc7697e 100644
+index cae61d1eb..fc81bbc76 100644
 --- a/drivers/tty/serial/8250/8250_core.c
 +++ b/drivers/tty/serial/8250/8250_core.c
 @@ -558,6 +558,7 @@ static void __init serial8250_isa_init_ports(void)
@@ -71565,7 +71545,7 @@ index cae61d1ebec5..fc81bbc7697e 100644
  
  MODULE_LICENSE("GPL");
 diff --git a/drivers/tty/serial/8250/8250_dma.c b/drivers/tty/serial/8250/8250_dma.c
-index 890fa7ddaa7f..136ed708f3a7 100644
+index 890fa7dda..136ed708f 100644
 --- a/drivers/tty/serial/8250/8250_dma.c
 +++ b/drivers/tty/serial/8250/8250_dma.c
 @@ -11,6 +11,12 @@
@@ -71855,7 +71835,7 @@ index 890fa7ddaa7f..136ed708f3a7 100644
  }
  EXPORT_SYMBOL_GPL(serial8250_release_dma);
 diff --git a/drivers/tty/serial/8250/8250_dw.c b/drivers/tty/serial/8250/8250_dw.c
-index a3a0154da567..7f24617474f0 100644
+index 49559731b..f6010822f 100644
 --- a/drivers/tty/serial/8250/8250_dw.c
 +++ b/drivers/tty/serial/8250/8250_dw.c
 @@ -33,6 +33,7 @@
@@ -72046,7 +72026,7 @@ index a3a0154da567..7f24617474f0 100644
  	return 0;
  }
 diff --git a/drivers/tty/serial/8250/8250_dwlib.c b/drivers/tty/serial/8250/8250_dwlib.c
-index 6d6a78eead3e..fee4f2933919 100644
+index 6d6a78eea..fee4f2933 100644
 --- a/drivers/tty/serial/8250/8250_dwlib.c
 +++ b/drivers/tty/serial/8250/8250_dwlib.c
 @@ -106,6 +106,15 @@ void dw8250_setup_port(struct uart_port *p)
@@ -72076,7 +72056,7 @@ index 6d6a78eead3e..fee4f2933919 100644
  	}
  
 diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_port.c
-index 5d40f1010fbf..6e86ce405aaf 100644
+index 110a19c51..dd41c694c 100644
 --- a/drivers/tty/serial/8250/8250_port.c
 +++ b/drivers/tty/serial/8250/8250_port.c
 @@ -1567,8 +1567,13 @@ static inline void __start_tx(struct uart_port *port)
@@ -72220,7 +72200,7 @@ index 5d40f1010fbf..6e86ce405aaf 100644
  }
  EXPORT_SYMBOL_GPL(serial8250_do_set_divisor);
  
-@@ -2791,6 +2858,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2804,6 +2871,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  	if ((termios->c_cflag & CREAD) == 0)
  		port->ignore_status_mask |= UART_LSR_DR;
  
@@ -72228,7 +72208,7 @@ index 5d40f1010fbf..6e86ce405aaf 100644
  	/*
  	 * CTS flow control flag and modem status interrupts
  	 */
-@@ -2804,6 +2872,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2817,6 +2885,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  		up->ier |= UART_IER_RTOIE;
  
  	serial_port_out(port, UART_IER, up->ier);
@@ -72236,7 +72216,7 @@ index 5d40f1010fbf..6e86ce405aaf 100644
  
  	if (up->capabilities & UART_CAP_EFR) {
  		unsigned char efr = 0;
-@@ -2822,16 +2891,25 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2835,16 +2904,25 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  			serial_port_out(port, UART_EFR, efr);
  	}
  
@@ -72264,7 +72244,7 @@ index 5d40f1010fbf..6e86ce405aaf 100644
  	if (port->type != PORT_16750) {
  		/* emulated UARTs (Lucent Venus 167x) need two steps */
  		if (up->fcr & UART_FCR_ENABLE_FIFO)
-@@ -2839,6 +2917,23 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2852,6 +2930,23 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  		serial_port_out(port, UART_FCR, up->fcr);	/* set fcr */
  	}
  	serial8250_set_mctrl(port, port->mctrl);
@@ -72289,7 +72269,7 @@ index 5d40f1010fbf..6e86ce405aaf 100644
  	serial8250_rpm_put(up);
  
 diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 95a9bae72f13..e5cc1db2a15d 100644
+index 95a9bae72..e5cc1db2a 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
 @@ -1826,7 +1826,8 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
@@ -72303,7 +72283,7 @@ index 95a9bae72f13..e5cc1db2a15d 100644
  		const struct hc_driver *drv = bus_to_hcd(hdev->bus)->driver;
  
 diff --git a/drivers/usb/core/quirks.c b/drivers/usb/core/quirks.c
-index a54a735b6384..8b1f40384ce0 100644
+index a54a735b6..8b1f40384 100644
 --- a/drivers/usb/core/quirks.c
 +++ b/drivers/usb/core/quirks.c
 @@ -322,6 +322,10 @@ static const struct usb_device_id usb_quirk_list[] = {
@@ -72329,7 +72309,7 @@ index a54a735b6384..8b1f40384ce0 100644
  	{ USB_DEVICE(0x0c45, 0x7056), .driver_info =
  			USB_QUIRK_IGNORE_REMOTE_WAKEUP },
 diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
-index 2d152571a7de..c333d13b38c1 100644
+index 2d152571a..c333d13b3 100644
 --- a/drivers/usb/gadget/Kconfig
 +++ b/drivers/usb/gadget/Kconfig
 @@ -216,6 +216,12 @@ config USB_F_PRINTER
@@ -72385,7 +72365,7 @@ index 2d152571a7de..c333d13b38c1 100644
  	bool "Audio Class 1.0"
  	depends on USB_CONFIGFS
 diff --git a/drivers/usb/gadget/composite.c b/drivers/usb/gadget/composite.c
-index a980799900e7..553382ce3837 100644
+index a98079990..553382ce3 100644
 --- a/drivers/usb/gadget/composite.c
 +++ b/drivers/usb/gadget/composite.c
 @@ -13,6 +13,7 @@
@@ -72543,7 +72523,7 @@ index a980799900e7..553382ce3837 100644
  
  	.suspend	= composite_suspend,
 diff --git a/drivers/usb/gadget/configfs.c b/drivers/usb/gadget/configfs.c
-index 9b7fa53d6642..13cd4a21a2c9 100644
+index 9b7fa53d6..13cd4a21a 100644
 --- a/drivers/usb/gadget/configfs.c
 +++ b/drivers/usb/gadget/configfs.c
 @@ -10,6 +10,32 @@
@@ -72940,7 +72920,7 @@ index 9b7fa53d6642..13cd4a21a2c9 100644
  }
  module_exit(gadget_cfs_exit);
 diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
-index 1eb4fa2e623f..177645f3250a 100644
+index 1eb4fa2e6..177645f32 100644
 --- a/drivers/usb/gadget/epautoconf.c
 +++ b/drivers/usb/gadget/epautoconf.c
 @@ -67,6 +67,9 @@ struct usb_ep *usb_ep_autoconfig_ss(
@@ -72982,7 +72962,7 @@ index 1eb4fa2e623f..177645f3250a 100644
  }
  EXPORT_SYMBOL_GPL(usb_ep_autoconfig_ss);
 diff --git a/drivers/usb/gadget/function/f_fs.c b/drivers/usb/gadget/function/f_fs.c
-index 725e35167837..e3f836977969 100644
+index 725e35167..e3f836977 100644
 --- a/drivers/usb/gadget/function/f_fs.c
 +++ b/drivers/usb/gadget/function/f_fs.c
 @@ -71,7 +71,7 @@ struct ffs_function {
@@ -73028,7 +73008,7 @@ index 725e35167837..e3f836977969 100644
  }
  
 diff --git a/drivers/usb/gadget/function/f_uvc.c b/drivers/usb/gadget/function/f_uvc.c
-index f48a00e49794..31cc58171905 100644
+index f48a00e49..31cc58171 100644
 --- a/drivers/usb/gadget/function/f_uvc.c
 +++ b/drivers/usb/gadget/function/f_uvc.c
 @@ -124,6 +124,18 @@ static struct usb_interface_descriptor uvc_streaming_intf_alt0 = {
@@ -73751,7 +73731,7 @@ index f48a00e49794..31cc58171905 100644
  
  	return &uvc->func;
 diff --git a/drivers/usb/gadget/function/u_uvc.h b/drivers/usb/gadget/function/u_uvc.h
-index 9a01a7d4f17f..3e92a28d8d78 100644
+index 9a01a7d4f..3e92a28d8 100644
 --- a/drivers/usb/gadget/function/u_uvc.h
 +++ b/drivers/usb/gadget/function/u_uvc.h
 @@ -18,15 +18,18 @@
@@ -73801,7 +73781,7 @@ index 9a01a7d4f17f..3e92a28d8d78 100644
  
  #endif /* U_UVC_H */
 diff --git a/drivers/usb/gadget/function/uvc.h b/drivers/usb/gadget/function/uvc.h
-index 23ee25383c1f..8fb61023dd14 100644
+index 23ee25383..8fb61023d 100644
 --- a/drivers/usb/gadget/function/uvc.h
 +++ b/drivers/usb/gadget/function/uvc.h
 @@ -14,6 +14,7 @@
@@ -73849,7 +73829,7 @@ index 23ee25383c1f..8fb61023dd14 100644
  
  static inline struct uvc_device *to_uvc(struct usb_function *f)
 diff --git a/drivers/usb/gadget/function/uvc_queue.c b/drivers/usb/gadget/function/uvc_queue.c
-index 61e2c94cc0b0..3cc3da8ffb77 100644
+index 61e2c94cc..3cc3da8ff 100644
 --- a/drivers/usb/gadget/function/uvc_queue.c
 +++ b/drivers/usb/gadget/function/uvc_queue.c
 @@ -124,6 +124,14 @@ int uvcg_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
@@ -73868,7 +73848,7 @@ index 61e2c94cc0b0..3cc3da8ffb77 100644
  	if (ret)
  		return ret;
 diff --git a/drivers/usb/gadget/function/uvc_v4l2.c b/drivers/usb/gadget/function/uvc_v4l2.c
-index 4ca89eab6159..2528c894254f 100644
+index 4ca89eab6..2528c8942 100644
 --- a/drivers/usb/gadget/function/uvc_v4l2.c
 +++ b/drivers/usb/gadget/function/uvc_v4l2.c
 @@ -41,6 +41,7 @@ uvc_send_response(struct uvc_device *uvc, struct uvc_request_data *data)
@@ -73925,7 +73905,7 @@ index 4ca89eab6159..2528c894254f 100644
  	.poll		= uvc_v4l2_poll,
  #ifndef CONFIG_MMU
 diff --git a/drivers/usb/gadget/function/uvc_video.c b/drivers/usb/gadget/function/uvc_video.c
-index 633e23d58d86..5311b0f40e78 100644
+index 633e23d58..5311b0f40 100644
 --- a/drivers/usb/gadget/function/uvc_video.c
 +++ b/drivers/usb/gadget/function/uvc_video.c
 @@ -12,12 +12,14 @@
@@ -74041,7 +74021,7 @@ index 633e23d58d86..5311b0f40e78 100644
  		return ret;
  
 diff --git a/drivers/usb/gadget/udc/core.c b/drivers/usb/gadget/udc/core.c
-index da691a69fec1..0e6dbf9da7a5 100644
+index da691a69f..0e6dbf9da 100644
 --- a/drivers/usb/gadget/udc/core.c
 +++ b/drivers/usb/gadget/udc/core.c
 @@ -755,7 +755,7 @@ int usb_gadget_deactivate(struct usb_gadget *gadget)
@@ -74054,7 +74034,7 @@ index da691a69fec1..0e6dbf9da7a5 100644
  
  	if (gadget->connected) {
 diff --git a/drivers/usb/storage/scsiglue.c b/drivers/usb/storage/scsiglue.c
-index e5a971b83e3f..a345f2982b24 100644
+index e5a971b83..a345f2982 100644
 --- a/drivers/usb/storage/scsiglue.c
 +++ b/drivers/usb/storage/scsiglue.c
 @@ -102,6 +102,10 @@ static int slave_configure(struct scsi_device *sdev)
@@ -74069,7 +74049,7 @@ index e5a971b83e3f..a345f2982b24 100644
  			max_sectors = PAGE_SIZE >> 9;
  		if (queue_max_hw_sectors(sdev->request_queue) > max_sectors)
 diff --git a/drivers/usb/storage/unusual_devs.h b/drivers/usb/storage/unusual_devs.h
-index 29191d33c0e3..07150541e2ed 100644
+index 29191d33c..07150541e 100644
 --- a/drivers/usb/storage/unusual_devs.h
 +++ b/drivers/usb/storage/unusual_devs.h
 @@ -927,6 +927,12 @@ UNUSUAL_DEV(  0x05e3, 0x0723, 0x9451, 0x9451,
@@ -74086,7 +74066,7 @@ index 29191d33c0e3..07150541e2ed 100644
   * Reported by Hanno Boeck <hanno@gmx.de>
   * Taken from the Lycoris Kernel
 diff --git a/drivers/usb/storage/unusual_uas.h b/drivers/usb/storage/unusual_uas.h
-index 4051c8cd0cd8..1fcb871c6919 100644
+index 4051c8cd0..1fcb871c6 100644
 --- a/drivers/usb/storage/unusual_uas.h
 +++ b/drivers/usb/storage/unusual_uas.h
 @@ -62,6 +62,12 @@ UNUSUAL_DEV(0x0984, 0x0301, 0x0128, 0x0128,
@@ -74129,7 +74109,7 @@ index 4051c8cd0cd8..1fcb871c6919 100644
  UNUSUAL_DEV(0x2109, 0x0711, 0x0000, 0x9999,
  		"VIA",
 diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 427a993c7f57..c0c623a82226 100644
+index 427a993c7..c0c623a82 100644
 --- a/drivers/video/Kconfig
 +++ b/drivers/video/Kconfig
 @@ -25,6 +25,10 @@ endmenu
@@ -74144,7 +74124,7 @@ index 427a993c7f57..c0c623a82226 100644
         tristate
         default n
 diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index df7650adede9..b355e2fcb423 100644
+index df7650ade..b355e2fcb 100644
 --- a/drivers/video/Makefile
 +++ b/drivers/video/Makefile
 @@ -6,6 +6,7 @@ obj-$(CONFIG_VT)		  += console/
@@ -74156,7 +74136,7 @@ index df7650adede9..b355e2fcb423 100644
  obj-y				  += fbdev/
  
 diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight/pwm_bl.c
-index 1cf924f3aecc..cd3676b96fb0 100644
+index 1cf924f3a..cd3676b96 100644
 --- a/drivers/video/backlight/pwm_bl.c
 +++ b/drivers/video/backlight/pwm_bl.c
 @@ -603,6 +603,8 @@ static int pwm_backlight_probe(struct platform_device *pdev)

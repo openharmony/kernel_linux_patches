@@ -1,34 +1,33 @@
-From d607466b7490b8adc218866268090f93ba2f7768 Mon Sep 17 00:00:00 2001
+From 6c1e63806b6cfca3f5437016573fa31d312a10b0 Mon Sep 17 00:00:00 2001
 From: jiewangdp <jiewangdp@isoftstone.com>
-Date: Tue, 21 Jun 2022 17:19:43 +0800
-Subject: [PATCH] open others
+Date: Wed, 3 Aug 2022 10:42:33 +0800
+Subject: [PATCH] others
 
-Change-Id: I972c6ccb1fff757a18848efd5bd821950ae4b8de
+Change-Id: I09d9e99c52026321c1e21cdabf263c6c380032e9
 ---
- Makefile                                      |   8 +-
- fs/proc/base.c                                | 181 ++----------------
- fs/ubifs/recovery.c                           |  41 +++-
+ Makefile                                      |   6 +-
+ fs/ubifs/recovery.c                           |  41 +++++-
  fs/xfs/xfs_inode.c                            |  14 +-
- init/Kconfig                                  |   8 +-
+ init/Kconfig                                  |   6 +
  init/initramfs.c                              |  23 +++
- init/main.c                                   |   8 +
+ init/main.c                                   |   8 ++
  ipc/msg.c                                     |   2 +-
  ipc/sem.c                                     |   9 +-
  ipc/shm.c                                     |   2 +-
- ipc/util.c                                    |  16 +-
- make-boot.sh                                  |  32 ++++
- make-ohos.sh                                  | 135 +++++++++++++
+ ipc/util.c                                    |  16 ++-
+ make-boot.sh                                  |  31 ++++
+ make-ohos.sh                                  | 134 ++++++++++++++++++
  mm/hugetlb.c                                  |  23 +--
- mm/memblock.c                                 |  51 +++++
+ mm/memblock.c                                 |  51 +++++++
  mm/page_alloc.c                               |  23 ++-
- .../multibuff/device_app/aio_multibuff.c      |  68 ++++++-
- .../simple/device_app/aio_simple.c            |  68 ++++++-
- 18 files changed, 494 insertions(+), 218 deletions(-)
+ .../multibuff/device_app/aio_multibuff.c      |  68 ++++++++-
+ .../simple/device_app/aio_simple.c            |  68 ++++++++-
+ 17 files changed, 473 insertions(+), 52 deletions(-)
  create mode 100755 make-boot.sh
  create mode 100755 make-ohos.sh
 
 diff --git a/Makefile b/Makefile
-index dce02fbb7..412d80a2c 100644
+index 8ae72cc7d..ba3d542a9 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -494,7 +494,7 @@ LINUXINCLUDE    := \
@@ -40,15 +39,6 @@ index dce02fbb7..412d80a2c 100644
  		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
  		   -Werror=implicit-function-declaration -Werror=implicit-int \
  		   -Werror=return-type -Wno-format-security \
-@@ -818,7 +818,7 @@ endif
- DEBUG_CFLAGS	:=
- 
- # Workaround for GCC versions < 5.0
--# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61801
-+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=618101
- ifdef CONFIG_CC_IS_GCC
- DEBUG_CFLAGS	+= $(call cc-ifversion, -lt, 0500, $(call cc-option, -fno-var-tracking-assignments))
- endif
 @@ -851,7 +851,7 @@ KBUILD_LDFLAGS	+= --compress-debug-sections=zlib
  endif
  
@@ -67,275 +57,6 @@ index dce02fbb7..412d80a2c 100644
  
  # Require designated initializers for all marked structures
  KBUILD_CFLAGS   += $(call cc-option,-Werror=designated-init)
-diff --git a/fs/proc/base.c b/fs/proc/base.c
-index 27145778c..313029f27 100644
---- a/fs/proc/base.c
-+++ b/fs/proc/base.c
-@@ -88,7 +88,6 @@
- #include <linux/user_namespace.h>
- #include <linux/fs_struct.h>
- #include <linux/slab.h>
--#include <linux/sched.h>
- #ifdef CONFIG_SCHED_RTG
- #include <linux/sched/rtg_ctrl.h>
- #endif
-@@ -100,6 +99,7 @@
- #include <linux/posix-timers.h>
- #include <linux/time_namespace.h>
- #include <linux/resctrl.h>
-+#include <linux/cpufreq_times.h>
- #include <trace/events/oom.h>
- #include "internal.h"
- #include "fd.h"
-@@ -905,34 +905,18 @@ static ssize_t mem_write(struct file *file, const char __user *buf,
- 
- loff_t mem_lseek(struct file *file, loff_t offset, int orig)
- {
--	loff_t ret = 0;
--
--	spin_lock(&file->f_lock);
- 	switch (orig) {
--	case SEEK_CUR:
--		offset += file->f_pos;
--		/* fall through */
--	case SEEK_SET:
--		/* to avoid userland mistaking f_pos=-9 as -EBADF=-9 */
--		if ((unsigned long long)offset >= -MAX_ERRNO)
--			ret = -EOVERFLOW;
-+	case 0:
-+		file->f_pos = offset;
-+		break;
-+	case 1:
-+		file->f_pos += offset;
- 		break;
- 	default:
--		ret = -EINVAL;
--	}
--
--	if (!ret) {
--		if (offset < 0 && !(unsigned_offsets(file))) {
--			ret = -EINVAL;
--		} else {
--			file->f_pos = offset;
--			ret = file->f_pos;
--			force_successful_syscall_return();
--		}
-+		return -EINVAL;
- 	}
--
--	spin_unlock(&file->f_lock);
--	return ret;
-+	force_successful_syscall_return();
-+	return file->f_pos;
- }
- 
- static int mem_release(struct inode *inode, struct file *file)
-@@ -1512,70 +1496,6 @@ static const struct file_operations proc_rtg_operations = {
- };
- #endif
- 
--#ifdef CONFIG_SCHED_RTG_DEBUG
--static int sched_group_id_show(struct seq_file *m, void *v)
--{
--	struct inode *inode = m->private;
--	struct task_struct *p;
--
--	p = get_proc_task(inode);
--	if (!p)
--		return -ESRCH;
--
--	seq_printf(m, "%d\n", sched_get_group_id(p));
--
--	put_task_struct(p);
--
--	return 0;
--}
--
--static ssize_t
--sched_group_id_write(struct file *file, const char __user *buf,
--	    size_t count, loff_t *offset)
--{
--	struct inode *inode = file_inode(file);
--	struct task_struct *p;
--	char buffer[PROC_NUMBUF];
--	int group_id, err;
--
--	memset(buffer, 0, sizeof(buffer));
--	if (count > sizeof(buffer) - 1)
--		count = sizeof(buffer) - 1;
--	if (copy_from_user(buffer, buf, count)) {
--		err = -EFAULT;
--		goto out;
--	}
--
--	err = kstrtoint(strstrip(buffer), 0, &group_id);
--	if (err)
--		goto out;
--
--	p = get_proc_task(inode);
--	if (!p)
--		return -ESRCH;
--
--	err = sched_set_group_id(p, group_id);
--
--	put_task_struct(p);
--
--out:
--	return err < 0 ? err : count;
--}
--
--static int sched_group_id_open(struct inode *inode, struct file *filp)
--{
--	return single_open(filp, sched_group_id_show, inode);
--}
--
--static const struct file_operations proc_pid_sched_group_id_operations = {
--	.open		= sched_group_id_open,
--	.read		= seq_read,
--	.write		= sched_group_id_write,
--	.llseek		= seq_lseek,
--	.release	= single_release,
--};
--#endif	/* CONFIG_SCHED_RTG_DEBUG */
--
- #ifdef CONFIG_SCHED_AUTOGROUP
- /*
-  * Print out autogroup related information:
-@@ -1651,70 +1571,6 @@ static const struct file_operations proc_pid_sched_autogroup_operations = {
- 
- #endif /* CONFIG_SCHED_AUTOGROUP */
- 
--#ifdef CONFIG_SCHED_WALT
--static int sched_init_task_load_show(struct seq_file *m, void *v)
--{
--	struct inode *inode = m->private;
--	struct task_struct *p;
--
--	p = get_proc_task(inode);
--	if (!p)
--		return -ESRCH;
--
--	seq_printf(m, "%d\n", sched_get_init_task_load(p));
--
--	put_task_struct(p);
--
--	return 0;
--}
--
--static ssize_t
--sched_init_task_load_write(struct file *file, const char __user *buf,
--	    size_t count, loff_t *offset)
--{
--	struct inode *inode = file_inode(file);
--	struct task_struct *p;
--	char buffer[PROC_NUMBUF];
--	int init_task_load, err;
--
--	memset(buffer, 0, sizeof(buffer));
--	if (count > sizeof(buffer) - 1)
--		count = sizeof(buffer) - 1;
--	if (copy_from_user(buffer, buf, count)) {
--		err = -EFAULT;
--		goto out;
--	}
--
--	err = kstrtoint(strstrip(buffer), 0, &init_task_load);
--	if (err)
--		goto out;
--
--	p = get_proc_task(inode);
--	if (!p)
--		return -ESRCH;
--
--	err = sched_set_init_task_load(p, init_task_load);
--
--	put_task_struct(p);
--
--out:
--	return err < 0 ? err : count;
--}
--
--static int sched_init_task_load_open(struct inode *inode, struct file *filp)
--{
--	return single_open(filp, sched_init_task_load_show, inode);
--}
--
--static const struct file_operations proc_pid_sched_init_task_load_operations = {
--	.open		= sched_init_task_load_open,
--	.read		= seq_read,
--	.write		= sched_init_task_load_write,
--	.llseek		= seq_lseek,
--	.release	= single_release,
--};
--#endif	/* CONFIG_SCHED_WALT */
--
- #ifdef CONFIG_TIME_NS
- static int timens_offsets_show(struct seq_file *m, void *v)
- {
-@@ -3340,7 +3196,7 @@ static const struct pid_entry tgid_base_stuff[] = {
- 	DIR("task",       S_IRUGO|S_IXUGO, proc_task_inode_operations, proc_task_operations),
- 	DIR("fd",         S_IRUSR|S_IXUSR, proc_fd_inode_operations, proc_fd_operations),
- 	DIR("map_files",  S_IRUSR|S_IXUSR, proc_map_files_inode_operations, proc_map_files_operations),
--	DIR("fdinfo",     S_IRUSR|S_IXUSR, proc_fdinfo_inode_operations, proc_fdinfo_operations),
-+	DIR("fdinfo",     S_IRUGO|S_IXUGO, proc_fdinfo_inode_operations, proc_fdinfo_operations),
- 	DIR("ns",	  S_IRUSR|S_IXUGO, proc_ns_dir_inode_operations, proc_ns_dir_operations),
- #ifdef CONFIG_NET
- 	DIR("net",        S_IRUGO|S_IXUGO, proc_net_inode_operations, proc_net_operations),
-@@ -3350,9 +3206,6 @@ static const struct pid_entry tgid_base_stuff[] = {
- 	ONE("status",     S_IRUGO, proc_pid_status),
- 	ONE("personality", S_IRUSR, proc_pid_personality),
- 	ONE("limits",	  S_IRUGO, proc_pid_limits),
--#ifdef CONFIG_SCHED_WALT
--	REG("sched_init_task_load", 00644, proc_pid_sched_init_task_load_operations),
--#endif
- #ifdef CONFIG_SCHED_DEBUG
- 	REG("sched",      S_IRUGO|S_IWUSR, proc_pid_sched_operations),
- #endif
-@@ -3444,6 +3297,9 @@ static const struct pid_entry tgid_base_stuff[] = {
- #ifdef CONFIG_LIVEPATCH
- 	ONE("patch_state",  S_IRUSR, proc_pid_patch_state),
- #endif
-+#ifdef CONFIG_CPU_FREQ_TIMES
-+	ONE("time_in_state", 0444, proc_time_in_state_show),
-+#endif
- #ifdef CONFIG_STACKLEAK_METRICS
- 	ONE("stack_depth", S_IRUGO, proc_stack_depth),
- #endif
-@@ -3456,9 +3312,6 @@ static const struct pid_entry tgid_base_stuff[] = {
- #ifdef CONFIG_SCHED_RTG
- 	REG("sched_rtg_ctrl", S_IRUGO|S_IWUGO, proc_rtg_operations),
- #endif
--#ifdef CONFIG_SCHED_RTG_DEBUG
--	REG("sched_group_id", S_IRUGO|S_IWUGO, proc_pid_sched_group_id_operations),
--#endif
- };
- 
- static int proc_tgid_base_readdir(struct file *file, struct dir_context *ctx)
-@@ -3697,7 +3550,7 @@ static const struct inode_operations proc_tid_comm_inode_operations = {
-  */
- static const struct pid_entry tid_base_stuff[] = {
- 	DIR("fd",        S_IRUSR|S_IXUSR, proc_fd_inode_operations, proc_fd_operations),
--	DIR("fdinfo",    S_IRUSR|S_IXUSR, proc_fdinfo_inode_operations, proc_fdinfo_operations),
-+	DIR("fdinfo",    S_IRUGO|S_IXUGO, proc_fdinfo_inode_operations, proc_fdinfo_operations),
- 	DIR("ns",	 S_IRUSR|S_IXUGO, proc_ns_dir_inode_operations, proc_ns_dir_operations),
- #ifdef CONFIG_NET
- 	DIR("net",        S_IRUGO|S_IXUGO, proc_net_inode_operations, proc_net_operations),
-@@ -3788,12 +3641,12 @@ static const struct pid_entry tid_base_stuff[] = {
- #ifdef CONFIG_PROC_PID_ARCH_STATUS
- 	ONE("arch_status", S_IRUGO, proc_pid_arch_status),
- #endif
-+#ifdef CONFIG_CPU_FREQ_TIMES
-+	ONE("time_in_state", 0444, proc_time_in_state_show),
-+#endif
- #ifdef CONFIG_ACCESS_TOKENID
- 	ONE("tokenid", S_IRUSR, proc_token_operations),
- #endif
--#ifdef CONFIG_SCHED_RTG_DEBUG
--	REG("sched_group_id", S_IRUGO|S_IWUGO, proc_pid_sched_group_id_operations),
--#endif
- };
- 
- static int proc_tid_base_readdir(struct file *file, struct dir_context *ctx)
 diff --git a/fs/ubifs/recovery.c b/fs/ubifs/recovery.c
 index f0d51dd21..c81fbe355 100644
 --- a/fs/ubifs/recovery.c
@@ -426,19 +147,10 @@ index 511c9363e..2bfbcf28b 100644
  
  	/*
 diff --git a/init/Kconfig b/init/Kconfig
-index 2e5b92880..4e4be500d 100644
+index 23db5012f..3283135fa 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
-@@ -858,7 +858,7 @@ config UCLAMP_BUCKETS_COUNT
- 
- 	  If in doubt, use the default value.
- 
--source "kernel/sched/rtg/Kconfig"
-+#source "kernel/sched/rtg/Kconfig"
- 
- config SCHED_EAS
- 	bool "EAS scheduler optimization"
-@@ -1341,6 +1341,12 @@ if BLK_DEV_INITRD
+@@ -1348,6 +1348,12 @@ if BLK_DEV_INITRD
  
  source "usr/Kconfig"
  
@@ -498,10 +210,10 @@ index 55b74d7e5..f4c4e2404 100644
  rootfs_initcall(populate_rootfs);
 +#endif
 diff --git a/init/main.c b/init/main.c
-index 93364d974..2c19266da 100644
+index 3a87bc79a..5aa7dadc9 100644
 --- a/init/main.c
 +++ b/init/main.c
-@@ -1524,6 +1524,10 @@ static noinline void __init kernel_init_freeable(void)
+@@ -1532,6 +1532,10 @@ static noinline void __init kernel_init_freeable(void)
  	smp_init();
  	sched_init_smp();
  
@@ -512,7 +224,7 @@ index 93364d974..2c19266da 100644
  	padata_init();
  	page_alloc_init_late();
  	/* Initialize page ext after all struct pages are initialized. */
-@@ -1533,6 +1537,10 @@ static noinline void __init kernel_init_freeable(void)
+@@ -1541,6 +1545,10 @@ static noinline void __init kernel_init_freeable(void)
  
  	kunit_run_all_tests();
  
@@ -622,15 +334,15 @@ index cc46cfa06..cfa0045e7 100644
  			rcu_read_lock();
 diff --git a/make-boot.sh b/make-boot.sh
 new file mode 100755
-index 000000000..820ff9957
+index 000000000..f4cd4c452
 --- /dev/null
 +++ b/make-boot.sh
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +#!/bin/bash
 +
 +set -e
 +BOOT_LINUX=${1}/kernel/src_tmp/linux-5.10
-+OUT_IMAGE=${1}/rk3568/packages/phone/images/
++OUT_IMAGE=${1}/yangfan/packages/phone/images/
 +IMAGE_SIZE=64  # 64M
 +IMAGE_BLOCKS=4096
 +
@@ -653,23 +365,22 @@ index 000000000..820ff9957
 +        return $?
 +}
 +
-+cp ${1}/rk3568/ramdisk.img ${BOOT_LINUX}/boot_linux/extlinux -f
 +cd ${BOOT_LINUX}
 +make_boot_image
 +cd -
 +cp ${BOOT_LINUX}/boot_linux.img ${OUT_IMAGE}
 diff --git a/make-ohos.sh b/make-ohos.sh
 new file mode 100755
-index 000000000..edc0052c6
+index 000000000..676ce26ff
 --- /dev/null
 +++ b/make-ohos.sh
-@@ -0,0 +1,135 @@
+@@ -0,0 +1,134 @@
 +#!/bin/bash
 +
 +set -e
 +
 +export PATH=../../../../prebuilts/clang/ohos/linux-x86_64/llvm/bin/:$PATH
-+export PRODUCT_PATH=vendor/isoftstone/rk3399
++export PRODUCT_PATH=vendor/isoftstone/yangfan
 +IMAGE_SIZE=64  # 64M
 +IMAGE_BLOCKS=4096
 +
@@ -679,9 +390,11 @@ index 000000000..edc0052c6
 +EXTLINUX_PATH=${BUILD_PATH}/extlinux
 +EXTLINUX_CONF=${EXTLINUX_PATH}/extlinux.conf
 +TOYBRICK_DTB=toybrick.dtb
-+
-+MCU_LIB_FILE=../../../../device/board/isoftstone/rk3399/kernel/src/mcu/*.o
++MCU_LIB_FILE=../../../../device/board/isoftstone/yangfan/kernel/src/mcu/*.o
 +MCU_OBJ_PATCH=drivers/char
++if [ ${KBUILD_OUTPUT} ]; then
++	OBJ_PATH=${KBUILD_OUTPUT}/
++fi
 +
 +ID_MODEL=1
 +ID_ARCH=2
@@ -715,9 +428,6 @@ index 000000000..edc0052c6
 +	echo "label rockchip-kernel-5.10" > ${EXTLINUX_CONF}
 +	echo "	kernel /extlinux/${image}" >> ${EXTLINUX_CONF}
 +	echo "	fdt /extlinux/${TOYBRICK_DTB}" >> ${EXTLINUX_CONF}
-+	if [ "enable_ramdisk" == "${ramdisk_flag}" ]; then
-+		echo "	initrd /extlinux/ramdisk.img" >> ${EXTLINUX_CONF}
-+	fi
 +	cmdline="append earlycon=uart8250,mmio32,${uart} root=PARTUUID=614e0000-0000-4b53-8000-1d28000054a9 rw rootwait rootfstype=ext4"
 +	echo "  ${cmdline}" >> ${EXTLINUX_CONF}
 +}
@@ -778,8 +488,8 @@ index 000000000..edc0052c6
 +		exit 1
 +	fi
 +	make_extlinux_conf ${dtb_path} ${uart} ${image}
-+	cp -f arch/${arch}/boot/${image} ${EXTLINUX_PATH}/
-+	cp -f ${dtb_path}/${dtb}.dtb ${EXTLINUX_PATH}/${TOYBRICK_DTB}
++	cp -f ${OBJ_PATH}arch/${arch}/boot/${image} ${EXTLINUX_PATH}/
++	cp -f ${OBJ_PATH}${dtb_path}/${dtb}.dtb ${EXTLINUX_PATH}/${TOYBRICK_DTB}
 +	cp -f logo*.bmp ${BUILD_PATH}/
 +	if [ "enable_ramdisk" != "${ramdisk_flag}" ]; then
 +		make_ext2_image
