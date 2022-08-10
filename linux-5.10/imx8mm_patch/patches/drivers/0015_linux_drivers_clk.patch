@@ -1,10 +1,10 @@
-commit d57f6304f527e92c772398a9fbda3820216a81d5
+commit d3211978913e7ee651bf47cfb393daccb8be4fdb
 Author: zhaoxc0502 <zhaoxc0502@thundersoft.com>
-Date:   Thu Jun 16 17:17:56 2022 +0800
+Date:   Wed Aug 10 11:43:26 2022 +0800
 
-    linux_drivers_clk
+    drivers_clk
     
-    Change-Id: I33a16886c1f92df5af1672dd293400e567bd01c0
+    Change-Id: Iad3fba6c51f290df25555d1136fd2cc4761d3324
 
 diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
 index c715d4681..3853ce51b 100644
@@ -1792,7 +1792,7 @@ index 000000000..8968061cf
 +}
 +fs_initcall(imx8qxp_acm_init);
 diff --git a/drivers/clk/imx/clk-imx8qxp-lpcg.c b/drivers/clk/imx/clk-imx8qxp-lpcg.c
-index e947a7005..3669bf0ac 100644
+index 522c03a12..0b43a8345 100644
 --- a/drivers/clk/imx/clk-imx8qxp-lpcg.c
 +++ b/drivers/clk/imx/clk-imx8qxp-lpcg.c
 @@ -9,216 +9,106 @@
@@ -2251,7 +2251,7 @@ index 000000000..947d5a64c
 +	.num = ARRAY_SIZE(imx8qxp_clk_scu_rsrc_table),
 +};
 diff --git a/drivers/clk/imx/clk-imx8qxp.c b/drivers/clk/imx/clk-imx8qxp.c
-index d650ca33c..29a8affda 100644
+index 8c14e0bbe..29a8affda 100644
 --- a/drivers/clk/imx/clk-imx8qxp.c
 +++ b/drivers/clk/imx/clk-imx8qxp.c
 @@ -9,139 +9,295 @@
@@ -2658,7 +2658,7 @@ index d650ca33c..29a8affda 100644
  	},
  	.probe = imx8qxp_clk_probe,
  };
--builtin_platform_driver(imx8qxp_clk_driver);
+-module_platform_driver(imx8qxp_clk_driver);
 +
 +static int __init imx8qxp_clk_driver_init(void)
 +{
