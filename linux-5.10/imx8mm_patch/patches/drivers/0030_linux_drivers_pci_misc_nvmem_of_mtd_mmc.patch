@@ -1,10 +1,10 @@
-commit 95ddd4d5aa400a86361fa0a5ab3b326eaa9907c2
+commit ca784e92825462f8ef3065651e4d3784eacd70f2
 Author: zhaoxc0502 <zhaoxc0502@thundersoft.com>
-Date:   Wed Aug 10 22:04:54 2022 +0800
+Date:   Fri Aug 12 09:44:46 2022 +0800
 
-    drivers_mmc
+    0030_linux_drivers_pci_misc_nvmem_of_mtd_mmc
     
-    Change-Id: I3adbe311853071f5c35477b4c4f6682df17e9e3a
+    Change-Id: Iec160bd007994d82f416debdccfbc0d9bdb40470
 
 diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
 index fafa8b0d8..2063f1930 100644
@@ -2267,7 +2267,7 @@ index 4383c262b..74de3f2dd 100644
  }
 +
 diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
-index b5f3f160c..58185fc68 100644
+index eb82f6aac..8009ff847 100644
 --- a/drivers/mmc/core/core.c
 +++ b/drivers/mmc/core/core.c
 @@ -52,6 +52,8 @@
@@ -2509,7 +2509,7 @@ index b5f3f160c..58185fc68 100644
  
  	if (!(host->caps2 & MMC_CAP2_NO_PRESCAN_POWERUP)) {
  		mmc_claim_host(host);
-@@ -2358,10 +2395,120 @@ void mmc_stop_host(struct mmc_host *host)
+@@ -2363,10 +2400,120 @@ void mmc_stop_host(struct mmc_host *host)
  	mmc_release_host(host);
  }
  
@@ -2631,7 +2631,7 @@ index b5f3f160c..58185fc68 100644
  	if (ret)
  		return ret;
 diff --git a/drivers/mmc/core/core.h b/drivers/mmc/core/core.h
-index db3c9c688..70dcd4676 100644
+index a6c814fdb..de73bea11 100644
 --- a/drivers/mmc/core/core.h
 +++ b/drivers/mmc/core/core.h
 @@ -29,7 +29,6 @@ struct mmc_bus_ops {
@@ -2642,8 +2642,8 @@ index db3c9c688..70dcd4676 100644
  };
  
  void mmc_attach_bus(struct mmc_host *host, const struct mmc_bus_ops *ops);
-@@ -71,15 +70,14 @@ void mmc_rescan(struct work_struct *work);
- void mmc_start_host(struct mmc_host *host);
+@@ -72,15 +71,14 @@ void mmc_start_host(struct mmc_host *host);
+ void __mmc_stop_host(struct mmc_host *host);
  void mmc_stop_host(struct mmc_host *host);
  
 -void _mmc_detect_change(struct mmc_host *host, unsigned long delay,
@@ -2660,7 +2660,7 @@ index db3c9c688..70dcd4676 100644
  /* Module parameters */
  extern bool use_spi_crc;
  
-@@ -94,6 +92,14 @@ int mmc_execute_tuning(struct mmc_card *card);
+@@ -95,6 +93,14 @@ int mmc_execute_tuning(struct mmc_card *card);
  int mmc_hs200_to_hs400(struct mmc_card *card);
  int mmc_hs400_to_hs200(struct mmc_card *card);
  
@@ -2675,7 +2675,7 @@ index db3c9c688..70dcd4676 100644
  void mmc_wait_for_req_done(struct mmc_host *host, struct mmc_request *mrq);
  bool mmc_is_req_done(struct mmc_host *host, struct mmc_request *mrq);
  
-@@ -164,12 +170,4 @@ static inline void mmc_post_req(struct mmc_host *host, struct mmc_request *mrq,
+@@ -165,12 +171,4 @@ static inline void mmc_post_req(struct mmc_host *host, struct mmc_request *mrq,
  		host->ops->post_req(host, mrq, err);
  }
  
@@ -2713,7 +2713,7 @@ index 9ec84c86c..09e0c7659 100644
  #ifdef CONFIG_FAIL_MMC_REQUEST
  	if (fail_request)
 diff --git a/drivers/mmc/core/host.c b/drivers/mmc/core/host.c
-index 58112999a..114926d21 100644
+index 864c8c205..114926d21 100644
 --- a/drivers/mmc/core/host.c
 +++ b/drivers/mmc/core/host.c
 @@ -15,7 +15,6 @@
@@ -2724,7 +2724,7 @@ index 58112999a..114926d21 100644
  #include <linux/export.h>
  #include <linux/leds.h>
  #include <linux/slab.h>
-@@ -34,55 +33,16 @@
+@@ -34,64 +33,16 @@
  
  static DEFINE_IDA(mmc_host_ida);
  
@@ -2774,14 +2774,23 @@ index 58112999a..114926d21 100644
  	kfree(host);
  }
  
+-static int mmc_host_classdev_shutdown(struct device *dev)
+-{
+-	struct mmc_host *host = cls_dev_to_mmc_host(dev);
+-
+-	__mmc_stop_host(host);
+-	return 0;
+-}
+-
  static struct class mmc_host_class = {
  	.name		= "mmc_host",
  	.dev_release	= mmc_host_classdev_release,
+-	.shutdown_pre	= mmc_host_classdev_shutdown,
 -	.pm		= MMC_HOST_CLASS_DEV_PM_OPS,
  };
  
  int mmc_register_host_class(void)
-@@ -215,6 +175,8 @@ int mmc_of_parse(struct mmc_host *host)
+@@ -224,6 +175,8 @@ int mmc_of_parse(struct mmc_host *host)
  	struct device *dev = host->parent;
  	u32 bus_width, drv_type, cd_debounce_delay_ms;
  	int ret;
@@ -2790,7 +2799,7 @@ index 58112999a..114926d21 100644
  
  	if (!dev || !dev_fwnode(dev))
  		return 0;
-@@ -229,7 +191,7 @@ int mmc_of_parse(struct mmc_host *host)
+@@ -238,7 +191,7 @@ int mmc_of_parse(struct mmc_host *host)
  	switch (bus_width) {
  	case 8:
  		host->caps |= MMC_CAP_8_BIT_DATA;
@@ -2799,7 +2808,7 @@ index 58112999a..114926d21 100644
  	case 4:
  		host->caps |= MMC_CAP_4_BIT_DATA;
  		break;
-@@ -257,12 +219,10 @@ int mmc_of_parse(struct mmc_host *host)
+@@ -266,12 +219,10 @@ int mmc_of_parse(struct mmc_host *host)
  	 */
  
  	/* Parse Card Detection */
@@ -2813,7 +2822,7 @@ index 58112999a..114926d21 100644
  
  		if (device_property_read_u32(dev, "cd-debounce-delay-ms",
  					     &cd_debounce_delay_ms))
-@@ -272,19 +232,32 @@ int mmc_of_parse(struct mmc_host *host)
+@@ -281,19 +232,32 @@ int mmc_of_parse(struct mmc_host *host)
  			host->caps |= MMC_CAP_NEEDS_POLL;
  
  		ret = mmc_gpiod_request_cd(host, "cd", 0, false,
@@ -2851,7 +2860,7 @@ index 58112999a..114926d21 100644
  	if (!ret)
  		dev_info(host->parent, "Got WP GPIO\n");
  	else if (ret != -ENOENT && ret != -ENOSYS)
-@@ -293,6 +266,10 @@ int mmc_of_parse(struct mmc_host *host)
+@@ -302,6 +266,10 @@ int mmc_of_parse(struct mmc_host *host)
  	if (device_property_read_bool(dev, "disable-wp"))
  		host->caps2 |= MMC_CAP2_NO_WRITE_PROTECT;
  
@@ -2862,7 +2871,7 @@ index 58112999a..114926d21 100644
  	if (device_property_read_bool(dev, "cap-sd-highspeed"))
  		host->caps |= MMC_CAP_SD_HIGHSPEED;
  	if (device_property_read_bool(dev, "cap-mmc-highspeed"))
-@@ -315,13 +292,13 @@ int mmc_of_parse(struct mmc_host *host)
+@@ -324,13 +292,13 @@ int mmc_of_parse(struct mmc_host *host)
  		host->caps |= MMC_CAP_SDIO_IRQ;
  	if (device_property_read_bool(dev, "full-pwr-cycle"))
  		host->caps2 |= MMC_CAP2_FULL_PWR_CYCLE;
@@ -2878,7 +2887,7 @@ index 58112999a..114926d21 100644
  	if (device_property_read_bool(dev, "mmc-ddr-3_3v"))
  		host->caps |= MMC_CAP_3_3V_DDR;
  	if (device_property_read_bool(dev, "mmc-ddr-1_8v"))
-@@ -414,20 +391,6 @@ int mmc_of_parse_voltage(struct device_node *np, u32 *mask)
+@@ -423,20 +391,6 @@ int mmc_of_parse_voltage(struct device_node *np, u32 *mask)
  }
  EXPORT_SYMBOL(mmc_of_parse_voltage);
  
@@ -2899,7 +2908,7 @@ index 58112999a..114926d21 100644
  /**
   *	mmc_alloc_host - initialise the per-host structure.
   *	@extra: sizeof private data structure
-@@ -437,9 +400,9 @@ static int mmc_first_nonreserved_index(void)
+@@ -446,9 +400,9 @@ static int mmc_first_nonreserved_index(void)
   */
  struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
  {
@@ -2911,7 +2920,7 @@ index 58112999a..114926d21 100644
  
  	host = kzalloc(sizeof(struct mmc_host) + extra, GFP_KERNEL);
  	if (!host)
-@@ -447,27 +410,25 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
+@@ -456,27 +410,25 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
  
  	/* scanning will be enabled when we're ready */
  	host->rescan_disable = 1;
@@ -2952,7 +2961,7 @@ index 58112999a..114926d21 100644
  	host->class_dev.parent = dev;
  	host->class_dev.class = &mmc_host_class;
  	device_initialize(&host->class_dev);
-@@ -497,7 +458,6 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
+@@ -506,7 +458,6 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
  
  	host->fixed_drv_type = -EINVAL;
  	host->ios.power_delay_ms = 10;
@@ -2960,7 +2969,7 @@ index 58112999a..114926d21 100644
  
  	return host;
  }
-@@ -530,6 +490,9 @@ int mmc_add_host(struct mmc_host *host)
+@@ -539,6 +490,9 @@ int mmc_add_host(struct mmc_host *host)
  #endif
  
  	mmc_start_host(host);
@@ -2970,7 +2979,7 @@ index 58112999a..114926d21 100644
  	return 0;
  }
  
-@@ -545,6 +508,8 @@ EXPORT_SYMBOL(mmc_add_host);
+@@ -554,6 +508,8 @@ EXPORT_SYMBOL(mmc_add_host);
   */
  void mmc_remove_host(struct mmc_host *host)
  {
@@ -6882,7 +6891,7 @@ index e1a9b96a3..833236ecb 100644
  	/* pio stuff */
  	struct sg_mapping_iter	sg_miter;
 diff --git a/drivers/mmc/host/mmci_stm32_sdmmc.c b/drivers/mmc/host/mmci_stm32_sdmmc.c
-index fdaa11f92..8e83ae692 100644
+index a75d3dd34..8e83ae692 100644
 --- a/drivers/mmc/host/mmci_stm32_sdmmc.c
 +++ b/drivers/mmc/host/mmci_stm32_sdmmc.c
 @@ -3,13 +3,10 @@
@@ -7055,7 +7064,7 @@ index fdaa11f92..8e83ae692 100644
  		/*
  		 * After a power-cycle state, we must set the SDMMC in
  		 * Power-off. The SDMMC_D[7:0], SDMMC_CMD and SDMMC_CK are
-@@ -327,181 +282,6 @@ static u32 sdmmc_get_dctrl_cfg(struct mmci_host *host)
+@@ -327,183 +282,6 @@ static u32 sdmmc_get_dctrl_cfg(struct mmci_host *host)
  	return datactrl;
  }
  
@@ -7173,6 +7182,8 @@ index fdaa11f92..8e83ae692 100644
 -		return -EINVAL;
 -	}
 -
+-	writel_relaxed(0, dlyb->base + DLYB_CR);
+-
 -	phase = end_of_len - max_len / 2;
 -	sdmmc_dlyb_set_cfgr(dlyb, dlyb->unit, phase, false);
 -
@@ -7237,7 +7248,7 @@ index fdaa11f92..8e83ae692 100644
  static struct mmci_host_ops sdmmc_variant_ops = {
  	.validate_data = sdmmc_idma_validate_data,
  	.prep_data = sdmmc_idma_prep_data,
-@@ -512,29 +292,9 @@ static struct mmci_host_ops sdmmc_variant_ops = {
+@@ -514,29 +292,9 @@ static struct mmci_host_ops sdmmc_variant_ops = {
  	.dma_finalize = sdmmc_idma_finalize,
  	.set_clkreg = mmci_sdmmc_set_clkreg,
  	.set_pwrreg = mmci_sdmmc_set_pwrreg,
@@ -13304,7 +13315,7 @@ index 9bd717ff7..2af445b8c 100644
  
  #endif /* _DRIVERS_MMC_SDHCI_PLTFM_H */
 diff --git a/drivers/mmc/host/sdhci-tegra.c b/drivers/mmc/host/sdhci-tegra.c
-index 8ea9132eb..7bc950520 100644
+index d50b691f6..b117d1f06 100644
 --- a/drivers/mmc/host/sdhci-tegra.c
 +++ b/drivers/mmc/host/sdhci-tegra.c
 @@ -45,7 +45,6 @@
@@ -13357,7 +13368,7 @@ index 8ea9132eb..7bc950520 100644
  	bool ddr_signaling;
  	bool pad_calib_required;
  	bool pad_control_available;
-@@ -407,7 +386,7 @@ static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
+@@ -390,7 +369,7 @@ static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
  			misc_ctrl |= SDHCI_MISC_CTRL_ENABLE_DDR50;
  		if (soc_data->nvquirks & NVQUIRK_ENABLE_SDR104)
  			misc_ctrl |= SDHCI_MISC_CTRL_ENABLE_SDR104;
@@ -13366,7 +13377,7 @@ index 8ea9132eb..7bc950520 100644
  			clk_ctrl |= SDHCI_CLOCK_CTRL_SDR50_TUNING_OVERRIDE;
  	}
  
-@@ -624,39 +603,6 @@ static void tegra_sdhci_parse_pad_autocal_dt(struct sdhci_host *host)
+@@ -607,39 +586,6 @@ static void tegra_sdhci_parse_pad_autocal_dt(struct sdhci_host *host)
  	if (err)
  		autocal->pull_down_1v8 = 0;
  
@@ -13406,7 +13417,7 @@ index 8ea9132eb..7bc950520 100644
  	err = device_property_read_u32(host->mmc->parent,
  			"nvidia,pad-autocal-pull-up-offset-3v3-timeout",
  			&autocal->pull_up_3v3_timeout);
-@@ -700,6 +646,30 @@ static void tegra_sdhci_parse_pad_autocal_dt(struct sdhci_host *host)
+@@ -683,6 +629,30 @@ static void tegra_sdhci_parse_pad_autocal_dt(struct sdhci_host *host)
  				mmc_hostname(host->mmc));
  		autocal->pull_down_1v8_timeout = 0;
  	}
@@ -13437,7 +13448,7 @@ index 8ea9132eb..7bc950520 100644
  }
  
  static void tegra_sdhci_request(struct mmc_host *mmc, struct mmc_request *mrq)
-@@ -1160,7 +1130,6 @@ static void tegra_sdhci_voltage_switch(struct sdhci_host *host)
+@@ -1169,7 +1139,6 @@ static void tegra_sdhci_voltage_switch(struct sdhci_host *host)
  static void tegra_cqhci_writel(struct cqhci_host *cq_host, u32 val, int reg)
  {
  	struct mmc_host *mmc = cq_host->mmc;
@@ -13445,7 +13456,7 @@ index 8ea9132eb..7bc950520 100644
  	u8 ctrl;
  	ktime_t timeout;
  	bool timed_out;
-@@ -1175,7 +1144,6 @@ static void tegra_cqhci_writel(struct cqhci_host *cq_host, u32 val, int reg)
+@@ -1184,7 +1153,6 @@ static void tegra_cqhci_writel(struct cqhci_host *cq_host, u32 val, int reg)
  	 */
  	if (reg == CQHCI_CTL && !(val & CQHCI_HALT) &&
  	    cqhci_readl(cq_host, CQHCI_CTL) & CQHCI_HALT) {
@@ -13453,7 +13464,7 @@ index 8ea9132eb..7bc950520 100644
  		sdhci_cqe_enable(mmc);
  		writel(val, cq_host->mmio + reg);
  		timeout = ktime_add_us(ktime_get(), 50);
-@@ -1211,7 +1179,6 @@ static void sdhci_tegra_update_dcmd_desc(struct mmc_host *mmc,
+@@ -1220,7 +1188,6 @@ static void sdhci_tegra_update_dcmd_desc(struct mmc_host *mmc,
  static void sdhci_tegra_cqe_enable(struct mmc_host *mmc)
  {
  	struct cqhci_host *cq_host = mmc->cqe_private;
@@ -13461,7 +13472,7 @@ index 8ea9132eb..7bc950520 100644
  	u32 val;
  
  	/*
-@@ -1225,7 +1192,6 @@ static void sdhci_tegra_cqe_enable(struct mmc_host *mmc)
+@@ -1234,7 +1201,6 @@ static void sdhci_tegra_cqe_enable(struct mmc_host *mmc)
  		if (val & CQHCI_ENABLE)
  			cqhci_writel(cq_host, (val & ~CQHCI_ENABLE),
  				     CQHCI_CFG);
@@ -13469,7 +13480,7 @@ index 8ea9132eb..7bc950520 100644
  		sdhci_cqe_enable(mmc);
  		if (val & CQHCI_ENABLE)
  			cqhci_writel(cq_host, val, CQHCI_CFG);
-@@ -1261,64 +1227,12 @@ static u32 sdhci_tegra_cqhci_irq(struct sdhci_host *host, u32 intmask)
+@@ -1270,64 +1236,12 @@ static u32 sdhci_tegra_cqhci_irq(struct sdhci_host *host, u32 intmask)
  	return 0;
  }
  
@@ -13534,7 +13545,7 @@ index 8ea9132eb..7bc950520 100644
  };
  
  static int tegra_sdhci_set_dma_mask(struct sdhci_host *host)
-@@ -1452,11 +1366,11 @@ static const struct sdhci_ops tegra210_sdhci_ops = {
+@@ -1461,11 +1375,11 @@ static const struct sdhci_ops tegra210_sdhci_ops = {
  	.set_uhs_signaling = tegra_sdhci_set_uhs_signaling,
  	.voltage_switch = tegra_sdhci_voltage_switch,
  	.get_max_clock = tegra_sdhci_get_max_clock,
@@ -13547,7 +13558,7 @@ index 8ea9132eb..7bc950520 100644
  		  SDHCI_QUIRK_SINGLE_POWER_WRITE |
  		  SDHCI_QUIRK_NO_HISPD_BIT |
  		  SDHCI_QUIRK_BROKEN_ADMA_ZEROLEN_DESC |
-@@ -1472,8 +1386,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra210 = {
+@@ -1481,8 +1395,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra210 = {
  		    NVQUIRK_HAS_PADCALIB |
  		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
  		    NVQUIRK_ENABLE_SDR50 |
@@ -13557,7 +13568,7 @@ index 8ea9132eb..7bc950520 100644
  	.min_tap_delay = 106,
  	.max_tap_delay = 185,
  };
-@@ -1490,11 +1403,11 @@ static const struct sdhci_ops tegra186_sdhci_ops = {
+@@ -1499,11 +1412,11 @@ static const struct sdhci_ops tegra186_sdhci_ops = {
  	.voltage_switch = tegra_sdhci_voltage_switch,
  	.get_max_clock = tegra_sdhci_get_max_clock,
  	.irq = sdhci_tegra_cqhci_irq,
@@ -13570,7 +13581,7 @@ index 8ea9132eb..7bc950520 100644
  		  SDHCI_QUIRK_SINGLE_POWER_WRITE |
  		  SDHCI_QUIRK_NO_HISPD_BIT |
  		  SDHCI_QUIRK_BROKEN_ADMA_ZEROLEN_DESC |
-@@ -1511,7 +1424,6 @@ static const struct sdhci_tegra_soc_data soc_data_tegra186 = {
+@@ -1520,7 +1433,6 @@ static const struct sdhci_tegra_soc_data soc_data_tegra186 = {
  		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
  		    NVQUIRK_ENABLE_SDR50 |
  		    NVQUIRK_ENABLE_SDR104 |
@@ -13578,7 +13589,7 @@ index 8ea9132eb..7bc950520 100644
  		    NVQUIRK_CQHCI_DCMD_R1B_CMD_TIMING,
  	.min_tap_delay = 84,
  	.max_tap_delay = 136,
-@@ -1524,8 +1436,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra194 = {
+@@ -1533,8 +1445,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra194 = {
  		    NVQUIRK_HAS_PADCALIB |
  		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
  		    NVQUIRK_ENABLE_SDR50 |
@@ -13588,7 +13599,7 @@ index 8ea9132eb..7bc950520 100644
  	.min_tap_delay = 96,
  	.max_tap_delay = 139,
  };
-@@ -1641,9 +1552,6 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
+@@ -1650,9 +1561,6 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
  	if (tegra_host->soc_data->nvquirks & NVQUIRK_ENABLE_DDR50)
  		host->mmc->caps |= MMC_CAP_1_8V_DDR;
  
@@ -13598,7 +13609,7 @@ index 8ea9132eb..7bc950520 100644
  	tegra_sdhci_parse_dt(host);
  
  	tegra_host->power_gpio = devm_gpiod_get_optional(&pdev->dev, "power",
-@@ -1653,47 +1561,13 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
+@@ -1662,47 +1570,13 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
  		goto err_power_req;
  	}
  
@@ -13651,7 +13662,7 @@ index 8ea9132eb..7bc950520 100644
  		goto err_clk_get;
  	}
  	clk_prepare_enable(clk);
-@@ -1730,7 +1604,6 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
+@@ -1739,7 +1613,6 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
  err_rst_get:
  	clk_disable_unprepare(pltfm_host->clk);
  err_clk_get:
@@ -13659,7 +13670,7 @@ index 8ea9132eb..7bc950520 100644
  err_power_req:
  err_parse_dt:
  	sdhci_pltfm_free(pdev);
-@@ -1748,7 +1621,6 @@ static int sdhci_tegra_remove(struct platform_device *pdev)
+@@ -1757,7 +1630,6 @@ static int sdhci_tegra_remove(struct platform_device *pdev)
  	reset_control_assert(tegra_host->rst);
  	usleep_range(2000, 4000);
  	clk_disable_unprepare(pltfm_host->clk);
@@ -13667,7 +13678,7 @@ index 8ea9132eb..7bc950520 100644
  
  	sdhci_pltfm_free(pdev);
  
-@@ -1814,7 +1686,6 @@ static SIMPLE_DEV_PM_OPS(sdhci_tegra_dev_pm_ops, sdhci_tegra_suspend,
+@@ -1823,7 +1695,6 @@ static SIMPLE_DEV_PM_OPS(sdhci_tegra_dev_pm_ops, sdhci_tegra_suspend,
  static struct platform_driver sdhci_tegra_driver = {
  	.driver		= {
  		.name	= "sdhci-tegra",
