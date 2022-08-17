@@ -12077,7 +12077,7 @@ index 000000000..1ea57ae09
 +	}
 +	atomic_notifier_chain_register(&panic_notifier_list, &bbox_panic_block);
 +
-+	// register_reboot_notifier(&bbox_reboot_nb);
++
 +	return 0;
 +
 +__err:
