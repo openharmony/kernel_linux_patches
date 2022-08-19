@@ -16565,19 +16565,17 @@ index a6658567d..8d00adedc 100644
  err_out:
  	pm_runtime_mark_last_busy(this->dev);
  	pm_runtime_put_autosuspend(this->dev);
-@@ -718,7 +925,11 @@ static void gpmi_nfc_apply_timings(struct gpmi_nand_data *this)
- 	void __iomem *gpmi_regs = r->gpmi_regs;
- 	unsigned int dll_wait_time_us;
- 
-+	clk_disable_unprepare(r->clock[0]);
+@@ -725,6 +932,9 @@ static int gpmi_nfc_apply_timings(struct gpmi_nand_data *this)
+ 	 */
+ 	if (GPMI_IS_MX6Q(this) || GPMI_IS_MX6SX(this))
+ 		clk_disable_unprepare(r->clock[0]);
++	
 +	if (GPMI_IS_MX6SX(this) && hw->clk_rate > 88000000)
 +		hw->clk_rate = 88000000;
- 	clk_set_rate(r->clock[0], hw->clk_rate);
-+	clk_prepare_enable(r->clock[0]);
  
- 	writel(hw->timing0, gpmi_regs + HW_GPMI_TIMING0);
- 	writel(hw->timing1, gpmi_regs + HW_GPMI_TIMING1);
-@@ -751,7 +962,7 @@ static int gpmi_setup_interface(struct nand_chip *chip, int chipnr,
+ 	ret = clk_set_rate(r->clock[0], hw->clk_rate);
+ 	if (ret) {
+@@ -771,7 +981,7 @@ static int gpmi_setup_interface(struct nand_chip *chip, int chipnr,
  		return PTR_ERR(sdr);
  
  	/* Only MX6 GPMI controller can reach EDO timings */
@@ -16586,7 +16584,7 @@ index a6658567d..8d00adedc 100644
  		return -ENOTSUPP;
  
  	/* Stop here if this call was just a check */
-@@ -804,7 +1015,7 @@ static int gpmi_raw_len_to_len(struct gpmi_nand_data *this, int raw_len)
+@@ -824,7 +1034,7 @@ static int gpmi_raw_len_to_len(struct gpmi_nand_data *this, int raw_len)
  	 * we are passed in exec_op. Calculate the data length from it.
  	 */
  	if (this->bch)
@@ -16595,7 +16593,7 @@ index a6658567d..8d00adedc 100644
  	else
  		return raw_len;
  }
-@@ -924,6 +1135,14 @@ static const struct gpmi_devdata gpmi_devdata_imx6q = {
+@@ -944,6 +1154,14 @@ static const struct gpmi_devdata gpmi_devdata_imx6q = {
  	.clks_count = ARRAY_SIZE(gpmi_clks_for_mx6),
  };
  
@@ -16610,7 +16608,7 @@ index a6658567d..8d00adedc 100644
  static const struct gpmi_devdata gpmi_devdata_imx6sx = {
  	.type = IS_MX6SX,
  	.bch_max_ecc_strength = 62,
-@@ -932,6 +1151,22 @@ static const struct gpmi_devdata gpmi_devdata_imx6sx = {
+@@ -952,6 +1170,22 @@ static const struct gpmi_devdata gpmi_devdata_imx6sx = {
  	.clks_count = ARRAY_SIZE(gpmi_clks_for_mx6),
  };
  
@@ -16633,7 +16631,7 @@ index a6658567d..8d00adedc 100644
  static const char * const gpmi_clks_for_mx7d[] = {
  	"gpmi_io", "gpmi_bch_apb",
  };
-@@ -943,6 +1178,17 @@ static const struct gpmi_devdata gpmi_devdata_imx7d = {
+@@ -963,6 +1197,17 @@ static const struct gpmi_devdata gpmi_devdata_imx7d = {
  	.clks = gpmi_clks_for_mx7d,
  	.clks_count = ARRAY_SIZE(gpmi_clks_for_mx7d),
  };
@@ -16651,16 +16649,7 @@ index a6658567d..8d00adedc 100644
  
  static int acquire_register_block(struct gpmi_nand_data *this,
  				  const char *res_name)
-@@ -1032,7 +1278,7 @@ static int gpmi_get_clks(struct gpmi_nand_data *this)
- 		r->clock[i] = clk;
- 	}
- 
--	if (GPMI_IS_MX6(this))
-+	if (GPMI_IS_MX6(this) || GPMI_IS_MX8(this))
- 		/*
- 		 * Set the default value for the gpmi clock.
- 		 *
-@@ -1064,10 +1310,6 @@ static int acquire_resources(struct gpmi_nand_data *this)
+@@ -1075,10 +1320,6 @@ static int acquire_resources(struct gpmi_nand_data *this)
  	if (ret)
  		goto exit_regs;
  
@@ -16671,7 +16660,7 @@ index a6658567d..8d00adedc 100644
  	ret = gpmi_get_clks(this);
  	if (ret)
  		goto exit_clock;
-@@ -1210,7 +1452,7 @@ static int gpmi_count_bitflips(struct nand_chip *chip, void *buf, int first,
+@@ -1221,7 +1462,7 @@ static int gpmi_count_bitflips(struct nand_chip *chip, void *buf, int first,
  
  			/* Read ECC bytes into our internal raw_buffer */
  			offset = nfc_geo->metadata_size * 8;
@@ -16680,7 +16669,7 @@ index a6658567d..8d00adedc 100644
  			offset -= eccbits;
  			bitoffset = offset % 8;
  			eccbytes = DIV_ROUND_UP(offset + eccbits, 8);
-@@ -1247,16 +1489,16 @@ static int gpmi_count_bitflips(struct nand_chip *chip, void *buf, int first,
+@@ -1258,16 +1499,16 @@ static int gpmi_count_bitflips(struct nand_chip *chip, void *buf, int first,
  			if (i == 0) {
  				/* The first block includes metadata */
  				flips = nand_check_erased_ecc_chunk(
@@ -16701,7 +16690,7 @@ index a6658567d..8d00adedc 100644
  						eccbuf, eccbytes,
  						NULL, 0,
  						nfc_geo->ecc_strength);
-@@ -1285,20 +1527,21 @@ static void gpmi_bch_layout_std(struct gpmi_nand_data *this)
+@@ -1296,20 +1537,21 @@ static void gpmi_bch_layout_std(struct gpmi_nand_data *this)
  	struct bch_geometry *geo = &this->bch_geometry;
  	unsigned int ecc_strength = geo->ecc_strength >> 1;
  	unsigned int gf_len = geo->gf_len;
@@ -16726,7 +16715,7 @@ index a6658567d..8d00adedc 100644
  }
  
  static int gpmi_ecc_read_page(struct nand_chip *chip, uint8_t *buf,
-@@ -1381,9 +1624,22 @@ static int gpmi_ecc_read_subpage(struct nand_chip *chip, uint32_t offs,
+@@ -1392,9 +1634,22 @@ static int gpmi_ecc_read_subpage(struct nand_chip *chip, uint32_t offs,
  		}
  	}
  
@@ -16750,7 +16739,7 @@ index a6658567d..8d00adedc 100644
  		meta = 0;
  		buf = buf + first * size;
  	}
-@@ -1391,19 +1647,27 @@ static int gpmi_ecc_read_subpage(struct nand_chip *chip, uint32_t offs,
+@@ -1402,19 +1657,27 @@ static int gpmi_ecc_read_subpage(struct nand_chip *chip, uint32_t offs,
  	ecc_parity_size = geo->gf_len * geo->ecc_strength / 8;
  
  	n = last - first + 1;
@@ -16782,7 +16771,7 @@ index a6658567d..8d00adedc 100644
  
  	this->bch = true;
  
-@@ -1575,7 +1839,7 @@ static int gpmi_ecc_read_page_raw(struct nand_chip *chip, uint8_t *buf,
+@@ -1586,7 +1849,7 @@ static int gpmi_ecc_read_page_raw(struct nand_chip *chip, uint8_t *buf,
  	struct mtd_info *mtd = nand_to_mtd(chip);
  	struct gpmi_nand_data *this = nand_get_controller_data(chip);
  	struct bch_geometry *nfc_geo = &this->bch_geometry;
@@ -16791,7 +16780,7 @@ index a6658567d..8d00adedc 100644
  	int eccbits = nfc_geo->ecc_strength * nfc_geo->gf_len;
  	u8 *tmp_buf = this->raw_buffer;
  	size_t src_bit_off;
-@@ -1660,7 +1924,7 @@ static int gpmi_ecc_write_page_raw(struct nand_chip *chip, const uint8_t *buf,
+@@ -1671,7 +1934,7 @@ static int gpmi_ecc_write_page_raw(struct nand_chip *chip, const uint8_t *buf,
  	struct mtd_info *mtd = nand_to_mtd(chip);
  	struct gpmi_nand_data *this = nand_get_controller_data(chip);
  	struct bch_geometry *nfc_geo = &this->bch_geometry;
@@ -16800,7 +16789,7 @@ index a6658567d..8d00adedc 100644
  	int eccbits = nfc_geo->ecc_strength * nfc_geo->gf_len;
  	u8 *tmp_buf = this->raw_buffer;
  	uint8_t *oob = chip->oob_poi;
-@@ -1952,7 +2216,7 @@ static int mx23_boot_init(struct gpmi_nand_data  *this)
+@@ -1963,7 +2226,7 @@ static int mx23_boot_init(struct gpmi_nand_data  *this)
  		 */
  		chipnr = block >> (chip->chip_shift - chip->phys_erase_shift);
  		page = block << (chip->phys_erase_shift - chip->page_shift);
@@ -16809,7 +16798,7 @@ index a6658567d..8d00adedc 100644
  
  		/* Send the command to read the conventional block mark. */
  		nand_select_target(chip, chipnr);
-@@ -2024,6 +2288,11 @@ static int gpmi_init_last(struct gpmi_nand_data *this)
+@@ -2035,6 +2298,11 @@ static int gpmi_init_last(struct gpmi_nand_data *this)
  	if (ret)
  		return ret;
  
@@ -16821,7 +16810,7 @@ index a6658567d..8d00adedc 100644
  	/* Init the nand_ecc_ctrl{} */
  	ecc->read_page	= gpmi_ecc_read_page;
  	ecc->write_page	= gpmi_ecc_write_page;
-@@ -2034,7 +2303,7 @@ static int gpmi_init_last(struct gpmi_nand_data *this)
+@@ -2045,7 +2313,7 @@ static int gpmi_init_last(struct gpmi_nand_data *this)
  	ecc->read_oob_raw = gpmi_ecc_read_oob_raw;
  	ecc->write_oob_raw = gpmi_ecc_write_oob_raw;
  	ecc->engine_type = NAND_ECC_ENGINE_TYPE_ON_HOST;
@@ -16830,7 +16819,7 @@ index a6658567d..8d00adedc 100644
  	ecc->strength	= bch_geo->ecc_strength;
  	mtd_set_ooblayout(mtd, &gpmi_ooblayout_ops);
  
-@@ -2043,7 +2312,7 @@ static int gpmi_init_last(struct gpmi_nand_data *this)
+@@ -2054,7 +2322,7 @@ static int gpmi_init_last(struct gpmi_nand_data *this)
  	 *  (1) the chip is imx6, and
  	 *  (2) the size of the ECC parity is byte aligned.
  	 */
@@ -16839,7 +16828,7 @@ index a6658567d..8d00adedc 100644
  		((bch_geo->gf_len * bch_geo->ecc_strength) % 8) == 0) {
  		ecc->read_subpage = gpmi_ecc_read_subpage;
  		chip->options |= NAND_SUBPAGE_READ;
-@@ -2329,11 +2598,11 @@ static int gpmi_nfc_exec_op(struct nand_chip *chip,
+@@ -2342,11 +2610,11 @@ static int gpmi_nfc_exec_op(struct nand_chip *chip,
  						   &direct);
  			break;
  		}
@@ -16855,7 +16844,7 @@ index a6658567d..8d00adedc 100644
  	}
  
  	dev_dbg(this->dev, "%s setup done\n", __func__);
-@@ -2423,6 +2692,7 @@ static int gpmi_nand_init(struct gpmi_nand_data *this)
+@@ -2436,6 +2704,7 @@ static int gpmi_nand_init(struct gpmi_nand_data *this)
  {
  	struct nand_chip *chip = &this->nand;
  	struct mtd_info  *mtd = nand_to_mtd(chip);
@@ -16863,7 +16852,7 @@ index a6658567d..8d00adedc 100644
  	int ret;
  
  	/* init the MTD data structures */
-@@ -2453,7 +2723,12 @@ static int gpmi_nand_init(struct gpmi_nand_data *this)
+@@ -2466,7 +2735,12 @@ static int gpmi_nand_init(struct gpmi_nand_data *this)
  	this->base.ops = &gpmi_nand_controller_ops;
  	chip->controller = &this->base;
  
@@ -16877,7 +16866,7 @@ index a6658567d..8d00adedc 100644
  	if (ret)
  		goto err_out;
  
-@@ -2486,12 +2761,24 @@ static const struct of_device_id gpmi_nand_id_table[] = {
+@@ -2499,12 +2773,24 @@ static const struct of_device_id gpmi_nand_id_table[] = {
  	}, {
  		.compatible = "fsl,imx6q-gpmi-nand",
  		.data = &gpmi_devdata_imx6q,
@@ -16902,7 +16891,7 @@ index a6658567d..8d00adedc 100644
  	}, {}
  };
  MODULE_DEVICE_TABLE(of, gpmi_nand_id_table);
-@@ -2522,15 +2809,9 @@ static int gpmi_nand_probe(struct platform_device *pdev)
+@@ -2535,15 +2821,9 @@ static int gpmi_nand_probe(struct platform_device *pdev)
  	if (ret)
  		goto exit_acquire_resources;
  
@@ -16919,7 +16908,7 @@ index a6658567d..8d00adedc 100644
  
  	ret = gpmi_init(this);
  	if (ret)
-@@ -2540,15 +2821,12 @@ static int gpmi_nand_probe(struct platform_device *pdev)
+@@ -2553,15 +2833,12 @@ static int gpmi_nand_probe(struct platform_device *pdev)
  	if (ret)
  		goto exit_nfc_init;
  
@@ -16936,7 +16925,7 @@ index a6658567d..8d00adedc 100644
  	pm_runtime_disable(&pdev->dev);
  	release_resources(this);
  exit_acquire_resources:
-@@ -2562,7 +2840,6 @@ static int gpmi_nand_remove(struct platform_device *pdev)
+@@ -2575,7 +2852,6 @@ static int gpmi_nand_remove(struct platform_device *pdev)
  	struct nand_chip *chip = &this->nand;
  	int ret;
  
@@ -16944,7 +16933,7 @@ index a6658567d..8d00adedc 100644
  	pm_runtime_disable(&pdev->dev);
  
  	ret = mtd_device_unregister(nand_to_mtd(chip));
-@@ -2576,10 +2853,12 @@ static int gpmi_nand_remove(struct platform_device *pdev)
+@@ -2589,10 +2865,12 @@ static int gpmi_nand_remove(struct platform_device *pdev)
  #ifdef CONFIG_PM_SLEEP
  static int gpmi_pm_suspend(struct device *dev)
  {
@@ -16960,7 +16949,7 @@ index a6658567d..8d00adedc 100644
  }
  
  static int gpmi_pm_resume(struct device *dev)
-@@ -2587,9 +2866,13 @@ static int gpmi_pm_resume(struct device *dev)
+@@ -2600,9 +2878,13 @@ static int gpmi_pm_resume(struct device *dev)
  	struct gpmi_nand_data *this = dev_get_drvdata(dev);
  	int ret;
  
@@ -16976,7 +16965,7 @@ index a6658567d..8d00adedc 100644
  
  	/* re-init the GPMI registers */
  	ret = gpmi_init(this);
-@@ -2609,22 +2892,44 @@ static int gpmi_pm_resume(struct device *dev)
+@@ -2622,22 +2904,44 @@ static int gpmi_pm_resume(struct device *dev)
  		return ret;
  	}
  
