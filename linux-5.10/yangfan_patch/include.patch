@@ -1,92 +1,3 @@
-From 371736820591327d1b31f473fcb9a8db44290586 Mon Sep 17 00:00:00 2001
-From: jiewangdp <jiewangdp@isoftstone.com>
-Date: Wed, 3 Aug 2022 10:35:12 +0800
-Subject: [PATCH] include
-
-Change-Id: I4f5b87cf6fa92b555c19ba31e2c3a1c7ae5bf06f
----
- include/drm/bridge/analogix_dp.h             |  21 +
- include/drm/bridge/dw_hdmi.h                 | 119 ++++-
- include/drm/bridge/dw_mipi_dsi.h             |   1 +
- include/drm/drm_auth.h                       |   1 -
- include/drm/drm_connector.h                  |  54 +++
- include/drm/drm_crtc.h                       |  11 +-
- include/drm/drm_drv.h                        |  10 +
- include/drm/drm_edid.h                       | 124 ++++-
- include/drm/drm_file.h                       |  21 +-
- include/drm/drm_mipi_dsi.h                   |  12 +
- include/drm/drm_mode_config.h                |  13 +
- include/drm/drm_mode_object.h                |   2 +-
- include/drm/drm_prime.h                      |   1 +
- include/dt-bindings/clock/rk3399-cru.h       |  33 +-
- include/dt-bindings/soc/rockchip,boot-mode.h |  10 +-
- include/linux/blk_types.h                    |   1 +
- include/linux/bpf.h                          |   3 +-
- include/linux/cgroup.h                       |  29 +-
- include/linux/clk-provider.h                 |   9 +
- include/linux/cpuset.h                       |   7 +-
- include/linux/dma-buf.h                      | 116 +++++
- include/linux/dma-fence.h                    |   3 +
- include/linux/dma-heap.h                     |  62 ++-
- include/linux/dma-iommu.h                    |  16 +
- include/linux/dma-map-ops.h                  |   8 +
- include/linux/dma-mapping.h                  |  17 +
- include/linux/dmaengine.h                    |   5 +
- include/linux/energy_model.h                 |  12 +-
- include/linux/extcon.h                       |   1 +
- include/linux/freezer.h                      |   6 +
- include/linux/iommu.h                        |  47 +-
- include/linux/iova.h                         |   1 +
- include/linux/irqchip/arm-gic-v3.h           |   2 +
- include/linux/irqchip/arm-gic-v4.h           |   4 +
- include/linux/memblock.h                     |  24 +-
- include/linux/mfd/rk808.h                    | 453 ++++++++++++++++++-
- include/linux/mmc/host.h                     |   4 +
- include/linux/mmu_context.h                  |   8 +
- include/linux/power_supply.h                 |  23 +
- include/linux/psi_types.h                    |   1 +
- include/linux/pwm.h                          |   3 +
- include/linux/reboot.h                       |  20 +
- include/linux/regulator/driver.h             |   3 +
- include/linux/regulator/fan53555.h           |   2 +
- include/linux/sched.h                        |   2 +-
- include/linux/sched/hotplug.h                |   4 +
- include/linux/sched/isolation.h              |  19 -
- include/linux/sched/wake_q.h                 |   2 +
- include/linux/sched/xacct.h                  |   9 +
- include/linux/stmmac.h                       |   1 +
- include/linux/thermal.h                      |   5 +
- include/linux/usb/audio-v2.h                 |  17 +
- include/linux/usb/audio.h                    |   1 +
- include/linux/usb/ch9.h                      |  62 +--
- include/linux/usb/composite.h                |   3 +
- include/linux/usb/gadget.h                   |  15 +
- include/linux/usb/pd.h                       |   7 +
- include/linux/usb/pd_ext_sdb.h               |   4 -
- include/linux/usb/pd_vdo.h                   | 314 +++++++++++--
- include/linux/usb/quirks.h                   |   3 +
- include/linux/usb/tcpm.h                     |  56 ++-
- include/linux/usb/typec.h                    |  25 +
- include/linux/usb/typec_altmode.h            |  10 +
- include/linux/usb/typec_tbt.h                |   6 +-
- include/linux/usb/usbnet.h                   |   2 -
- include/media/v4l2-async.h                   |  15 +
- include/soc/rockchip/rockchip_sip.h          |   8 +-
- include/sound/hdmi-codec.h                   |  17 +-
- include/trace/events/cpuhp.h                 |  22 +
- include/trace/events/sched.h                 |   7 +-
- include/uapi/drm/drm_fourcc.h                |   2 +
- include/uapi/linux/media-bus-format.h        |   6 +-
- include/uapi/linux/serial_reg.h              |   1 +
- include/uapi/linux/usb/ch9.h                 |  13 +
- include/uapi/linux/usb/f_accessory.h         | 146 ++++++
- include/uapi/linux/usb/g_uvc.h               |   4 +-
- include/uapi/linux/usb/video.h               |  58 +++
- include/uapi/linux/v4l2-controls.h           |   6 +
- include/uapi/linux/videodev2.h               |   1 +
- 79 files changed, 2009 insertions(+), 187 deletions(-)
- create mode 100644 include/uapi/linux/usb/f_accessory.h
-
 diff --git a/include/drm/bridge/analogix_dp.h b/include/drm/bridge/analogix_dp.h
 index b0dcc0733..291eb8787 100644
 --- a/include/drm/bridge/analogix_dp.h
@@ -921,7 +832,7 @@ index d9b69bbde..ebfb4e7c1 100644
  
  /*
 diff --git a/include/linux/bpf.h b/include/linux/bpf.h
-index 3a383a485..f83f5fa0a 100644
+index a8b2625e5..469fa0f9f 100644
 --- a/include/linux/bpf.h
 +++ b/include/linux/bpf.h
 @@ -173,7 +173,7 @@ struct bpf_map {
@@ -933,7 +844,7 @@ index 3a383a485..f83f5fa0a 100644
  };
  
  static inline bool map_value_has_spin_lock(const struct bpf_map *map)
-@@ -1332,7 +1332,6 @@ void bpf_map_charge_move(struct bpf_map_memory *dst,
+@@ -1333,7 +1333,6 @@ void bpf_map_charge_move(struct bpf_map_memory *dst,
  void *bpf_map_area_alloc(u64 size, int numa_node);
  void *bpf_map_area_mmapable_alloc(u64 size, int numa_node);
  void bpf_map_area_free(void *base);
@@ -1726,7 +1637,7 @@ index 6976b8331..943c3411c 100644
  int its_map_vlpi(int irq, struct its_vlpi_map *map);
  int its_get_vlpi(int irq, struct its_vlpi_map *map);
 diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index 1a8d25f2e..de15a4d15 100644
+index 3baea2ef3..2b770134c 100644
 --- a/include/linux/memblock.h
 +++ b/include/linux/memblock.h
 @@ -25,6 +25,10 @@ extern unsigned long max_pfn;
@@ -2471,10 +2382,10 @@ index 81a55e974..aefa0b0bc 100644
  					enum power_supply_property psp);
  extern void power_supply_external_power_changed(struct power_supply *psy);
 diff --git a/include/linux/psi_types.h b/include/linux/psi_types.h
-index b95f32115..4b73f0f19 100644
+index 17d74f62c..541b45881 100644
 --- a/include/linux/psi_types.h
 +++ b/include/linux/psi_types.h
-@@ -157,6 +157,7 @@ struct psi_group {
+@@ -154,6 +154,7 @@ struct psi_group {
  	struct timer_list poll_timer;
  	wait_queue_head_t poll_wait;
  	atomic_t poll_wakeup;
@@ -2562,7 +2473,7 @@ index ce8df2186..e8703b6fc 100644
  
  #endif /* __FAN53555_H__ */
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 4948f0925..eed4f9e52 100644
+index a67583bfa..c7290fa02 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -1366,7 +1366,7 @@ struct task_struct {
@@ -2574,6 +2485,18 @@ index 4948f0925..eed4f9e52 100644
  	unsigned int			kasan_depth;
  #endif
  
+@@ -1702,11 +1702,9 @@ extern struct pid *cad_pid;
+ #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
+ #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
+ #define PF_SWAPWRITE		0x00800000	/* Allowed to write to swap */
+-
+ #ifdef CONFIG_WGCM
+ #define PF_WGCM_WORKER		0x01000000	/* WGCM worker*/
+ #endif
+-
+ #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
+ #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
+ #define PF_MEMALLOC_NOCMA	0x10000000	/* All allocation request will have _GFP_MOVABLE cleared */
 diff --git a/include/linux/sched/hotplug.h b/include/linux/sched/hotplug.h
 index 9a62ffdd2..89fb9b027 100644
 --- a/include/linux/sched/hotplug.h
@@ -4168,6 +4091,3 @@ index 534eaa4d3..eb01fb549 100644
  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264 without start codes */
  #define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /* H264 MVC */
--- 
-2.25.1
-

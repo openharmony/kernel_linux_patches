@@ -1,62 +1,44 @@
-From 6c1e63806b6cfca3f5437016573fa31d312a10b0 Mon Sep 17 00:00:00 2001
-From: jiewangdp <jiewangdp@isoftstone.com>
-Date: Wed, 3 Aug 2022 10:42:33 +0800
-Subject: [PATCH] others
-
-Change-Id: I09d9e99c52026321c1e21cdabf263c6c380032e9
----
- Makefile                                      |   6 +-
- fs/ubifs/recovery.c                           |  41 +++++-
- fs/xfs/xfs_inode.c                            |  14 +-
- init/Kconfig                                  |   6 +
- init/initramfs.c                              |  23 +++
- init/main.c                                   |   8 ++
- ipc/msg.c                                     |   2 +-
- ipc/sem.c                                     |   9 +-
- ipc/shm.c                                     |   2 +-
- ipc/util.c                                    |  16 ++-
- make-boot.sh                                  |  31 ++++
- make-ohos.sh                                  | 134 ++++++++++++++++++
- mm/hugetlb.c                                  |  23 +--
- mm/memblock.c                                 |  51 +++++++
- mm/page_alloc.c                               |  23 ++-
- .../multibuff/device_app/aio_multibuff.c      |  68 ++++++++-
- .../simple/device_app/aio_simple.c            |  68 ++++++++-
- 17 files changed, 473 insertions(+), 52 deletions(-)
- create mode 100755 make-boot.sh
- create mode 100755 make-ohos.sh
-
 diff --git a/Makefile b/Makefile
-index 8ae72cc7d..ba3d542a9 100644
+index 50696cff4..b49495d39 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -494,7 +494,7 @@ LINUXINCLUDE    := \
- 		$(USERINCLUDE)
+@@ -1236,9 +1236,15 @@ include/config/kernel.release: FORCE
+ # Carefully list dependencies so we do not try to build scripts twice
+ # in parallel
+ PHONY += scripts
+-scripts: scripts_basic scripts_dtc
++scripts: scripts_basic scripts_dtc vendor_scripts
+ 	$(Q)$(MAKE) $(build)=$(@)
  
- KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE
--KBUILD_CFLAGS   := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
-+KBUILD_CFLAGS   := -Wall -Wundef -Wno-trigraphs \
- 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
- 		   -Werror=implicit-function-declaration -Werror=implicit-int \
- 		   -Werror=return-type -Wno-format-security \
-@@ -851,7 +851,7 @@ KBUILD_LDFLAGS	+= --compress-debug-sections=zlib
++ifdef CONFIG_ARCH_ROCKCHIP
++PHONY += vendor_scripts
++vendor_scripts:
++	$(Q)$(MAKE) $(build)=$(KERNEL_SOURCE_PATH)/scripts
++endif
++
+ # Things we need to do before we recursively start building the kernel
+ # or the modules are listed in "prepare".
+ # A multi level approach is used. prepareN is processed before prepareN-1.
+@@ -1388,12 +1394,18 @@ kselftest-merge:
+ 
+ ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/boot/dts/),)
+ dtstree := arch/$(SRCARCH)/boot/dts
++vendortree := $(KERNEL_SOURCE_PATH)/arch/arm64/boot/dts
++objdtstree := $(KBUILD_OUTPUT)/arch/arm64/boot/dts/rockchip
  endif
  
- endif # CONFIG_DEBUG_INFO
--
-+KBUILD_CFLAGS += -Wno-unused-function
- KBUILD_CFLAGS += $(DEBUG_CFLAGS)
- export DEBUG_CFLAGS
+ ifneq ($(dtstree),)
  
-@@ -945,7 +945,7 @@ KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
- KBUILD_CFLAGS   += -Werror=date-time
++ifneq ($(objdtstree),)
++$(shell mkdir -p $(objdtstree))
++
+ %.dtb: include/config/kernel.release scripts_dtc
+-	$(Q)$(MAKE) $(build)=$(dtstree) $(dtstree)/$@
++	$(Q)$(MAKE) $(build)=$(vendortree) $(vendortree)/$@
++endif
  
- # enforce correct pointer usage
--KBUILD_CFLAGS   += $(call cc-option,-Werror=incompatible-pointer-types)
-+#KBUILD_CFLAGS   += $(call cc-option,-Werror=incompatible-pointer-types)
- 
- # Require designated initializers for all marked structures
- KBUILD_CFLAGS   += $(call cc-option,-Werror=designated-init)
+ PHONY += dtbs dtbs_install dtbs_check
+ dtbs: include/config/kernel.release scripts_dtc
 diff --git a/fs/ubifs/recovery.c b/fs/ubifs/recovery.c
 index f0d51dd21..c81fbe355 100644
 --- a/fs/ubifs/recovery.c
@@ -147,7 +129,7 @@ index 511c9363e..2bfbcf28b 100644
  
  	/*
 diff --git a/init/Kconfig b/init/Kconfig
-index 23db5012f..3283135fa 100644
+index 7acf079f9..17d0151bb 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -1348,6 +1348,12 @@ if BLK_DEV_INITRD
@@ -210,10 +192,10 @@ index 55b74d7e5..f4c4e2404 100644
  rootfs_initcall(populate_rootfs);
 +#endif
 diff --git a/init/main.c b/init/main.c
-index 3a87bc79a..5aa7dadc9 100644
+index e8d5c6477..885ce026d 100644
 --- a/init/main.c
 +++ b/init/main.c
-@@ -1532,6 +1532,10 @@ static noinline void __init kernel_init_freeable(void)
+@@ -1533,6 +1533,10 @@ static noinline void __init kernel_init_freeable(void)
  	smp_init();
  	sched_init_smp();
  
@@ -224,7 +206,7 @@ index 3a87bc79a..5aa7dadc9 100644
  	padata_init();
  	page_alloc_init_late();
  	/* Initialize page ext after all struct pages are initialized. */
-@@ -1541,6 +1545,10 @@ static noinline void __init kernel_init_freeable(void)
+@@ -1542,6 +1546,10 @@ static noinline void __init kernel_init_freeable(void)
  
  	kunit_run_all_tests();
  
@@ -290,10 +272,10 @@ index d3b9b73cd..7d9c06b0a 100644
  			return -ENOMEM;
  	}
 diff --git a/ipc/shm.c b/ipc/shm.c
-index fce0b7b12..e25c7c610 100644
+index b418731d6..471ac3e74 100644
 --- a/ipc/shm.c
 +++ b/ipc/shm.c
-@@ -619,7 +619,7 @@ static int newseg(struct ipc_namespace *ns, struct ipc_params *params)
+@@ -711,7 +711,7 @@ static int newseg(struct ipc_namespace *ns, struct ipc_params *params)
  			ns->shm_tot + numpages > ns->shm_ctlall)
  		return -ENOSPC;
  
@@ -303,7 +285,7 @@ index fce0b7b12..e25c7c610 100644
  		return -ENOMEM;
  
 diff --git a/ipc/util.c b/ipc/util.c
-index cc46cfa06..cfa0045e7 100644
+index 7c3601dad..bbb5190af 100644
 --- a/ipc/util.c
 +++ b/ipc/util.c
 @@ -754,13 +754,21 @@ struct pid_namespace *ipc_seq_pid_ns(struct seq_file *s)
@@ -334,22 +316,24 @@ index cc46cfa06..cfa0045e7 100644
  			rcu_read_lock();
 diff --git a/make-boot.sh b/make-boot.sh
 new file mode 100755
-index 000000000..f4cd4c452
+index 000000000..d512e8a88
 --- /dev/null
 +++ b/make-boot.sh
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,33 @@
 +#!/bin/bash
 +
 +set -e
-+BOOT_LINUX=${1}/kernel/src_tmp/linux-5.10
-+OUT_IMAGE=${1}/yangfan/packages/phone/images/
++
++root_path=$(cd $(dirname $0); pwd)
++root_out_dir=${root_path%kernel*}
++BOOT_LINUX=${root_out_dir}/kernel/src_tmp/linux-5.10
++OUT_IMAGE=${root_out_dir}/yangfan/packages/phone/images/
 +IMAGE_SIZE=64  # 64M
 +IMAGE_BLOCKS=4096
 +
 +BUILD_PATH=boot_linux
 +EXTLINUX_PATH=${BUILD_PATH}/extlinux
 +EXTLINUX_CONF=${EXTLINUX_PATH}/extlinux.conf
-+TOYBRICK_DTB=toybrick.dtb
 +
 +function make_boot_image()
 +{
@@ -371,26 +355,30 @@ index 000000000..f4cd4c452
 +cp ${BOOT_LINUX}/boot_linux.img ${OUT_IMAGE}
 diff --git a/make-ohos.sh b/make-ohos.sh
 new file mode 100755
-index 000000000..676ce26ff
+index 000000000..8f4a4e4d7
 --- /dev/null
 +++ b/make-ohos.sh
-@@ -0,0 +1,134 @@
+@@ -0,0 +1,138 @@
 +#!/bin/bash
 +
 +set -e
 +
-+export PATH=../../../../prebuilts/clang/ohos/linux-x86_64/llvm/bin/:$PATH
++real_path=$(cd $(dirname $0); pwd)
++
 +export PRODUCT_PATH=vendor/isoftstone/yangfan
++export KERNEL_SOURCE_PATH=${real_path%out*}${PRODUCT_PATH}/kernel_core
++export PATH=${real_path%out*}prebuilts/clang/ohos/linux-x86_64/llvm/bin/:$PATH
 +IMAGE_SIZE=64  # 64M
 +IMAGE_BLOCKS=4096
 +
 +CPUs=`sed -n "N;/processor/p" /proc/cpuinfo|wc -l`
-+MAKE="make CROSS_COMPILE=../../../../prebuilts/gcc/linux-x86/aarch64/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-"
++MAKE="make LLVM=1 LLVM_IAS=1 CROSS_COMPILE=../../../../prebuilts/gcc/linux-x86/aarch64/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-"
 +BUILD_PATH=boot_linux
 +EXTLINUX_PATH=${BUILD_PATH}/extlinux
 +EXTLINUX_CONF=${EXTLINUX_PATH}/extlinux.conf
-+TOYBRICK_DTB=toybrick.dtb
-+MCU_LIB_FILE=../../../../device/board/isoftstone/yangfan/kernel/src/mcu/*.o
++SAPPHIRE_DTB=sapphire.dtb
++
++MCU_LIB_FILE=${real_path%out*}device/board/isoftstone/yangfan/kernel/src/mcu/*.o
 +MCU_OBJ_PATCH=drivers/char
 +if [ ${KBUILD_OUTPUT} ]; then
 +	OBJ_PATH=${KBUILD_OUTPUT}/
@@ -411,10 +399,10 @@ index 000000000..676ce26ff
 +
 +function help()
 +{
-+	echo "Usage: ./make-ohos.sh {BOARD_NAME}"
++	echo "Usage: ./make-ohos.sh {BOARD_NAME} KBUILD_OUTPUT=../../OBJ/linux-5.10"
 +	echo "e.g."
 +	for i in "${model_list[@]}"; do
-+		echo "  ./make-ohos.sh $(echo $i | awk '{print $1}')"
++		echo "  ./make-ohos.sh $(echo $i | awk '{print $1}') KBUILD_OUTPUT=../../OBJ/linux-5.10"
 +	done
 +}
 +
@@ -427,7 +415,7 @@ index 000000000..676ce26ff
 +
 +	echo "label rockchip-kernel-5.10" > ${EXTLINUX_CONF}
 +	echo "	kernel /extlinux/${image}" >> ${EXTLINUX_CONF}
-+	echo "	fdt /extlinux/${TOYBRICK_DTB}" >> ${EXTLINUX_CONF}
++	echo "	fdt /extlinux/${SAPPHIRE_DTB}" >> ${EXTLINUX_CONF}
 +	cmdline="append earlycon=uart8250,mmio32,${uart} root=PARTUUID=614e0000-0000-4b53-8000-1d28000054a9 rw rootwait rootfstype=ext4"
 +	echo "  ${cmdline}" >> ${EXTLINUX_CONF}
 +}
@@ -489,7 +477,7 @@ index 000000000..676ce26ff
 +	fi
 +	make_extlinux_conf ${dtb_path} ${uart} ${image}
 +	cp -f ${OBJ_PATH}arch/${arch}/boot/${image} ${EXTLINUX_PATH}/
-+	cp -f ${OBJ_PATH}${dtb_path}/${dtb}.dtb ${EXTLINUX_PATH}/${TOYBRICK_DTB}
++	cp -f ${OBJ_PATH}${dtb_path}/${dtb}.dtb ${EXTLINUX_PATH}/${SAPPHIRE_DTB}
 +	cp -f logo*.bmp ${BUILD_PATH}/
 +	if [ "enable_ramdisk" != "${ramdisk_flag}" ]; then
 +		make_ext2_image
@@ -558,7 +546,7 @@ index 4ecf9a062..20277864c 100644
  
  void __unmap_hugepage_range_final(struct mmu_gather *tlb,
 diff --git a/mm/memblock.c b/mm/memblock.c
-index c337df03b..3b9d75e55 100644
+index faa4de579..3f3254627 100644
 --- a/mm/memblock.c
 +++ b/mm/memblock.c
 @@ -97,6 +97,26 @@ struct pglist_data __refdata contig_page_data;
@@ -588,7 +576,7 @@ index c337df03b..3b9d75e55 100644
  unsigned long max_low_pfn;
  unsigned long min_low_pfn;
  unsigned long max_pfn;
-@@ -1906,6 +1926,28 @@ static void __init __free_pages_memory(unsigned long start, unsigned long end)
+@@ -1907,6 +1927,28 @@ static void __init __free_pages_memory(unsigned long start, unsigned long end)
  	}
  }
  
@@ -617,7 +605,7 @@ index c337df03b..3b9d75e55 100644
  static unsigned long __init __free_memory_core(phys_addr_t start,
  				 phys_addr_t end)
  {
-@@ -1916,6 +1958,15 @@ static unsigned long __init __free_memory_core(phys_addr_t start,
+@@ -1917,6 +1959,15 @@ static unsigned long __init __free_memory_core(phys_addr_t start,
  	if (start_pfn >= end_pfn)
  		return 0;
  
@@ -634,7 +622,7 @@ index c337df03b..3b9d75e55 100644
  
  	return end_pfn - start_pfn;
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 6842f539c..61095d5d0 100644
+index 85e48479c..dbfb65fb7 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
 @@ -1445,9 +1445,15 @@ static void free_one_page(struct zone *zone,
@@ -672,7 +660,7 @@ index 6842f539c..61095d5d0 100644
  		nr_pages++;
  	}
  	return (nr_pages);
-@@ -6167,6 +6173,11 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+@@ -6169,6 +6175,11 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
  	}
  #endif
  
@@ -684,7 +672,7 @@ index 6842f539c..61095d5d0 100644
  	for (pfn = start_pfn; pfn < end_pfn; ) {
  		/*
  		 * There can be holes in boot-time mem_map[]s handed to this
-@@ -6180,7 +6191,7 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+@@ -6182,7 +6193,7 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
  		}
  
  		page = pfn_to_page(pfn);
@@ -693,7 +681,7 @@ index 6842f539c..61095d5d0 100644
  		if (context == MEMINIT_HOTPLUG)
  			__SetPageReserved(page);
  
-@@ -6226,7 +6237,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
+@@ -6228,7 +6239,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
  	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
  		struct page *page = pfn_to_page(pfn);
  
@@ -702,7 +690,7 @@ index 6842f539c..61095d5d0 100644
  
  		/*
  		 * Mark page reserved as it will need to wait for onlining
-@@ -6311,7 +6322,7 @@ static void __init init_unavailable_range(unsigned long spfn,
+@@ -6313,7 +6324,7 @@ static void __init init_unavailable_range(unsigned long spfn,
  				+ pageblock_nr_pages - 1;
  			continue;
  		}
@@ -711,6 +699,72 @@ index 6842f539c..61095d5d0 100644
  		__SetPageReserved(pfn_to_page(pfn));
  		pgcnt++;
  	}
+diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
+index 53aa3e18c..7ca0ddfa6 100644
+--- a/scripts/Makefile.lib
++++ b/scripts/Makefile.lib
+@@ -318,8 +318,9 @@ $(obj)/%.dtb.S: $(obj)/%.dtb FORCE
+ 	$(call if_changed,dt_S_dtb)
+ 
+ quiet_cmd_dtc = DTC     $@
+-cmd_dtc = $(HOSTCC) -E $(dtc_cpp_flags) -x assembler-with-cpp -o $(dtc-tmp) $< ; \
+-	$(DTC) -O $(patsubst .%,%,$(suffix $@)) -o $@ -b 0 \
++cmd_dtc = mkdir -p $(dir ${dtc-tmp}) ; \
++      $(CPP) $(dtc_cpp_flags) -x assembler-with-cpp -o $(dtc-tmp) $< ; \
++      $(DTC) -O dtb -o $@ -b 0 \
+ 		$(addprefix -i,$(dir $<) $(DTC_INCLUDE)) $(DTC_FLAGS) \
+ 		-d $(depfile).dtc.tmp $(dtc-tmp) ; \
+ 	cat $(depfile).pre.tmp $(depfile).dtc.tmp > $(depfile)
+diff --git a/scripts/dtc/checks.c b/scripts/dtc/checks.c
+index 17cb6890d..913fb08af 100644
+--- a/scripts/dtc/checks.c
++++ b/scripts/dtc/checks.c
+@@ -649,6 +649,24 @@ static void fixup_omit_unused_nodes(struct check *c, struct dt_info *dti,
+ 		return;
+ 	if (node->omit_if_unused && !node->is_referenced)
+ 		delete_node(node);
++
++	if (node->deleted) {
++		struct node *parent = node->parent;
++		struct node *child;
++		struct label *label;
++		struct property *prop;
++
++		for_each_label(parent->labels, label)
++			return;
++
++		for_each_property(parent, prop)
++			return;
++
++		for_each_child(parent, child)
++			return;
++
++		delete_node(parent);
++	}
+ }
+ ERROR(omit_unused_nodes, fixup_omit_unused_nodes, NULL, &phandle_references, &path_references);
+ 
+diff --git a/security/Kconfig.hardening b/security/Kconfig.hardening
+index 269967c4f..9eb73dc1b 100644
+--- a/security/Kconfig.hardening
++++ b/security/Kconfig.hardening
+@@ -29,7 +29,7 @@ choice
+ 	prompt "Initialize kernel stack variables at function entry"
+ 	default GCC_PLUGIN_STRUCTLEAK_BYREF_ALL if COMPILE_TEST && GCC_PLUGINS
+ 	default INIT_STACK_ALL_PATTERN if COMPILE_TEST && CC_HAS_AUTO_VAR_INIT_PATTERN
+-	default INIT_STACK_NONE
++	default INIT_STACK_ALL_ZERO
+ 	help
+ 	  This option enables initialization of stack variables at
+ 	  function entry time. This has the possibility to have the
+@@ -190,6 +190,7 @@ config STACKLEAK_RUNTIME_DISABLE
+ 
+ config INIT_ON_ALLOC_DEFAULT_ON
+ 	bool "Enable heap memory zeroing on allocation by default"
++	default y
+ 	help
+ 	  This has the effect of setting "init_on_alloc=1" on the kernel
+ 	  command line. This can be disabled with "init_on_alloc=0".
 diff --git a/tools/usb/ffs-aio-example/multibuff/device_app/aio_multibuff.c b/tools/usb/ffs-aio-example/multibuff/device_app/aio_multibuff.c
 index aaca1f44e..8643beaf2 100644
 --- a/tools/usb/ffs-aio-example/multibuff/device_app/aio_multibuff.c
@@ -901,6 +955,3 @@ index 1f44a2981..51574379f 100644
  };
  
  #define STR_INTERFACE "AIO Test"
--- 
-2.25.1
-

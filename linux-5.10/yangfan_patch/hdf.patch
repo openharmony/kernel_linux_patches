@@ -1,10 +1,10 @@
 diff --git a/arch/arm64/kernel/vmlinux.lds.S b/arch/arm64/kernel/vmlinux.lds.S
-index 71f4b5f24..7c55f7c61 100644
+index 31fdb55cd..af8007128 100644
 --- a/arch/arm64/kernel/vmlinux.lds.S
 +++ b/arch/arm64/kernel/vmlinux.lds.S
 @@ -201,6 +201,15 @@ SECTIONS
  		INIT_RAM_FS
- 		*(.init.rodata.* .init.bss)	/* from the EFI stub */
+ 		*(.init.altinstructions .init.rodata.* .init.bss)	/* from the EFI stub */
  	}
 +
 +#ifdef CONFIG_DRIVERS_HDF
@@ -301,7 +301,7 @@ index 580d37834..fb945f4ce 100644
  			goto out_unwind;
  		hidinput->registered = true;
 diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-index a48e5f2d8..90d25f224 100644
+index a48e5f2d8..2a1480815 100644
 --- a/drivers/input/misc/Makefile
 +++ b/drivers/input/misc/Makefile
 @@ -85,3 +85,17 @@ obj-$(CONFIG_INPUT_XEN_KBDDEV_FRONTEND)	+= xen-kbdfront.o
