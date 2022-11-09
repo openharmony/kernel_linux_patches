@@ -2473,10 +2473,10 @@ index ce8df2186..e8703b6fc 100644
  
  #endif /* __FAN53555_H__ */
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index a67583bfa..c7290fa02 100644
+index 3dca22f2a..ef9d4a196 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -1366,7 +1366,7 @@ struct task_struct {
+@@ -1356,7 +1356,7 @@ struct task_struct {
  	u64				timer_slack_ns;
  	u64				default_timer_slack_ns;
  
@@ -2485,15 +2485,13 @@ index a67583bfa..c7290fa02 100644
  	unsigned int			kasan_depth;
  #endif
  
-@@ -1702,11 +1702,9 @@ extern struct pid *cad_pid;
+@@ -1692,6 +1692,9 @@ extern struct pid *cad_pid;
  #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
  #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
  #define PF_SWAPWRITE		0x00800000	/* Allowed to write to swap */
--
- #ifdef CONFIG_WGCM
- #define PF_WGCM_WORKER		0x01000000	/* WGCM worker*/
- #endif
--
++#ifdef CONFIG_WGCM
++#define PF_WGCM_WORKER		0x01000000	/* WGCM worker*/
++#endif
  #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
  #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
  #define PF_MEMALLOC_NOCMA	0x10000000	/* All allocation request will have _GFP_MOVABLE cleared */
@@ -3724,7 +3722,7 @@ index ad16f7731..f302ab6db 100644
  
  /* This part must be outside protection */
 diff --git a/include/trace/events/sched.h b/include/trace/events/sched.h
-index 11b133fa9..421c9848c 100644
+index dd5fff2bb..6c6a23b4b 100644
 --- a/include/trace/events/sched.h
 +++ b/include/trace/events/sched.h
 @@ -203,6 +203,7 @@ TRACE_EVENT(sched_migrate_task,
