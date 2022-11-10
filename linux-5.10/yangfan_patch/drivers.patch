@@ -1,243 +1,5 @@
-From 2c04d50c10d60e3df37e91391576e9b53fa2e5bc Mon Sep 17 00:00:00 2001
-From: jiewangdp <jiewangdp@isoftstone.com>
-Date: Fri, 16 Sep 2022 10:38:52 +0800
-Subject: [PATCH] drivers
-
-Change-Id: I9825adaa8537a316db8a1831e759a74223b9e428
----
- drivers/Makefile                              |    2 +
- drivers/block/nbd.c                           |    6 -
- drivers/char/Makefile                         |    2 +
- drivers/clk/Kconfig                           |    7 +
- drivers/clk/clk.c                             |    2 +-
- drivers/clk/rockchip/Kconfig                  |   42 +-
- drivers/clk/rockchip/Makefile                 |    2 +
- drivers/clk/rockchip/clk-cpu.c                |   92 +-
- drivers/clk/rockchip/clk-ddr.c                |  171 +-
- drivers/clk/rockchip/clk-half-divider.c       |   35 +-
- drivers/clk/rockchip/clk-pll.c                |  779 ++-
- drivers/clk/rockchip/clk-rk3399.c             |  589 +-
- drivers/clk/rockchip/clk.c                    |  200 +-
- drivers/clk/rockchip/clk.h                    |  358 +-
- drivers/clocksource/Kconfig                   |    4 +-
- drivers/clocksource/timer-rockchip.c          |   33 +
- drivers/cpufreq/Kconfig.arm                   |   10 +
- drivers/cpufreq/Makefile                      |    3 +-
- drivers/cpufreq/cpufreq-dt-platdev.c          |   37 +-
- drivers/cpufreq/cpufreq-dt.c                  |  168 +-
- drivers/cpufreq/cpufreq.c                     |    7 +-
- drivers/cpufreq/cpufreq_userspace.c           |    6 +-
- drivers/cpuidle/driver.c                      |    1 +
- drivers/cpuidle/governor.c                    |    2 +
- drivers/devfreq/Kconfig                       |   13 +-
- drivers/devfreq/Makefile                      |    5 +-
- drivers/devfreq/devfreq.c                     |   35 +
- drivers/devfreq/event/Kconfig                 |    7 +
- drivers/devfreq/event/Makefile                |    1 +
- drivers/devfreq/event/rockchip-dfi.c          |  563 +-
- drivers/dma-buf/Kconfig                       |    3 +-
- drivers/dma-buf/dma-buf-sysfs-stats.h         |   27 +
- drivers/dma-buf/dma-buf.c                     |  144 +-
- drivers/dma-buf/dma-fence.c                   |   70 +-
- drivers/dma-buf/dma-heap.c                    |  221 +-
- drivers/dma-buf/heaps/Kconfig                 |   16 +-
- drivers/dma-buf/heaps/Makefile                |    3 +-
- drivers/dma-buf/heaps/cma_heap.c              |  336 +-
- drivers/dma-buf/heaps/system_heap.c           |  575 +-
- drivers/dma-buf/sw_sync.c                     |   12 +
- drivers/dma-buf/sync_debug.c                  |    2 +
- drivers/dma-buf/sync_debug.h                  |    7 +
- drivers/firmware/Kconfig                      |    9 +-
- drivers/firmware/Makefile                     |    1 +
- drivers/gpio/Kconfig                          |    8 +
- drivers/gpio/Makefile                         |    1 +
- drivers/gpio/gpiolib-of.c                     |   11 +
- drivers/gpio/gpiolib-of.h                     |    5 +
- drivers/gpu/Makefile                          |    2 +-
- drivers/gpu/drm/Kconfig                       |   24 +-
- drivers/gpu/drm/Makefile                      |   11 +-
- drivers/gpu/drm/amd/display/Kconfig           |    2 -
- drivers/gpu/drm/bridge/Kconfig                |   16 +
- drivers/gpu/drm/bridge/Makefile               |    2 +
- .../drm/bridge/analogix/analogix_dp_core.c    |  953 ++--
- .../drm/bridge/analogix/analogix_dp_core.h    |   61 +-
- .../gpu/drm/bridge/analogix/analogix_dp_reg.c | 1054 ++--
- .../gpu/drm/bridge/analogix/analogix_dp_reg.h |   99 +-
- drivers/gpu/drm/bridge/display-connector.c    |  132 +-
- drivers/gpu/drm/bridge/lontium-lt9611.c       |    8 +-
- drivers/gpu/drm/bridge/nwl-dsi.c              |    2 +-
- drivers/gpu/drm/bridge/sii902x.c              |  280 +-
- drivers/gpu/drm/bridge/synopsys/Makefile      |    7 +-
- drivers/gpu/drm/bridge/synopsys/dw-hdmi-cec.c |    3 +
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c     | 1747 +++++-
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.h     |   55 +
- drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c |  111 +-
- drivers/gpu/drm/drm_atomic_helper.c           |   12 +-
- drivers/gpu/drm/drm_atomic_state_helper.c     |    7 +
- drivers/gpu/drm/drm_atomic_uapi.c             |   14 +
- drivers/gpu/drm/drm_auth.c                    |   42 +-
- drivers/gpu/drm/drm_color_mgmt.c              |   41 +-
- drivers/gpu/drm/drm_crtc_internal.h           |   22 +
- drivers/gpu/drm/drm_debugfs.c                 |    3 +-
- drivers/gpu/drm/drm_edid.c                    |  122 +-
- drivers/gpu/drm/drm_file.c                    |   69 +-
- drivers/gpu/drm/drm_fourcc.c                  |   10 +
- drivers/gpu/drm/drm_ioctl.c                   |    8 +-
- drivers/gpu/drm/drm_lease.c                   |   81 +-
- drivers/gpu/drm/drm_mipi_dsi.c                |    1 +
- drivers/gpu/drm/drm_mode_config.c             |   16 +
- drivers/gpu/drm/drm_modes.c                   |    2 +
- drivers/gpu/drm/drm_prime.c                   |   23 +
- drivers/gpu/drm/drm_vblank.c                  |    9 +-
- .../gpu/drm/hisilicon/kirin/kirin_ade_reg.h   |    4 +-
- drivers/gpu/drm/panel/Kconfig                 |    1 -
- drivers/gpu/drm/panel/Makefile                |    2 +
- drivers/gpu/drm/panel/panel-simple.c          |  511 +-
- drivers/gpu/drm/panfrost/panfrost_device.h    |    8 +-
- drivers/gpu/drm/panfrost/panfrost_drv.c       |   50 +-
- drivers/gpu/drm/panfrost/panfrost_gem.c       |   20 +-
- drivers/gpu/drm/panfrost/panfrost_job.c       |    4 +-
- drivers/gpu/drm/panfrost/panfrost_mmu.c       |  198 +-
- drivers/gpu/drm/panfrost/panfrost_mmu.h       |    5 +-
- drivers/gpu/drm/panfrost/panfrost_regs.h      |    2 -
- drivers/gpu/drm/rockchip/Kconfig              |   73 +-
- drivers/gpu/drm/rockchip/Makefile             |   18 +-
- .../gpu/drm/rockchip/analogix_dp-rockchip.c   |  422 +-
- drivers/gpu/drm/rockchip/cdn-dp-core.c        |  109 +-
- drivers/gpu/drm/rockchip/cdn-dp-core.h        |    5 +-
- .../gpu/drm/rockchip/dw-mipi-dsi-rockchip.c   |  596 ++-
- drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c   | 3202 ++++++++++-
- drivers/gpu/drm/rockchip/inno_hdmi.c          |    2 +-
- drivers/gpu/drm/rockchip/rk3066_hdmi.c        |    2 +-
- drivers/gpu/drm/rockchip/rockchip_drm_drv.c   | 1454 ++++-
- drivers/gpu/drm/rockchip/rockchip_drm_drv.h   |  430 +-
- drivers/gpu/drm/rockchip/rockchip_drm_fb.c    |  153 +-
- drivers/gpu/drm/rockchip/rockchip_drm_fb.h    |   19 +
- drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c |   18 +-
- drivers/gpu/drm/rockchip/rockchip_drm_gem.c   |  637 ++-
- drivers/gpu/drm/rockchip/rockchip_drm_gem.h   |   47 +-
- drivers/gpu/drm/rockchip/rockchip_drm_vop.c   | 4724 +++++++++++++----
- drivers/gpu/drm/rockchip/rockchip_drm_vop.h   | 1156 +++-
- drivers/gpu/drm/rockchip/rockchip_lvds.c      |  964 ++--
- drivers/gpu/drm/rockchip/rockchip_rgb.c       |  557 +-
- drivers/gpu/drm/rockchip/rockchip_rgb.h       |    6 +-
- drivers/gpu/drm/rockchip/rockchip_vop_reg.c   | 2524 ++++++---
- drivers/gpu/drm/rockchip/rockchip_vop_reg.h   |  818 ++-
- drivers/i2c/busses/i2c-rk3x.c                 |  383 +-
- drivers/i2c/i2c-core-base.c                   |   51 +-
- drivers/iio/adc/Kconfig                       |    7 +
- drivers/iio/adc/rockchip_saradc.c             |  143 +-
- drivers/input/Kconfig                         |    2 +
- drivers/input/Makefile                        |    1 +
- drivers/input/touchscreen/Kconfig             |    9 +
- drivers/input/touchscreen/Makefile            |    1 +
- drivers/iommu/Kconfig                         |    3 +-
- drivers/iommu/dma-iommu.c                     |   50 +
- drivers/iommu/iommu.c                         |  155 +-
- drivers/iommu/rockchip-iommu.c                |  690 ++-
- drivers/irqchip/Kconfig                       |    5 +-
- drivers/irqchip/irq-gic-v3-its.c              |   60 +-
- drivers/irqchip/irq-gic-v3.c                  |   26 +
- drivers/irqchip/irq-gic-v4.c                  |   19 +
- drivers/irqchip/irq-meson-gpio.c              |   89 +-
- drivers/mailbox/rockchip-mailbox.c            |  135 +-
- drivers/media/i2c/Kconfig                     |   34 +
- drivers/media/i2c/Makefile                    |    3 +
- drivers/media/platform/Kconfig                |    3 +
- drivers/media/platform/Makefile               |    3 +
- drivers/media/usb/uvc/uvc_driver.c            |    7 +-
- drivers/media/v4l2-core/v4l2-async.c          |   54 +
- drivers/mfd/rk808.c                           |  928 +++-
- drivers/mmc/core/block.c                      |    3 +
- drivers/mmc/core/block.h                      |    1 +
- drivers/mmc/core/core.h                       |    2 +
- drivers/mmc/core/host.c                       |   45 +
- drivers/mmc/core/sdio.c                       |  424 +-
- drivers/mmc/host/Makefile                     |    1 +
- drivers/mmc/host/dw_mmc-rockchip.c            |   95 +-
- drivers/mmc/host/dw_mmc.h                     |    2 +
- drivers/mmc/host/sdhci-of-dwcmshc.c           |  260 +-
- drivers/net/ethernet/stmicro/stmmac/Makefile  |    3 +-
- .../net/ethernet/stmicro/stmmac/dwmac-rk.c    |  932 +++-
- drivers/net/wireless/Kconfig                  |    1 +
- drivers/net/wireless/Makefile                 |    1 +
- drivers/nvmem/core.c                          |    4 +
- drivers/nvmem/rockchip-efuse.c                |  348 +-
- drivers/nvmem/rockchip-otp.c                  |   22 +-
- drivers/opp/debugfs.c                         |   44 +
- drivers/opp/of.c                              |    2 +-
- drivers/pci/controller/Makefile               |    6 +-
- drivers/pci/controller/dwc/Kconfig            |    9 +
- drivers/pci/controller/dwc/Makefile           |    1 +
- drivers/pci/controller/dwc/pcie-designware.h  |    1 +
- drivers/pci/controller/pcie-rockchip.c        |    5 +
- drivers/phy/rockchip/Kconfig                  |  100 +
- drivers/phy/rockchip/Makefile                 |   12 +-
- .../phy/rockchip/phy-rockchip-inno-dsidphy.c  |  434 +-
- drivers/phy/rockchip/phy-rockchip-inno-usb2.c | 2597 +++++++--
- drivers/phy/rockchip/phy-rockchip-pcie.c      |   12 +-
- drivers/phy/rockchip/phy-rockchip-typec.c     |  733 ++-
- drivers/phy/rockchip/phy-rockchip-usb.c       |  628 ++-
- drivers/pinctrl/Kconfig                       |    7 +-
- drivers/pinctrl/Makefile                      |    2 +
- drivers/pinctrl/pinctrl-rk805.c               |  350 +-
- drivers/pinctrl/pinctrl-rockchip.c            | 2862 +++++-----
- drivers/power/reset/gpio-poweroff.c           |    1 -
- drivers/power/supply/Kconfig                  |   17 +-
- drivers/power/supply/Makefile                 |    1 +
- drivers/pwm/Kconfig                           |    6 +
- drivers/pwm/pwm-rockchip.c                    |  109 +-
- drivers/pwm/sysfs.c                           |   43 +
- drivers/regulator/Kconfig                     |   10 +-
- drivers/regulator/Makefile                    |    1 +
- drivers/regulator/core.c                      |  346 +-
- drivers/regulator/fan53555.c                  |  399 +-
- drivers/regulator/of_regulator.c              |    8 +-
- drivers/regulator/rk808-regulator.c           |  534 +-
- drivers/rtc/rtc-hym8563.c                     |   64 +-
- drivers/soc/rockchip/Kconfig                  |  119 +-
- drivers/soc/rockchip/Makefile                 |   15 +
- drivers/soc/rockchip/grf.c                    |   65 +
- drivers/soc/rockchip/io-domain.c              |   95 +-
- drivers/soc/rockchip/pm_domains.c             |  870 ++-
- drivers/spi/spi-rockchip.c                    |  172 +-
- drivers/spi/spidev.c                          |    1 +
- drivers/staging/blackbox/Kconfig              |   11 +
- drivers/staging/blackbox/Makefile             |    2 +
- drivers/thermal/rockchip_thermal.c            |  584 +-
- drivers/thermal/thermal_core.c                |    1 +
- drivers/thermal/thermal_core.h                |    2 -
- drivers/tty/serial/8250/8250.h                |   15 +
- drivers/tty/serial/8250/8250_core.c           |   10 +-
- drivers/tty/serial/8250/8250_dma.c            |  205 +-
- drivers/tty/serial/8250/8250_dw.c             |   92 +-
- drivers/tty/serial/8250/8250_dwlib.c          |   12 +
- drivers/tty/serial/8250/8250_port.c           |  103 +-
- drivers/tty/vt/keyboard.c                     |    1 +
- drivers/usb/core/hub.c                        |    3 +-
- drivers/usb/core/quirks.c                     |    8 +
- drivers/usb/gadget/Kconfig                    |   31 +
- drivers/usb/gadget/composite.c                |  104 +-
- drivers/usb/gadget/configfs.c                 |  281 +-
- drivers/usb/gadget/epautoconf.c               |   24 +
- drivers/usb/gadget/function/f_fs.c            |   14 +-
- drivers/usb/gadget/function/f_uvc.c           |  448 +-
- drivers/usb/gadget/function/u_uvc.h           |    9 +-
- drivers/usb/gadget/function/uvc.h             |    9 +-
- drivers/usb/gadget/function/uvc_queue.c       |    8 +
- drivers/usb/gadget/function/uvc_v4l2.c        |   24 +-
- drivers/usb/gadget/function/uvc_video.c       |   40 +-
- drivers/usb/gadget/udc/core.c                 |    2 +-
- drivers/usb/storage/scsiglue.c                |    4 +
- drivers/usb/storage/unusual_devs.h            |    6 +
- drivers/usb/storage/unusual_uas.h             |   18 +
- drivers/video/Kconfig                         |    5 +
- drivers/video/Makefile                        |    1 +
- drivers/video/backlight/pwm_bl.c              |    2 +
- 229 files changed, 37333 insertions(+), 8857 deletions(-)
-
 diff --git a/drivers/Makefile b/drivers/Makefile
-index 8ec75883a..053dac091 100644
+index f13d70df6..f072f4e8f 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
 @@ -6,6 +6,8 @@
@@ -298,7 +60,7 @@ index c715d4681..42bb63d80 100644
  	tristate "Clock driver for WM831x/2x PMICs"
  	depends on MFD_WM831X
 diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index 515ef39c4..3878a494e 100644
+index 92fc08420..7ed6fcb95 100644
 --- a/drivers/clk/clk.c
 +++ b/drivers/clk/clk.c
 @@ -1296,7 +1296,7 @@ static int __init clk_disable_unused(void)
@@ -4558,7 +4320,7 @@ index e363ae04a..f1327e7fe 100644
  		list_del(&priv->node);
  	}
 diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-index 8e159fb6a..ffe4eec2d 100644
+index 30dafe8fc..a87fac5fb 100644
 --- a/drivers/cpufreq/cpufreq.c
 +++ b/drivers/cpufreq/cpufreq.c
 @@ -688,8 +688,12 @@ static ssize_t show_##file_name				\
@@ -5816,10 +5578,10 @@ index 7475e09b0..d64fc0392 100644
  
  	dma_fence_end_signalling(tmp);
 diff --git a/drivers/dma-buf/dma-heap.c b/drivers/dma-buf/dma-heap.c
-index 70e410c64..4fb22001b 100644
+index 2594408a1..26d59b48f 100644
 --- a/drivers/dma-buf/dma-heap.c
 +++ b/drivers/dma-buf/dma-heap.c
-@@ -30,6 +30,7 @@
+@@ -31,6 +31,7 @@
   * @heap_devt		heap device node
   * @list		list head connecting to list of heaps
   * @heap_cdev		heap char device
@@ -5827,7 +5589,7 @@ index 70e410c64..4fb22001b 100644
   *
   * Represents a heap of memory from which buffers can be made.
   */
-@@ -40,6 +41,8 @@ struct dma_heap {
+@@ -41,6 +42,8 @@ struct dma_heap {
  	dev_t heap_devt;
  	struct list_head list;
  	struct cdev heap_cdev;
@@ -5836,7 +5598,7 @@ index 70e410c64..4fb22001b 100644
  };
  
  static LIST_HEAD(heap_list);
-@@ -48,20 +51,72 @@ static dev_t dma_heap_devt;
+@@ -49,20 +52,72 @@ static dev_t dma_heap_devt;
  static struct class *dma_heap_class;
  static DEFINE_XARRAY_ALLOC(dma_heap_minors);
  
@@ -5913,7 +5675,7 @@ index 70e410c64..4fb22001b 100644
  
  static int dma_heap_open(struct inode *inode, struct file *file)
  {
-@@ -89,15 +144,9 @@ static long dma_heap_ioctl_allocate(struct file *file, void *data)
+@@ -90,15 +145,9 @@ static long dma_heap_ioctl_allocate(struct file *file, void *data)
  	if (heap_allocation->fd)
  		return -EINVAL;
  
@@ -5932,7 +5694,7 @@ index 70e410c64..4fb22001b 100644
  	if (fd < 0)
  		return fd;
  
-@@ -189,6 +238,47 @@ void *dma_heap_get_drvdata(struct dma_heap *heap)
+@@ -191,6 +240,47 @@ void *dma_heap_get_drvdata(struct dma_heap *heap)
  {
  	return heap->priv;
  }
@@ -5980,7 +5742,7 @@ index 70e410c64..4fb22001b 100644
  
  /**
   * dma_heap_get_name() - get heap name
-@@ -201,11 +291,11 @@ const char *dma_heap_get_name(struct dma_heap *heap)
+@@ -203,11 +293,11 @@ const char *dma_heap_get_name(struct dma_heap *heap)
  {
  	return heap->name;
  }
@@ -5994,7 +5756,7 @@ index 70e410c64..4fb22001b 100644
  	unsigned int minor;
  	int ret;
  
-@@ -220,21 +310,19 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -222,21 +312,19 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
  	}
  
  	/* check the name is unique */
@@ -6023,7 +5785,7 @@ index 70e410c64..4fb22001b 100644
  	heap->name = exp_info->name;
  	heap->ops = exp_info->ops;
  	heap->priv = exp_info->priv;
-@@ -259,16 +347,20 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -261,16 +349,20 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
  		goto err1;
  	}
  
@@ -6051,7 +5813,7 @@ index 70e410c64..4fb22001b 100644
  	/* Add heap to the list */
  	mutex_lock(&heap_list_lock);
  	list_add(&heap->list, &heap_list);
-@@ -284,27 +376,88 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -286,27 +378,88 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
  	kfree(heap);
  	return err_ret;
  }
@@ -7418,18 +7180,6 @@ index ed26664f1..8af2bc899 100644
  #endif /* CONFIG_OF_GPIO */
  
  extern struct notifier_block gpio_of_notifier;
-diff --git a/drivers/gpu/Makefile b/drivers/gpu/Makefile
-index 835c88318..b66e520eb 100644
---- a/drivers/gpu/Makefile
-+++ b/drivers/gpu/Makefile
-@@ -3,6 +3,6 @@
- # taken to initialize them in the correct order. Link order is the only way
- # to ensure this currently.
- obj-$(CONFIG_TEGRA_HOST1X)	+= host1x/
--obj-y			+= drm/ vga/
-+obj-y			+= drm/ vga/ arm/
- obj-$(CONFIG_IMX_IPUV3_CORE)	+= ipu-v3/
- obj-$(CONFIG_TRACE_GPU_MEM)		+= trace/
 diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
 index ca868271f..f7954773a 100644
 --- a/drivers/gpu/drm/Kconfig
@@ -9248,7 +8998,7 @@ index c051502d7..ebc9b51e3 100644
  
  #endif /* _ANALOGIX_DP_CORE_H */
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
-index 914c569ab..be64c0cf1 100644
+index cab3f5c4e..be64c0cf1 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
 @@ -11,30 +11,44 @@
@@ -9941,7 +9691,7 @@ index 914c569ab..be64c0cf1 100644
 -		/* Write data buffer */
 -		reg = (unsigned int)data;
 -		writel(reg, dp->reg_base + ANALOGIX_DP_BUF_DATA_0);
- 
+-
 -		/*
 -		 * Set DisplayPort transaction and write 1 byte
 -		 * If bit 3 is 1, DisplayPort transaction.
@@ -9949,7 +9699,7 @@ index 914c569ab..be64c0cf1 100644
 -		 */
 -		reg = AUX_TX_COMM_DP_TRANSACTION | AUX_TX_COMM_WRITE;
 -		writel(reg, dp->reg_base + ANALOGIX_DP_AUX_CH_CTL_1);
--
+ 
 -		/* Start AUX transaction */
 -		retval = analogix_dp_start_aux_transaction(dp);
 -		if (retval == 0)
@@ -9974,7 +9724,10 @@ index 914c569ab..be64c0cf1 100644
 -	u32 reg;
 +	u32 status;
 +	int ret;
-+
+ 
+-	reg = bwtype;
+-	if ((bwtype == DP_LINK_BW_2_7) || (bwtype == DP_LINK_BW_1_62))
+-		writel(reg, dp->reg_base + ANALOGIX_DP_LINK_BW_SET);
 +	analogix_dp_write(dp, ANALOGIX_DP_LINK_BW_SET, bwtype);
 +
 +	if (dp->phy) {
@@ -9999,10 +9752,7 @@ index 914c569ab..be64c0cf1 100644
 +		else
 +			analogix_dp_ssc_disable(dp);
 +	}
- 
--	reg = bwtype;
--	if ((bwtype == DP_LINK_BW_2_7) || (bwtype == DP_LINK_BW_1_62))
--		writel(reg, dp->reg_base + ANALOGIX_DP_LINK_BW_SET);
++
 +	ret = readx_poll_timeout(analogix_dp_get_pll_lock_status, dp, status,
 +				 status != PLL_UNLOCKED, 120,
 +				 120 * DP_TIMEOUT_LOOP_COUNT);
@@ -10563,7 +10313,7 @@ index 914c569ab..be64c0cf1 100644
  int analogix_dp_send_psr_spd(struct analogix_dp_device *dp,
  			     struct dp_sdp *vsc, bool blocking)
  {
-@@ -1044,53 +1005,66 @@ int analogix_dp_send_psr_spd(struct analogix_dp_device *dp,
+@@ -1044,44 +1005,47 @@ int analogix_dp_send_psr_spd(struct analogix_dp_device *dp,
  	ssize_t psr_status;
  
  	/* don't send info frame */
@@ -10632,28 +10382,7 @@ index 914c569ab..be64c0cf1 100644
  
  	if (!blocking)
  		return 0;
- 
-+	/*
-+	 * db[1]!=0: entering PSR, wait for fully active remote frame buffer.
-+	 * db[1]==0: exiting PSR, wait for either
-+	 *  (a) ACTIVE_RESYNC - the sink "must display the
-+	 *      incoming active frames from the Source device with no visible
-+	 *      glitches and/or artifacts", even though timings may still be
-+	 *      re-synchronizing; or
-+	 *  (b) INACTIVE - the transition is fully complete.
-+	 */
- 	ret = readx_poll_timeout(analogix_dp_get_psr_status, dp, psr_status,
- 		psr_status >= 0 &&
- 		((vsc->db[1] && psr_status == DP_PSR_SINK_ACTIVE_RFB) ||
--		(!vsc->db[1] && psr_status == DP_PSR_SINK_INACTIVE)), 1500,
--		DP_TIMEOUT_PSR_LOOP_MS * 1000);
-+		(!vsc->db[1] && (psr_status == DP_PSR_SINK_ACTIVE_RESYNC ||
-+				 psr_status == DP_PSR_SINK_INACTIVE))),
-+		1500, DP_TIMEOUT_PSR_LOOP_MS * 1000);
- 	if (ret) {
- 		dev_warn(dp->dev, "Failed to apply PSR %d\n", ret);
- 		return ret;
-@@ -1098,11 +1072,46 @@ int analogix_dp_send_psr_spd(struct analogix_dp_device *dp,
+@@ -1108,11 +1072,46 @@ int analogix_dp_send_psr_spd(struct analogix_dp_device *dp,
  	return 0;
  }
  
@@ -10701,7 +10430,7 @@ index 914c569ab..be64c0cf1 100644
  	u8 *buffer = msg->buffer;
  	unsigned int i;
  	int num_transferred = 0;
-@@ -1114,7 +1123,7 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
+@@ -1124,7 +1123,7 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
  
  	/* Clear AUX CH data buffer */
  	reg = BUF_CLR;
@@ -10710,7 +10439,7 @@ index 914c569ab..be64c0cf1 100644
  
  	switch (msg->request & ~DP_AUX_I2C_MOT) {
  	case DP_AUX_I2C_WRITE:
-@@ -1142,21 +1151,21 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
+@@ -1152,21 +1151,21 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
  	}
  
  	reg |= AUX_LENGTH(msg->size);
@@ -10738,7 +10467,7 @@ index 914c569ab..be64c0cf1 100644
  			num_transferred++;
  		}
  	}
-@@ -1168,7 +1177,7 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
+@@ -1178,7 +1177,7 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
  	if (msg->size < 1)
  		reg |= ADDR_ONLY;
  
@@ -10747,19 +10476,19 @@ index 914c569ab..be64c0cf1 100644
  
  	ret = readx_poll_timeout(readl, dp->reg_base + ANALOGIX_DP_AUX_CH_CTL_2,
  				 reg, !(reg & AUX_EN), 25, 500 * 1000);
-@@ -1187,30 +1196,31 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
+@@ -1197,30 +1196,31 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
  	}
  
  	/* Clear interrupt source for AUX CH command reply */
 -	writel(RPLY_RECEIV, dp->reg_base + ANALOGIX_DP_INT_STA);
--
++	analogix_dp_write(dp, ANALOGIX_DP_INT_STA, RPLY_RECEIV);
+ 
 -	/* Clear interrupt source for AUX CH access error */
 -	reg = readl(dp->reg_base + ANALOGIX_DP_INT_STA);
 -	status_reg = readl(dp->reg_base + ANALOGIX_DP_AUX_CH_STA);
 -	if ((reg & AUX_ERR) || (status_reg & AUX_STATUS_MASK)) {
 -		writel(AUX_ERR, dp->reg_base + ANALOGIX_DP_INT_STA);
-+	analogix_dp_write(dp, ANALOGIX_DP_INT_STA, RPLY_RECEIV);
- 
+-
 -		dev_warn(dp->dev, "AUX CH error happened: %#x (%d)\n",
 -			 status_reg & AUX_STATUS_MASK, !!(reg & AUX_ERR));
 -		goto aux_error;
@@ -10793,7 +10522,7 @@ index 914c569ab..be64c0cf1 100644
  	if (reg == AUX_RX_COMM_AUX_DEFER)
  		msg->reply = DP_AUX_NATIVE_REPLY_DEFER;
  	else if (reg == AUX_RX_COMM_I2C_DEFER)
-@@ -1222,7 +1232,7 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
+@@ -1232,7 +1232,7 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
  		 (msg->request & ~DP_AUX_I2C_MOT) == DP_AUX_NATIVE_READ)
  		msg->reply = DP_AUX_NATIVE_REPLY_ACK;
  
@@ -10802,7 +10531,7 @@ index 914c569ab..be64c0cf1 100644
  
  aux_error:
  	/* if aux err happen, reset aux */
-@@ -1230,3 +1240,127 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
+@@ -1240,3 +1240,127 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
  
  	return -EREMOTEIO;
  }
@@ -11326,7 +11055,7 @@ index 29b1ce214..c1926154e 100644
  
  static void lt9611_bridge_pre_enable(struct drm_bridge *bridge)
 diff --git a/drivers/gpu/drm/bridge/nwl-dsi.c b/drivers/gpu/drm/bridge/nwl-dsi.c
-index 6cac2e58c..c65ca8607 100644
+index b68d33598..215da60e8 100644
 --- a/drivers/gpu/drm/bridge/nwl-dsi.c
 +++ b/drivers/gpu/drm/bridge/nwl-dsi.c
 @@ -196,7 +196,7 @@ static u32 ps2bc(struct nwl_dsi *dsi, unsigned long long ps)
@@ -11790,7 +11519,7 @@ index 70ab4fbdc..48fc36d56 100644
  	cec->adap->owner = THIS_MODULE;
  
 diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index 0c79a9ba4..52374e943 100644
+index b10228b9e..28a3bc53f 100644
 --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
 +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
 @@ -9,6 +9,8 @@
@@ -12348,7 +12077,7 @@ index 0c79a9ba4..52374e943 100644
  
  	config3 = hdmi_readb(hdmi, HDMI_CONFIG3_ID);
  
-@@ -1005,6 +1307,15 @@ static bool is_csc_needed(struct dw_hdmi *hdmi)
+@@ -1013,6 +1315,15 @@ static bool is_csc_needed(struct dw_hdmi *hdmi)
  	       is_color_space_interpolation(hdmi);
  }
  
@@ -12364,7 +12093,7 @@ index 0c79a9ba4..52374e943 100644
  static void dw_hdmi_update_csc_coeffs(struct dw_hdmi *hdmi)
  {
  	const u16 (*csc_coeff)[3][4] = &csc_coeff_default;
-@@ -1027,7 +1338,7 @@ static void dw_hdmi_update_csc_coeffs(struct dw_hdmi *hdmi)
+@@ -1035,7 +1346,7 @@ static void dw_hdmi_update_csc_coeffs(struct dw_hdmi *hdmi)
  			csc_coeff = &csc_coeff_rgb_in_eitu709;
  		csc_scale = 0;
  	} else if (is_input_rgb && is_output_rgb &&
@@ -12373,7 +12102,7 @@ index 0c79a9ba4..52374e943 100644
  		csc_coeff = &csc_coeff_rgb_full_to_rgb_limited;
  	}
  
-@@ -1059,7 +1370,7 @@ static void hdmi_video_csc(struct dw_hdmi *hdmi)
+@@ -1067,7 +1378,7 @@ static void hdmi_video_csc(struct dw_hdmi *hdmi)
  	if (is_color_space_interpolation(hdmi))
  		interpolation = HDMI_CSC_CFG_INTMODE_CHROMA_INT_FORMULA1;
  	else if (is_color_space_decimation(hdmi))
@@ -12382,7 +12111,7 @@ index 0c79a9ba4..52374e943 100644
  
  	switch (hdmi_bus_fmt_color_depth(hdmi->hdmi_data.enc_out_bus_format)) {
  	case 8:
-@@ -1106,7 +1417,7 @@ static void hdmi_video_packetize(struct dw_hdmi *hdmi)
+@@ -1114,7 +1425,7 @@ static void hdmi_video_packetize(struct dw_hdmi *hdmi)
  		switch (hdmi_bus_fmt_color_depth(
  					hdmi->hdmi_data.enc_out_bus_format)) {
  		case 8:
@@ -12391,7 +12120,7 @@ index 0c79a9ba4..52374e943 100644
  			output_select = HDMI_VP_CONF_OUTPUT_SELECTOR_BYPASS;
  			break;
  		case 10:
-@@ -1144,18 +1455,15 @@ static void hdmi_video_packetize(struct dw_hdmi *hdmi)
+@@ -1152,18 +1463,15 @@ static void hdmi_video_packetize(struct dw_hdmi *hdmi)
  	}
  
  	/* set the packetizer registers */
@@ -12413,7 +12142,7 @@ index 0c79a9ba4..52374e943 100644
  		vp_conf = HDMI_VP_CONF_PR_EN_ENABLE |
  			  HDMI_VP_CONF_BYPASS_SELECT_PIX_REPEATER;
  	} else { /* data from packetizer block */
-@@ -1167,8 +1475,13 @@ static void hdmi_video_packetize(struct dw_hdmi *hdmi)
+@@ -1175,8 +1483,13 @@ static void hdmi_video_packetize(struct dw_hdmi *hdmi)
  		  HDMI_VP_CONF_PR_EN_MASK |
  		  HDMI_VP_CONF_BYPASS_SELECT_MASK, HDMI_VP_CONF);
  
@@ -12429,7 +12158,7 @@ index 0c79a9ba4..52374e943 100644
  
  	hdmi_writeb(hdmi, remap_size, HDMI_VP_REMAP);
  
-@@ -1269,6 +1582,23 @@ static bool dw_hdmi_support_scdc(struct dw_hdmi *hdmi,
+@@ -1277,6 +1590,23 @@ static bool dw_hdmi_support_scdc(struct dw_hdmi *hdmi,
  	return true;
  }
  
@@ -12453,7 +12182,7 @@ index 0c79a9ba4..52374e943 100644
  /*
   * HDMI2.0 Specifies the following procedure for High TMDS Bit Rates:
   * - The Source shall suspend transmission of the TMDS clock and data
-@@ -1446,6 +1776,13 @@ static int hdmi_phy_configure_dwc_hdmi_3d_tx(struct dw_hdmi *hdmi,
+@@ -1454,6 +1784,13 @@ static int hdmi_phy_configure_dwc_hdmi_3d_tx(struct dw_hdmi *hdmi,
  	const struct dw_hdmi_mpll_config *mpll_config = pdata->mpll_cfg;
  	const struct dw_hdmi_curr_ctrl *curr_ctrl = pdata->cur_ctr;
  	const struct dw_hdmi_phy_config *phy_config = pdata->phy_config;
@@ -12467,7 +12196,7 @@ index 0c79a9ba4..52374e943 100644
  
  	/* TOFIX Will need 420 specific PHY configuration tables */
  
-@@ -1455,11 +1792,11 @@ static int hdmi_phy_configure_dwc_hdmi_3d_tx(struct dw_hdmi *hdmi,
+@@ -1463,11 +1800,11 @@ static int hdmi_phy_configure_dwc_hdmi_3d_tx(struct dw_hdmi *hdmi,
  			break;
  
  	for (; curr_ctrl->mpixelclock != ~0UL; curr_ctrl++)
@@ -12481,7 +12210,7 @@ index 0c79a9ba4..52374e943 100644
  			break;
  
  	if (mpll_config->mpixelclock == ~0UL ||
-@@ -1467,11 +1804,18 @@ static int hdmi_phy_configure_dwc_hdmi_3d_tx(struct dw_hdmi *hdmi,
+@@ -1475,11 +1812,18 @@ static int hdmi_phy_configure_dwc_hdmi_3d_tx(struct dw_hdmi *hdmi,
  	    phy_config->mpixelclock == ~0UL)
  		return -EINVAL;
  
@@ -12503,7 +12232,7 @@ index 0c79a9ba4..52374e943 100644
  			      HDMI_3D_TX_PHY_CURRCTRL);
  
  	dw_hdmi_phy_i2c_write(hdmi, 0, HDMI_3D_TX_PHY_PLLPHBYCTRL);
-@@ -1484,10 +1828,6 @@ static int hdmi_phy_configure_dwc_hdmi_3d_tx(struct dw_hdmi *hdmi,
+@@ -1492,10 +1836,6 @@ static int hdmi_phy_configure_dwc_hdmi_3d_tx(struct dw_hdmi *hdmi,
  	dw_hdmi_phy_i2c_write(hdmi, phy_config->vlev_ctr,
  			      HDMI_3D_TX_PHY_VLEVCTRL);
  
@@ -12514,7 +12243,7 @@ index 0c79a9ba4..52374e943 100644
  	return 0;
  }
  
-@@ -1589,14 +1929,16 @@ void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi, void *data)
+@@ -1597,14 +1937,16 @@ void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi, void *data)
  	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
  		    HDMI_IH_PHY_STAT0);
  
@@ -12538,7 +12267,7 @@ index 0c79a9ba4..52374e943 100644
  }
  EXPORT_SYMBOL_GPL(dw_hdmi_phy_setup_hpd);
  
-@@ -1612,23 +1954,36 @@ static const struct dw_hdmi_phy_ops dw_hdmi_synopsys_phy_ops = {
+@@ -1620,23 +1962,36 @@ static const struct dw_hdmi_phy_ops dw_hdmi_synopsys_phy_ops = {
   * HDMI TX Setup
   */
  
@@ -12591,7 +12320,7 @@ index 0c79a9ba4..52374e943 100644
  }
  
  static void hdmi_config_AVI(struct dw_hdmi *hdmi,
-@@ -1642,10 +1997,15 @@ static void hdmi_config_AVI(struct dw_hdmi *hdmi,
+@@ -1650,10 +2005,15 @@ static void hdmi_config_AVI(struct dw_hdmi *hdmi,
  	drm_hdmi_avi_infoframe_from_display_mode(&frame, connector, mode);
  
  	if (hdmi_bus_fmt_is_rgb(hdmi->hdmi_data.enc_out_bus_format)) {
@@ -12611,7 +12340,7 @@ index 0c79a9ba4..52374e943 100644
  	} else {
  		frame.quantization_range = HDMI_QUANTIZATION_RANGE_DEFAULT;
  		frame.ycc_quantization_range =
-@@ -1680,6 +2040,14 @@ static void hdmi_config_AVI(struct dw_hdmi *hdmi,
+@@ -1688,6 +2048,14 @@ static void hdmi_config_AVI(struct dw_hdmi *hdmi,
  			frame.extended_colorimetry =
  					HDMI_EXTENDED_COLORIMETRY_XV_YCC_709;
  			break;
@@ -12626,7 +12355,7 @@ index 0c79a9ba4..52374e943 100644
  		default: /* Carries no data */
  			frame.colorimetry = HDMI_COLORIMETRY_ITU_601;
  			frame.extended_colorimetry =
-@@ -1816,17 +2184,44 @@ static void hdmi_config_drm_infoframe(struct dw_hdmi *hdmi,
+@@ -1824,17 +2192,44 @@ static void hdmi_config_drm_infoframe(struct dw_hdmi *hdmi,
  				      const struct drm_connector *connector)
  {
  	const struct drm_connector_state *conn_state = connector->state;
@@ -12671,7 +12400,7 @@ index 0c79a9ba4..52374e943 100644
  	err = drm_hdmi_infoframe_set_hdr_metadata(&frame, conn_state);
  	if (err < 0)
  		return;
-@@ -1846,51 +2241,66 @@ static void hdmi_config_drm_infoframe(struct dw_hdmi *hdmi,
+@@ -1854,51 +2249,66 @@ static void hdmi_config_drm_infoframe(struct dw_hdmi *hdmi,
  	hdmi_writeb(hdmi, 1, HDMI_FC_DRM_UP);
  	hdmi_modb(hdmi, HDMI_FC_PACKET_TX_EN_DRM_ENABLE,
  		  HDMI_FC_PACKET_TX_EN_DRM_MASK, HDMI_FC_PACKET_TX_EN);
@@ -12765,7 +12494,7 @@ index 0c79a9ba4..52374e943 100644
  
  	inv_val |= mode->flags & DRM_MODE_FLAG_PVSYNC ?
  		HDMI_FC_INVIDCONF_VSYNC_IN_POLARITY_ACTIVE_HIGH :
-@@ -1956,7 +2366,8 @@ static void hdmi_av_composer(struct dw_hdmi *hdmi,
+@@ -1964,7 +2374,8 @@ static void hdmi_av_composer(struct dw_hdmi *hdmi,
  	/* Scrambling Control */
  	if (dw_hdmi_support_scdc(hdmi, display)) {
  		if (vmode->mtmdsclock > HDMI14_MAX_TMDSCLK ||
@@ -12775,7 +12504,7 @@ index 0c79a9ba4..52374e943 100644
  			/*
  			 * HDMI2.0 Specifies the following procedure:
  			 * After the Source Device has determined that
-@@ -1990,6 +2401,8 @@ static void hdmi_av_composer(struct dw_hdmi *hdmi,
+@@ -1998,6 +2409,8 @@ static void hdmi_av_composer(struct dw_hdmi *hdmi,
  				    HDMI_MC_SWRSTZ);
  			drm_scdc_set_scrambling(hdmi->ddc, 0);
  		}
@@ -12784,7 +12513,7 @@ index 0c79a9ba4..52374e943 100644
  	}
  
  	/* Set up horizontal active pixel width */
-@@ -2047,6 +2460,12 @@ static void dw_hdmi_enable_video_path(struct dw_hdmi *hdmi)
+@@ -2055,6 +2468,12 @@ static void dw_hdmi_enable_video_path(struct dw_hdmi *hdmi)
  	hdmi->mc_clkdis &= ~HDMI_MC_CLKDIS_TMDSCLK_DISABLE;
  	hdmi_writeb(hdmi, hdmi->mc_clkdis, HDMI_MC_CLKDIS);
  
@@ -12797,7 +12526,7 @@ index 0c79a9ba4..52374e943 100644
  	/* Enable csc path */
  	if (is_csc_needed(hdmi)) {
  		hdmi->mc_clkdis &= ~HDMI_MC_CLKDIS_CSCCLK_DISABLE;
-@@ -2122,6 +2541,7 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi,
+@@ -2130,6 +2549,7 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi,
  			 const struct drm_display_mode *mode)
  {
  	int ret;
@@ -12805,7 +12534,7 @@ index 0c79a9ba4..52374e943 100644
  
  	hdmi_disable_overflow_interrupts(hdmi);
  
-@@ -2133,48 +2553,91 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi,
+@@ -2141,48 +2561,91 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi,
  		dev_dbg(hdmi->dev, "CEA mode used vic=%d\n", hdmi->vic);
  	}
  
@@ -12916,7 +12645,7 @@ index 0c79a9ba4..52374e943 100644
  
  	/* HDMI Initialization Step B.3 */
  	dw_hdmi_enable_video_path(hdmi);
-@@ -2202,7 +2665,7 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi,
+@@ -2210,7 +2673,7 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi,
  	hdmi_video_packetize(hdmi);
  	hdmi_video_csc(hdmi);
  	hdmi_video_sample(hdmi);
@@ -12925,7 +12654,7 @@ index 0c79a9ba4..52374e943 100644
  
  	dw_hdmi_clear_overflow(hdmi);
  
-@@ -2278,6 +2741,8 @@ static void dw_hdmi_poweroff(struct dw_hdmi *hdmi)
+@@ -2286,6 +2749,8 @@ static void dw_hdmi_poweroff(struct dw_hdmi *hdmi)
  		hdmi->phy.enabled = false;
  	}
  
@@ -12934,7 +12663,7 @@ index 0c79a9ba4..52374e943 100644
  	hdmi->bridge_is_on = false;
  }
  
-@@ -2295,6 +2760,10 @@ static void dw_hdmi_update_power(struct dw_hdmi *hdmi)
+@@ -2303,6 +2768,10 @@ static void dw_hdmi_update_power(struct dw_hdmi *hdmi)
  	}
  
  	if (force == DRM_FORCE_OFF) {
@@ -12945,7 +12674,7 @@ index 0c79a9ba4..52374e943 100644
  		if (hdmi->bridge_is_on)
  			dw_hdmi_poweroff(hdmi);
  	} else {
-@@ -2327,8 +2796,15 @@ static enum drm_connector_status dw_hdmi_detect(struct dw_hdmi *hdmi)
+@@ -2335,8 +2804,15 @@ static enum drm_connector_status dw_hdmi_detect(struct dw_hdmi *hdmi)
  {
  	enum drm_connector_status result;
  
@@ -12962,7 +12691,7 @@ index 0c79a9ba4..52374e943 100644
  	mutex_lock(&hdmi->mutex);
  	if (result != hdmi->last_connector_result) {
  		dev_dbg(hdmi->dev, "read_hpd result: %d", result);
-@@ -2338,6 +2814,11 @@ static enum drm_connector_status dw_hdmi_detect(struct dw_hdmi *hdmi)
+@@ -2346,6 +2822,11 @@ static enum drm_connector_status dw_hdmi_detect(struct dw_hdmi *hdmi)
  	}
  	mutex_unlock(&hdmi->mutex);
  
@@ -12974,7 +12703,7 @@ index 0c79a9ba4..52374e943 100644
  	return result;
  }
  
-@@ -2358,7 +2839,7 @@ static struct edid *dw_hdmi_get_edid(struct dw_hdmi *hdmi,
+@@ -2366,7 +2847,7 @@ static struct edid *dw_hdmi_get_edid(struct dw_hdmi *hdmi,
  	dev_dbg(hdmi->dev, "got edid: width[%d] x height[%d]\n",
  		edid->width_cm, edid->height_cm);
  
@@ -12983,7 +12712,7 @@ index 0c79a9ba4..52374e943 100644
  	hdmi->sink_has_audio = drm_detect_monitor_audio(edid);
  
  	return edid;
-@@ -2376,21 +2857,105 @@ dw_hdmi_connector_detect(struct drm_connector *connector, bool force)
+@@ -2384,21 +2865,105 @@ dw_hdmi_connector_detect(struct drm_connector *connector, bool force)
  	return dw_hdmi_detect(hdmi);
  }
  
@@ -13096,7 +12825,7 @@ index 0c79a9ba4..52374e943 100644
  
  	return ret;
  }
-@@ -2419,11 +2984,54 @@ static int dw_hdmi_connector_atomic_check(struct drm_connector *connector,
+@@ -2427,11 +2992,54 @@ static int dw_hdmi_connector_atomic_check(struct drm_connector *connector,
  		drm_atomic_get_new_connector_state(state, connector);
  	struct drm_crtc *crtc = new_state->crtc;
  	struct drm_crtc_state *crtc_state;
@@ -13152,7 +12881,7 @@ index 0c79a9ba4..52374e943 100644
  		crtc_state = drm_atomic_get_crtc_state(state, crtc);
  		if (IS_ERR(crtc_state))
  			return PTR_ERR(crtc_state);
-@@ -2434,12 +3042,105 @@ static int dw_hdmi_connector_atomic_check(struct drm_connector *connector,
+@@ -2442,12 +3050,105 @@ static int dw_hdmi_connector_atomic_check(struct drm_connector *connector,
  	return 0;
  }
  
@@ -13258,7 +12987,7 @@ index 0c79a9ba4..52374e943 100644
  	hdmi->force = connector->force;
  	dw_hdmi_update_power(hdmi);
  	dw_hdmi_update_phy_mask(hdmi);
-@@ -2452,15 +3153,98 @@ static const struct drm_connector_funcs dw_hdmi_connector_funcs = {
+@@ -2460,15 +3161,98 @@ static const struct drm_connector_funcs dw_hdmi_connector_funcs = {
  	.destroy = drm_connector_cleanup,
  	.force = dw_hdmi_connector_force,
  	.reset = drm_atomic_helper_connector_reset,
@@ -13357,7 +13086,7 @@ index 0c79a9ba4..52374e943 100644
  static int dw_hdmi_connector_create(struct dw_hdmi *hdmi)
  {
  	struct drm_connector *connector = &hdmi->connector;
-@@ -2497,6 +3281,8 @@ static int dw_hdmi_connector_create(struct dw_hdmi *hdmi)
+@@ -2505,6 +3289,8 @@ static int dw_hdmi_connector_create(struct dw_hdmi *hdmi)
  
  	drm_connector_attach_encoder(connector, hdmi->bridge.encoder);
  
@@ -13366,7 +13095,7 @@ index 0c79a9ba4..52374e943 100644
  	cec_fill_conn_info_from_drm(&conn_info, connector);
  
  	notifier = cec_notifier_conn_register(hdmi->dev, NULL, &conn_info);
-@@ -2771,16 +3557,36 @@ static int dw_hdmi_bridge_atomic_check(struct drm_bridge *bridge,
+@@ -2780,16 +3566,36 @@ static int dw_hdmi_bridge_atomic_check(struct drm_bridge *bridge,
  				       struct drm_connector_state *conn_state)
  {
  	struct dw_hdmi *hdmi = bridge->driver_private;
@@ -13410,7 +13139,7 @@ index 0c79a9ba4..52374e943 100644
  
  	return 0;
  }
-@@ -2789,10 +3595,22 @@ static int dw_hdmi_bridge_attach(struct drm_bridge *bridge,
+@@ -2798,10 +3604,22 @@ static int dw_hdmi_bridge_attach(struct drm_bridge *bridge,
  				 enum drm_bridge_attach_flags flags)
  {
  	struct dw_hdmi *hdmi = bridge->driver_private;
@@ -13433,7 +13162,7 @@ index 0c79a9ba4..52374e943 100644
  	return dw_hdmi_connector_create(hdmi);
  }
  
-@@ -2812,17 +3630,16 @@ dw_hdmi_bridge_mode_valid(struct drm_bridge *bridge,
+@@ -2821,17 +3639,16 @@ dw_hdmi_bridge_mode_valid(struct drm_bridge *bridge,
  			  const struct drm_display_mode *mode)
  {
  	struct dw_hdmi *hdmi = bridge->driver_private;
@@ -13456,7 +13185,7 @@ index 0c79a9ba4..52374e943 100644
  	return mode_status;
  }
  
-@@ -2903,6 +3720,12 @@ static const struct drm_bridge_funcs dw_hdmi_bridge_funcs = {
+@@ -2912,6 +3729,12 @@ static const struct drm_bridge_funcs dw_hdmi_bridge_funcs = {
  	.get_edid = dw_hdmi_bridge_get_edid,
  };
  
@@ -13469,7 +13198,7 @@ index 0c79a9ba4..52374e943 100644
  /* -----------------------------------------------------------------------------
   * IRQ Handling
   */
-@@ -2928,7 +3751,7 @@ static irqreturn_t dw_hdmi_i2c_irq(struct dw_hdmi *hdmi)
+@@ -2937,7 +3760,7 @@ static irqreturn_t dw_hdmi_i2c_irq(struct dw_hdmi *hdmi)
  static irqreturn_t dw_hdmi_hardirq(int irq, void *dev_id)
  {
  	struct dw_hdmi *hdmi = dev_id;
@@ -13478,7 +13207,7 @@ index 0c79a9ba4..52374e943 100644
  	irqreturn_t ret = IRQ_NONE;
  
  	if (hdmi->i2c)
-@@ -2940,6 +3763,13 @@ static irqreturn_t dw_hdmi_hardirq(int irq, void *dev_id)
+@@ -2949,6 +3772,13 @@ static irqreturn_t dw_hdmi_hardirq(int irq, void *dev_id)
  		return IRQ_WAKE_THREAD;
  	}
  
@@ -13492,7 +13221,7 @@ index 0c79a9ba4..52374e943 100644
  	return ret;
  }
  
-@@ -2947,7 +3777,7 @@ void dw_hdmi_setup_rx_sense(struct dw_hdmi *hdmi, bool hpd, bool rx_sense)
+@@ -2956,7 +3786,7 @@ void dw_hdmi_setup_rx_sense(struct dw_hdmi *hdmi, bool hpd, bool rx_sense)
  {
  	mutex_lock(&hdmi->mutex);
  
@@ -13501,7 +13230,7 @@ index 0c79a9ba4..52374e943 100644
  		/*
  		 * If the RX sense status indicates we're disconnected,
  		 * clear the software rxsense status.
-@@ -2974,7 +3804,7 @@ EXPORT_SYMBOL_GPL(dw_hdmi_setup_rx_sense);
+@@ -2983,7 +3813,7 @@ EXPORT_SYMBOL_GPL(dw_hdmi_setup_rx_sense);
  static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
  {
  	struct dw_hdmi *hdmi = dev_id;
@@ -13510,7 +13239,7 @@ index 0c79a9ba4..52374e943 100644
  
  	intr_stat = hdmi_readb(hdmi, HDMI_IH_PHY_STAT0);
  	phy_int_pol = hdmi_readb(hdmi, HDMI_PHY_POL0);
-@@ -3015,25 +3845,21 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
+@@ -3024,25 +3854,21 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
  		}
  	}
  
@@ -13549,7 +13278,7 @@ index 0c79a9ba4..52374e943 100644
  	return IRQ_HANDLED;
  }
  
-@@ -3167,12 +3993,363 @@ static void dw_hdmi_init_hw(struct dw_hdmi *hdmi)
+@@ -3176,12 +4002,363 @@ static void dw_hdmi_init_hw(struct dw_hdmi *hdmi)
  	 * Even if we are using a separate i2c adapter doing this doesn't
  	 * hurt.
  	 */
@@ -13914,7 +13643,7 @@ index 0c79a9ba4..52374e943 100644
  /* -----------------------------------------------------------------------------
   * Probe/remove API, used from platforms based on the DRM bridge API.
   */
-@@ -3181,6 +4358,7 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3190,6 +4367,7 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  {
  	struct device *dev = &pdev->dev;
  	struct device_node *np = dev->of_node;
@@ -13922,7 +13651,7 @@ index 0c79a9ba4..52374e943 100644
  	struct platform_device_info pdevinfo;
  	struct device_node *ddc_node;
  	struct dw_hdmi_cec_data cec;
-@@ -3193,11 +4371,13 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3202,11 +4380,13 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  	u8 prod_id1;
  	u8 config0;
  	u8 config3;
@@ -13936,7 +13665,7 @@ index 0c79a9ba4..52374e943 100644
  	hdmi->plat_data = plat_data;
  	hdmi->dev = dev;
  	hdmi->sample_rate = 48000;
-@@ -3328,7 +4508,24 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3337,7 +4517,24 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  		 prod_id1 & HDMI_PRODUCT_ID1_HDCP ? "with" : "without",
  		 hdmi->phy.name);
  
@@ -13962,7 +13691,7 @@ index 0c79a9ba4..52374e943 100644
  
  	irq = platform_get_irq(pdev, 0);
  	if (irq < 0) {
-@@ -3336,6 +4533,7 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3345,6 +4542,7 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  		goto err_iahb;
  	}
  
@@ -13970,7 +13699,7 @@ index 0c79a9ba4..52374e943 100644
  	ret = devm_request_threaded_irq(dev, irq, dw_hdmi_hardirq,
  					dw_hdmi_irq, IRQF_SHARED,
  					dev_name(dev), hdmi);
-@@ -3371,8 +4569,20 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3380,8 +4578,20 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  		hdmi->ddc = dw_hdmi_i2c_adapter(hdmi);
  		if (IS_ERR(hdmi->ddc))
  			hdmi->ddc = NULL;
@@ -13991,7 +13720,7 @@ index 0c79a9ba4..52374e943 100644
  	hdmi->bridge.driver_private = hdmi;
  	hdmi->bridge.funcs = &dw_hdmi_bridge_funcs;
  	hdmi->bridge.ops = DRM_BRIDGE_OP_DETECT | DRM_BRIDGE_OP_EDID
-@@ -3381,6 +4591,30 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3390,6 +4600,30 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  	hdmi->bridge.of_node = pdev->dev.of_node;
  #endif
  
@@ -14022,7 +13751,7 @@ index 0c79a9ba4..52374e943 100644
  	memset(&pdevinfo, 0, sizeof(pdevinfo));
  	pdevinfo.parent = dev;
  	pdevinfo.id = PLATFORM_DEVID_AUTO;
-@@ -3434,8 +4668,40 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3443,8 +4677,40 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  		hdmi->cec = platform_device_register_full(&pdevinfo);
  	}
  
@@ -14063,7 +13792,7 @@ index 0c79a9ba4..52374e943 100644
  	return hdmi;
  
  err_iahb:
-@@ -3445,7 +4711,10 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3454,7 +4720,10 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  err_isfr:
  	clk_disable_unprepare(hdmi->isfr_clk);
  err_res:
@@ -14075,7 +13804,7 @@ index 0c79a9ba4..52374e943 100644
  
  	return ERR_PTR(ret);
  }
-@@ -3453,16 +4722,35 @@ EXPORT_SYMBOL_GPL(dw_hdmi_probe);
+@@ -3462,16 +4731,35 @@ EXPORT_SYMBOL_GPL(dw_hdmi_probe);
  
  void dw_hdmi_remove(struct dw_hdmi *hdmi)
  {
@@ -14111,7 +13840,7 @@ index 0c79a9ba4..52374e943 100644
  	clk_disable_unprepare(hdmi->iahb_clk);
  	clk_disable_unprepare(hdmi->isfr_clk);
  	if (hdmi->cec_clk)
-@@ -3480,7 +4768,7 @@ EXPORT_SYMBOL_GPL(dw_hdmi_remove);
+@@ -3489,7 +4777,7 @@ EXPORT_SYMBOL_GPL(dw_hdmi_remove);
   */
  struct dw_hdmi *dw_hdmi_bind(struct platform_device *pdev,
  			     struct drm_encoder *encoder,
@@ -14120,7 +13849,7 @@ index 0c79a9ba4..52374e943 100644
  {
  	struct dw_hdmi *hdmi;
  	int ret;
-@@ -3496,6 +4784,9 @@ struct dw_hdmi *dw_hdmi_bind(struct platform_device *pdev,
+@@ -3505,6 +4793,9 @@ struct dw_hdmi *dw_hdmi_bind(struct platform_device *pdev,
  		return ERR_PTR(ret);
  	}
  
@@ -14130,7 +13859,7 @@ index 0c79a9ba4..52374e943 100644
  	return hdmi;
  }
  EXPORT_SYMBOL_GPL(dw_hdmi_bind);
-@@ -3506,9 +4797,87 @@ void dw_hdmi_unbind(struct dw_hdmi *hdmi)
+@@ -3515,9 +4806,87 @@ void dw_hdmi_unbind(struct dw_hdmi *hdmi)
  }
  EXPORT_SYMBOL_GPL(dw_hdmi_unbind);
  
@@ -14307,7 +14036,7 @@ index 1999db05b..509732800 100644
  
  /*
 diff --git a/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c b/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
-index 6b268f944..fa00e24c1 100644
+index 376fa6eb4..163dcc03b 100644
 --- a/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
 +++ b/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
 @@ -244,7 +244,7 @@ struct dw_mipi_dsi {
@@ -14544,7 +14273,7 @@ index 6b268f944..fa00e24c1 100644
  	dw_mipi_dsi_debugfs_init(dsi);
  	pm_runtime_enable(dev);
  
-@@ -1246,6 +1231,12 @@ void dw_mipi_dsi_unbind(struct dw_mipi_dsi *dsi)
+@@ -1247,6 +1232,12 @@ void dw_mipi_dsi_unbind(struct dw_mipi_dsi *dsi)
  }
  EXPORT_SYMBOL_GPL(dw_mipi_dsi_unbind);
  
@@ -14854,7 +14583,7 @@ index b0a826489..3d7182001 100644
  			   from_kuid_munged(seq_user_ns(m), uid),
  			   priv->magic);
 diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
-index add317bd8..cfb96e181 100644
+index 862e173d3..d2be9391b 100644
 --- a/drivers/gpu/drm/drm_edid.c
 +++ b/drivers/gpu/drm/drm_edid.c
 @@ -1835,20 +1835,11 @@ static void connector_bad_edid(struct drm_connector *connector,
@@ -14881,7 +14610,7 @@ index add317bd8..cfb96e181 100644
  
  	if (connector->bad_edid_counter++ && !drm_debug_enabled(DRM_UT_KMS))
  		return;
-@@ -4860,6 +4851,43 @@ static void drm_parse_vcdb(struct drm_connector *connector, const u8 *db)
+@@ -4861,6 +4852,43 @@ static void drm_parse_vcdb(struct drm_connector *connector, const u8 *db)
  		info->rgb_quant_range_selectable = true;
  }
  
@@ -14925,7 +14654,7 @@ index add317bd8..cfb96e181 100644
  static void drm_parse_ycbcr420_deep_color_info(struct drm_connector *connector,
  					       const u8 *db)
  {
-@@ -4913,6 +4941,76 @@ static void drm_parse_hdmi_forum_vsdb(struct drm_connector *connector,
+@@ -4914,6 +4942,76 @@ static void drm_parse_hdmi_forum_vsdb(struct drm_connector *connector,
  		}
  	}
  
@@ -15562,7 +15291,7 @@ index 2ba560bca..bb2c16d0f 100644
 +
 +ccflags-y +=-I$(KERNEL_SOURCE_PATH)/drivers/gpu/drm/panel
 diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-index 204674fcc..68553c28c 100644
+index 959dcbd8a..137510d8d 100644
 --- a/drivers/gpu/drm/panel/panel-simple.c
 +++ b/drivers/gpu/drm/panel/panel-simple.c
 @@ -30,6 +30,7 @@
@@ -16012,7 +15741,7 @@ index 204674fcc..68553c28c 100644
  	}
  
  	if (desc == &panel_dpi) {
-@@ -566,7 +855,7 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
+@@ -567,7 +856,7 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
  	/* Catch common mistakes for panels. */
  	switch (connector_type) {
  	case 0:
@@ -16021,7 +15750,7 @@ index 204674fcc..68553c28c 100644
  		connector_type = DRM_MODE_CONNECTOR_DPI;
  		break;
  	case DRM_MODE_CONNECTOR_LVDS:
-@@ -621,8 +910,10 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
+@@ -622,8 +911,10 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
  	drm_panel_init(&panel->base, dev, &panel_simple_funcs, connector_type);
  
  	err = drm_panel_of_backlight(&panel->base);
@@ -16033,7 +15762,7 @@ index 204674fcc..68553c28c 100644
  
  	drm_panel_add(&panel->base);
  
-@@ -3902,6 +4193,9 @@ static const struct panel_desc arm_rtsm = {
+@@ -3903,6 +4194,9 @@ static const struct panel_desc arm_rtsm = {
  
  static const struct of_device_id platform_of_match[] = {
  	{
@@ -16043,7 +15772,7 @@ index 204674fcc..68553c28c 100644
  		.compatible = "ampire,am-1280800n3tzqw-t00h",
  		.data = &ampire_am_1280800n3tzqw_t00h,
  	}, {
-@@ -4310,15 +4604,132 @@ static const struct of_device_id platform_of_match[] = {
+@@ -4311,15 +4605,132 @@ static const struct of_device_id platform_of_match[] = {
  };
  MODULE_DEVICE_TABLE(of, platform_of_match);
  
@@ -16177,7 +15906,7 @@ index 204674fcc..68553c28c 100644
  }
  
  static int panel_simple_platform_remove(struct platform_device *pdev)
-@@ -4553,6 +4964,9 @@ static const struct panel_desc_dsi osd101t2045_53ts = {
+@@ -4554,6 +4965,9 @@ static const struct panel_desc_dsi osd101t2045_53ts = {
  
  static const struct of_device_id dsi_of_match[] = {
  	{
@@ -16187,7 +15916,7 @@ index 204674fcc..68553c28c 100644
  		.compatible = "auo,b080uan01",
  		.data = &auo_b080uan01
  	}, {
-@@ -4579,9 +4993,33 @@ static const struct of_device_id dsi_of_match[] = {
+@@ -4580,9 +4994,33 @@ static const struct of_device_id dsi_of_match[] = {
  };
  MODULE_DEVICE_TABLE(of, dsi_of_match);
  
@@ -16221,7 +15950,7 @@ index 204674fcc..68553c28c 100644
  	const struct of_device_id *id;
  	int err;
  
-@@ -4589,12 +5027,47 @@ static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
+@@ -4590,12 +5028,47 @@ static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
  	if (!id)
  		return -ENODEV;
  
@@ -34366,7 +34095,7 @@ index 27b963512..8973232e0 100644
  	return NULL;
  }
 diff --git a/drivers/gpu/drm/rockchip/rockchip_vop_reg.c b/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
-index a6fe03c37..e9b605337 100644
+index 39e1e1ebe..e9b605337 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
 @@ -5,36 +5,36 @@
@@ -35468,7 +35197,7 @@ index a6fe03c37..e9b605337 100644
  	.act_info = VOP_REG(RK3288_WIN0_ACT_INFO, 0x1fff1fff, 0),
  	.dsp_info = VOP_REG(RK3288_WIN0_DSP_INFO, 0x0fff0fff, 0),
  	.dsp_st = VOP_REG(RK3288_WIN0_DSP_ST, 0x1fff1fff, 0),
-@@ -597,476 +675,1318 @@ static const struct vop_win_phy rk3288_win01_data = {
+@@ -597,478 +675,1318 @@ static const struct vop_win_phy rk3288_win01_data = {
  	.uv_mst = VOP_REG(RK3288_WIN0_CBR_MST, 0xffffffff, 0),
  	.yrgb_vir = VOP_REG(RK3288_WIN0_VIR, 0x3fff, 0),
  	.uv_vir = VOP_REG(RK3288_WIN0_VIR, 0x3fff, 16),
@@ -36221,15 +35950,23 @@ index a6fe03c37..e9b605337 100644
 +	  .type = DRM_PLANE_TYPE_PRIMARY },
 +	{ .base = 0x00, .phy = &rk3036_win1_data,
 +	  .type = DRM_PLANE_TYPE_OVERLAY },
-+};
-+
+ };
+ 
+-static const struct vop_yuv2yuv_phy rk3399_yuv2yuv_win23_data = { };
 +static const int rk3036_vop_intrs[] = {
 +	DSP_HOLD_VALID_INTR,
 +	FS_INTR,
 +	LINE_FLAG_INTR,
 +	BUS_ERROR_INTR,
 +};
-+
+ 
+-static const struct vop_win_yuv2yuv_data rk3399_vop_big_win_yuv2yuv_data[] = {
+-	{ .base = 0x00, .phy = &rk3399_yuv2yuv_win01_data,
+-	  .y2r_en = VOP_REG(RK3399_YUV2YUV_WIN, 0x1, 1) },
+-	{ .base = 0x60, .phy = &rk3399_yuv2yuv_win01_data,
+-	  .y2r_en = VOP_REG(RK3399_YUV2YUV_WIN, 0x1, 9) },
+-	{ .base = 0xC0, .phy = &rk3399_yuv2yuv_win23_data },
+-	{ .base = 0x120, .phy = &rk3399_yuv2yuv_win23_data },
 +static const struct vop_intr rk3036_intr = {
 +	.intrs = rk3036_vop_intrs,
 +	.nintrs = ARRAY_SIZE(rk3036_vop_intrs),
@@ -36237,9 +35974,8 @@ index a6fe03c37..e9b605337 100644
 +	.status = VOP_REG(RK3036_INT_STATUS, 0xf, 0),
 +	.enable = VOP_REG(RK3036_INT_STATUS, 0xf, 4),
 +	.clear = VOP_REG(RK3036_INT_STATUS, 0xf, 8),
- };
- 
--static const struct vop_yuv2yuv_phy rk3399_yuv2yuv_win23_data = { };
++};
++
 +static const struct vop_ctrl rk3036_ctrl_data = {
 +	.standby = VOP_REG(RK3036_SYS_CTRL, 0x1, 30),
 +	.out_mode = VOP_REG(RK3036_DSP_CTRL0, 0xf, 0),
@@ -36267,13 +36003,6 @@ index a6fe03c37..e9b605337 100644
 +	.cfg_done = VOP_REG(RK3036_REG_CFG_DONE, 0x1, 0),
 +};
  
--static const struct vop_win_yuv2yuv_data rk3399_vop_big_win_yuv2yuv_data[] = {
--	{ .base = 0x00, .phy = &rk3399_yuv2yuv_win01_data,
--	  .y2r_en = VOP_REG(RK3399_YUV2YUV_WIN, 0x1, 1) },
--	{ .base = 0x60, .phy = &rk3399_yuv2yuv_win01_data,
--	  .y2r_en = VOP_REG(RK3399_YUV2YUV_WIN, 0x1, 9) },
--	{ .base = 0xC0, .phy = &rk3399_yuv2yuv_win23_data },
--	{ .base = 0x120, .phy = &rk3399_yuv2yuv_win23_data },
 +static const struct vop_data rk3036_vop = {
 +	.soc_id = 0x3036,
 +	.vop_id = 0,
@@ -36284,17 +36013,17 @@ index a6fe03c37..e9b605337 100644
 +	.intr = &rk3036_intr,
 +	.win = rk3036_vop_win_data,
 +	.win_size = ARRAY_SIZE(rk3036_vop_win_data),
-+};
+ };
  
+-static const struct vop_win_phy rk3399_win01_data = {
+-	.scl = &rk3288_win_full_scl,
 +static const struct vop_scl_regs rk3066_win_scl = {
 +	.scale_yrgb_x = VOP_REG(RK3066_WIN0_SCL_FACTOR_YRGB, 0xffff, 0x0),
 +	.scale_yrgb_y = VOP_REG(RK3066_WIN0_SCL_FACTOR_YRGB, 0xffff, 16),
 +	.scale_cbcr_x = VOP_REG(RK3066_WIN0_SCL_FACTOR_CBR, 0xffff, 0x0),
 +	.scale_cbcr_y = VOP_REG(RK3066_WIN0_SCL_FACTOR_CBR, 0xffff, 16),
- };
- 
--static const struct vop_win_phy rk3399_win01_data = {
--	.scl = &rk3288_win_full_scl,
++};
++
 +static const struct vop_win_phy rk3066_win0_data = {
 +	.scl = &rk3066_win_scl,
  	.data_formats = formats_win_full,
@@ -36303,6 +36032,7 @@ index a6fe03c37..e9b605337 100644
 -	.enable = VOP_REG(RK3288_WIN0_CTRL0, 0x1, 0),
 -	.format = VOP_REG(RK3288_WIN0_CTRL0, 0x7, 1),
 -	.rb_swap = VOP_REG(RK3288_WIN0_CTRL0, 0x1, 12),
+-	.x_mir_en = VOP_REG(RK3288_WIN0_CTRL0, 0x1, 21),
 -	.y_mir_en = VOP_REG(RK3288_WIN0_CTRL0, 0x1, 22),
 -	.act_info = VOP_REG(RK3288_WIN0_ACT_INFO, 0x1fff1fff, 0),
 -	.dsp_info = VOP_REG(RK3288_WIN0_DSP_INFO, 0x0fff0fff, 0),
@@ -36313,6 +36043,7 @@ index a6fe03c37..e9b605337 100644
 -	.uv_vir = VOP_REG(RK3288_WIN0_VIR, 0x3fff, 16),
 -	.src_alpha_ctl = VOP_REG(RK3288_WIN0_SRC_ALPHA_CTRL, 0xff, 0),
 -	.dst_alpha_ctl = VOP_REG(RK3288_WIN0_DST_ALPHA_CTRL, 0xff, 0),
+-	.channel = VOP_REG(RK3288_WIN0_CTRL2, 0xff, 0),
 +	.enable = VOP_REG(RK3066_SYS_CTRL1, 0x1, 0),
 +	.format = VOP_REG(RK3066_SYS_CTRL0, 0x7, 4),
 +	.rb_swap = VOP_REG(RK3066_SYS_CTRL0, 0x1, 19),
@@ -36369,12 +36100,12 @@ index a6fe03c37..e9b605337 100644
 +static const struct vop_win_data rk3066_vop_win_data[] = {
 +	{ .base = 0x00, .phy = &rk3066_win0_data,
  	  .type = DRM_PLANE_TYPE_PRIMARY },
--	{ .base = 0x40, .phy = &rk3288_win01_data,
+-	{ .base = 0x40, .phy = &rk3368_win01_data,
 -	  .type = DRM_PLANE_TYPE_OVERLAY },
--	{ .base = 0x00, .phy = &rk3288_win23_data,
+-	{ .base = 0x00, .phy = &rk3368_win23_data,
 +	{ .base = 0x00, .phy = &rk3066_win1_data,
  	  .type = DRM_PLANE_TYPE_OVERLAY },
--	{ .base = 0x50, .phy = &rk3288_win23_data,
+-	{ .base = 0x50, .phy = &rk3368_win23_data,
 +	{ .base = 0x00, .phy = &rk3066_win2_data,
  	  .type = DRM_PLANE_TYPE_CURSOR },
  };
@@ -39201,7 +38932,7 @@ index d1539b739..d5020a729 100644
  	switch (dir) {
  	case DMA_BIDIRECTIONAL:
 diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-index bcf060b5c..c8605ebc0 100644
+index 9d65557df..abf1b1e6c 100644
 --- a/drivers/iommu/iommu.c
 +++ b/drivers/iommu/iommu.c
 @@ -8,6 +8,7 @@
@@ -39212,7 +38943,7 @@ index bcf060b5c..c8605ebc0 100644
  #include <linux/bug.h>
  #include <linux/types.h>
  #include <linux/init.h>
-@@ -2198,7 +2199,8 @@ void iommu_detach_device(struct iommu_domain *domain, struct device *dev)
+@@ -2203,7 +2204,8 @@ void iommu_detach_device(struct iommu_domain *domain, struct device *dev)
  		return;
  
  	mutex_lock(&group->mutex);
@@ -39222,7 +38953,7 @@ index bcf060b5c..c8605ebc0 100644
  		WARN_ON(1);
  		goto out_unlock;
  	}
-@@ -2332,38 +2334,85 @@ phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain, dma_addr_t iova)
+@@ -2337,38 +2339,85 @@ phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain, dma_addr_t iova)
  }
  EXPORT_SYMBOL_GPL(iommu_iova_to_phys);
  
@@ -39329,7 +39060,7 @@ index bcf060b5c..c8605ebc0 100644
  static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
  		       phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
  {
-@@ -2374,7 +2423,7 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
+@@ -2379,7 +2428,7 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
  	phys_addr_t orig_paddr = paddr;
  	int ret = 0;
  
@@ -39338,7 +39069,7 @@ index bcf060b5c..c8605ebc0 100644
  		     domain->pgsize_bitmap == 0UL))
  		return -ENODEV;
  
-@@ -2398,18 +2447,21 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
+@@ -2403,18 +2452,21 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
  	pr_debug("map: iova 0x%lx pa %pa size 0x%zx\n", iova, &paddr, size);
  
  	while (size) {
@@ -39367,7 +39098,7 @@ index bcf060b5c..c8605ebc0 100644
  	}
  
  	/* unroll mapping in case something went wrong */
-@@ -2429,7 +2481,7 @@ static int _iommu_map(struct iommu_domain *domain, unsigned long iova,
+@@ -2434,7 +2486,7 @@ static int _iommu_map(struct iommu_domain *domain, unsigned long iova,
  
  	ret = __iommu_map(domain, iova, paddr, size, prot, gfp);
  	if (ret == 0 && ops->iotlb_sync_map)
@@ -39376,7 +39107,7 @@ index bcf060b5c..c8605ebc0 100644
  
  	return ret;
  }
-@@ -2449,6 +2501,19 @@ int iommu_map_atomic(struct iommu_domain *domain, unsigned long iova,
+@@ -2454,6 +2506,19 @@ int iommu_map_atomic(struct iommu_domain *domain, unsigned long iova,
  }
  EXPORT_SYMBOL_GPL(iommu_map_atomic);
  
@@ -39396,7 +39127,7 @@ index bcf060b5c..c8605ebc0 100644
  static size_t __iommu_unmap(struct iommu_domain *domain,
  			    unsigned long iova, size_t size,
  			    struct iommu_iotlb_gather *iotlb_gather)
-@@ -2458,7 +2523,7 @@ static size_t __iommu_unmap(struct iommu_domain *domain,
+@@ -2463,7 +2528,7 @@ static size_t __iommu_unmap(struct iommu_domain *domain,
  	unsigned long orig_iova = iova;
  	unsigned int min_pagesz;
  
@@ -39405,7 +39136,7 @@ index bcf060b5c..c8605ebc0 100644
  		     domain->pgsize_bitmap == 0UL))
  		return 0;
  
-@@ -2486,9 +2551,9 @@ static size_t __iommu_unmap(struct iommu_domain *domain,
+@@ -2491,9 +2556,9 @@ static size_t __iommu_unmap(struct iommu_domain *domain,
  	 * or we hit an area that isn't mapped.
  	 */
  	while (unmapped < size) {
@@ -39418,7 +39149,7 @@ index bcf060b5c..c8605ebc0 100644
  		if (!unmapped_page)
  			break;
  
-@@ -2535,6 +2600,18 @@ static size_t __iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
+@@ -2540,6 +2605,18 @@ static size_t __iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
  	unsigned int i = 0;
  	int ret;
  
@@ -39437,7 +39168,7 @@ index bcf060b5c..c8605ebc0 100644
  	while (i <= nents) {
  		phys_addr_t s_phys = sg_phys(sg);
  
-@@ -2561,7 +2638,13 @@ static size_t __iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
+@@ -2566,7 +2643,13 @@ static size_t __iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
  	}
  
  	if (ops->iotlb_sync_map)
@@ -40811,7 +40542,7 @@ index 42b295337..1f17875da 100644
  		if (!(tmp & GITS_CBASER_SHAREABILITY_MASK)) {
  			/*
 diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 1bdb7acf4..0145d142b 100644
+index 04d1b3963..0d576407c 100644
 --- a/drivers/irqchip/irq-gic-v3.c
 +++ b/drivers/irqchip/irq-gic-v3.c
 @@ -18,6 +18,9 @@
@@ -40832,7 +40563,7 @@ index 1bdb7acf4..0145d142b 100644
  		gic_deactivate_unhandled(irqnr);
  	}
  }
-@@ -1309,6 +1313,27 @@ static void gic_cpu_pm_init(void)
+@@ -1325,6 +1329,27 @@ static void gic_cpu_pm_init(void)
  static inline void gic_cpu_pm_init(void) { }
  #endif /* CONFIG_CPU_PM */
  
@@ -40860,7 +40591,7 @@ index 1bdb7acf4..0145d142b 100644
  static struct irq_chip gic_chip = {
  	.name			= "GICv3",
  	.irq_mask		= gic_mask_irq,
-@@ -1765,6 +1790,7 @@ static int __init gic_init_bases(void __iomem *dist_base,
+@@ -1781,6 +1806,7 @@ static int __init gic_init_bases(void __iomem *dist_base,
  	gic_cpu_init();
  	gic_smp_init();
  	gic_cpu_pm_init();
@@ -42753,20 +42484,40 @@ index a6c814fdb..16746d211 100644
  extern bool use_spi_crc;
  
 diff --git a/drivers/mmc/core/host.c b/drivers/mmc/core/host.c
-index 864c8c205..eb40156f5 100644
+index 03e2f965a..eb40156f5 100644
 --- a/drivers/mmc/core/host.c
 +++ b/drivers/mmc/core/host.c
-@@ -513,6 +513,9 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
+@@ -513,15 +513,8 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
  
  EXPORT_SYMBOL(mmc_alloc_host);
  
+-static int mmc_validate_host_caps(struct mmc_host *host)
+-{
+-	if (host->caps & MMC_CAP_SDIO_IRQ && !host->ops->enable_sdio_irq) {
+-		dev_warn(host->parent, "missing ->enable_sdio_irq() ops\n");
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
 +struct mmc_host *primary_sdio_host;
 +EXPORT_SYMBOL(primary_sdio_host);
-+
+ 
  /**
   *	mmc_add_host - initialise host hardware
-  *	@host: mmc host
-@@ -580,3 +583,45 @@ void mmc_free_host(struct mmc_host *host)
+@@ -535,9 +528,8 @@ int mmc_add_host(struct mmc_host *host)
+ {
+ 	int err;
+ 
+-	err = mmc_validate_host_caps(host);
+-	if (err)
+-		return err;
++	WARN_ON((host->caps & MMC_CAP_SDIO_IRQ) &&
++		!host->ops->enable_sdio_irq);
+ 
+ 	err = device_add(&host->class_dev);
+ 	if (err)
+@@ -591,3 +583,45 @@ void mmc_free_host(struct mmc_host *host)
  }
  
  EXPORT_SYMBOL(mmc_free_host);
@@ -42813,7 +42564,7 @@ index 864c8c205..eb40156f5 100644
 +}
 +EXPORT_SYMBOL(mmc_host_rescan);
 diff --git a/drivers/mmc/core/sdio.c b/drivers/mmc/core/sdio.c
-index 1b0853a82..0482a37a0 100644
+index 99a4ce68d..af7fa7497 100644
 --- a/drivers/mmc/core/sdio.c
 +++ b/drivers/mmc/core/sdio.c
 @@ -3,9 +3,15 @@
@@ -43098,7 +42849,15 @@ index 1b0853a82..0482a37a0 100644
  		}
  	}
  
-@@ -719,10 +661,10 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+@@ -708,6 +650,7 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+ 	if (host->ops->init_card)
+ 		host->ops->init_card(host, card);
+ 
++
+ 	card->ocr = ocr_card;
+ 
+ 	/*
+@@ -721,10 +664,10 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
  	 * try to init uhs card. sdio_read_cccr will take over this task
  	 * to make sure which speed mode should work.
  	 */
@@ -43111,7 +42870,7 @@ index 1b0853a82..0482a37a0 100644
  			retries--;
  			goto try_again;
  		} else if (err) {
-@@ -733,10 +675,20 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+@@ -735,10 +678,20 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
  	/*
  	 * For native busses:  set card RCA and quit open drain mode.
  	 */
@@ -43133,7 +42892,7 @@ index 1b0853a82..0482a37a0 100644
  
  		/*
  		 * Update oldcard with the new RCA received from the SDIO
-@@ -753,7 +705,7 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+@@ -755,7 +708,7 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
  	if (!oldcard && card->type == MMC_TYPE_SD_COMBO) {
  		err = mmc_sd_get_csd(host, card);
  		if (err)
@@ -43142,7 +42901,7 @@ index 1b0853a82..0482a37a0 100644
  
  		mmc_decode_cid(card);
  	}
-@@ -761,7 +713,7 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+@@ -763,7 +716,7 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
  	/*
  	 * Select card, as all following commands rely on that.
  	 */
@@ -43151,7 +42910,7 @@ index 1b0853a82..0482a37a0 100644
  		err = mmc_select_card(card);
  		if (err)
  			goto remove;
-@@ -780,12 +732,7 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+@@ -782,12 +735,7 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
  			mmc_set_timing(card->host, MMC_TIMING_SD_HS);
  		}
  
@@ -43165,7 +42924,7 @@ index 1b0853a82..0482a37a0 100644
  	}
  
  	/*
-@@ -794,7 +741,7 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+@@ -796,7 +744,7 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
  	 */
  	err = sdio_read_cccr(card, ocr);
  	if (err) {
@@ -43174,7 +42933,7 @@ index 1b0853a82..0482a37a0 100644
  		if (ocr & R4_18V_PRESENT) {
  			/* Retry init sequence, but without R4_18V_PRESENT. */
  			retries = 0;
-@@ -811,14 +758,13 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+@@ -813,14 +761,13 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
  		goto remove;
  
  	if (oldcard) {
@@ -43194,9 +42953,9 @@ index 1b0853a82..0482a37a0 100644
 +
 +		card = oldcard;
  	}
- 	card->ocr = ocr_card;
+ 
  	mmc_fixup_device(card, sdio_fixup_methods);
-@@ -879,27 +825,33 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+@@ -881,27 +828,33 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
  		err = -EINVAL;
  		goto remove;
  	}
@@ -43238,7 +42997,7 @@ index 1b0853a82..0482a37a0 100644
  }
  
  /*
-@@ -985,37 +937,21 @@ static void mmc_sdio_detect(struct mmc_host *host)
+@@ -987,37 +940,21 @@ static void mmc_sdio_detect(struct mmc_host *host)
   */
  static int mmc_sdio_pre_suspend(struct mmc_host *host)
  {
@@ -43282,7 +43041,7 @@ index 1b0853a82..0482a37a0 100644
  }
  
  /*
-@@ -1023,8 +959,6 @@ static int mmc_sdio_pre_suspend(struct mmc_host *host)
+@@ -1025,8 +962,6 @@ static int mmc_sdio_pre_suspend(struct mmc_host *host)
   */
  static int mmc_sdio_suspend(struct mmc_host *host)
  {
@@ -43291,7 +43050,7 @@ index 1b0853a82..0482a37a0 100644
  	/* Prevent processing of SDIO IRQs in suspended state. */
  	mmc_card_set_suspended(host->card);
  	cancel_delayed_work_sync(&host->sdio_irq_work);
-@@ -1032,7 +966,7 @@ static int mmc_sdio_suspend(struct mmc_host *host)
+@@ -1034,7 +969,7 @@ static int mmc_sdio_suspend(struct mmc_host *host)
  	mmc_claim_host(host);
  
  	if (mmc_card_keep_power(host) && mmc_card_wake_sdio_irq(host))
@@ -43300,7 +43059,7 @@ index 1b0853a82..0482a37a0 100644
  
  	if (!mmc_card_keep_power(host)) {
  		mmc_power_off(host);
-@@ -1053,11 +987,7 @@ static int mmc_sdio_resume(struct mmc_host *host)
+@@ -1055,11 +990,7 @@ static int mmc_sdio_resume(struct mmc_host *host)
  	/* Basic card reinitialization. */
  	mmc_claim_host(host);
  
@@ -43313,7 +43072,7 @@ index 1b0853a82..0482a37a0 100644
  	if (!mmc_card_keep_power(host)) {
  		mmc_power_up(host, host->card->ocr);
  		/*
-@@ -1071,8 +1001,12 @@ static int mmc_sdio_resume(struct mmc_host *host)
+@@ -1073,8 +1004,12 @@ static int mmc_sdio_resume(struct mmc_host *host)
  			pm_runtime_set_active(&host->card->dev);
  			pm_runtime_enable(&host->card->dev);
  		}
@@ -43328,7 +43087,7 @@ index 1b0853a82..0482a37a0 100644
  		/* We may have switched to 1-bit mode during suspend */
  		err = sdio_enable_4bit_bus(host->card);
  	}
-@@ -1087,7 +1021,7 @@ static int mmc_sdio_resume(struct mmc_host *host)
+@@ -1089,7 +1024,7 @@ static int mmc_sdio_resume(struct mmc_host *host)
  		if (!(host->caps2 & MMC_CAP2_SDIO_IRQ_NOTHREAD))
  			wake_up_process(host->sdio_irq_thread);
  		else if (host->caps & MMC_CAP_SDIO_IRQ)
@@ -43337,7 +43096,7 @@ index 1b0853a82..0482a37a0 100644
  	}
  
  out:
-@@ -1097,6 +1031,38 @@ static int mmc_sdio_resume(struct mmc_host *host)
+@@ -1099,6 +1034,38 @@ static int mmc_sdio_resume(struct mmc_host *host)
  	return err;
  }
  
@@ -43376,7 +43135,7 @@ index 1b0853a82..0482a37a0 100644
  static int mmc_sdio_runtime_suspend(struct mmc_host *host)
  {
  	/* No references to the card, cut the power to it. */
-@@ -1114,42 +1080,16 @@ static int mmc_sdio_runtime_resume(struct mmc_host *host)
+@@ -1116,42 +1083,16 @@ static int mmc_sdio_runtime_resume(struct mmc_host *host)
  	/* Restore power and re-initialize. */
  	mmc_claim_host(host);
  	mmc_power_up(host, host->card->ocr);
@@ -43422,7 +43181,7 @@ index 1b0853a82..0482a37a0 100644
  }
  
  static int mmc_sdio_sw_reset(struct mmc_host *host)
-@@ -1161,7 +1101,7 @@ static int mmc_sdio_sw_reset(struct mmc_host *host)
+@@ -1163,7 +1104,7 @@ static int mmc_sdio_sw_reset(struct mmc_host *host)
  	mmc_set_initial_state(host);
  	mmc_set_initial_signal_voltage(host);
  
@@ -43431,7 +43190,7 @@ index 1b0853a82..0482a37a0 100644
  }
  
  static const struct mmc_bus_ops mmc_sdio_ops = {
-@@ -1189,9 +1129,21 @@ int mmc_attach_sdio(struct mmc_host *host)
+@@ -1191,9 +1132,21 @@ int mmc_attach_sdio(struct mmc_host *host)
  
  	WARN_ON(!host->claimed);
  
@@ -43453,7 +43212,7 @@ index 1b0853a82..0482a37a0 100644
  
  	mmc_attach_bus(host, &mmc_sdio_ops);
  	if (host->ocr_avail_sdio)
-@@ -1211,7 +1163,7 @@ int mmc_attach_sdio(struct mmc_host *host)
+@@ -1213,7 +1166,7 @@ int mmc_attach_sdio(struct mmc_host *host)
  	/*
  	 * Detect and init the card.
  	 */
@@ -43462,7 +43221,7 @@ index 1b0853a82..0482a37a0 100644
  	if (err)
  		goto err;
  
-@@ -1262,6 +1214,11 @@ int mmc_attach_sdio(struct mmc_host *host)
+@@ -1264,6 +1217,11 @@ int mmc_attach_sdio(struct mmc_host *host)
  			pm_runtime_enable(&card->sdio_func[i]->dev);
  	}
  
@@ -43474,7 +43233,7 @@ index 1b0853a82..0482a37a0 100644
  	/*
  	 * First add the card to the driver model...
  	 */
-@@ -1306,3 +1263,48 @@ int mmc_attach_sdio(struct mmc_host *host)
+@@ -1308,3 +1266,48 @@ int mmc_attach_sdio(struct mmc_host *host)
  	return err;
  }
  
@@ -45336,10 +45095,10 @@ index 80b324499..5671364ae 100644
  obj-$(CONFIG_VIRT_WIFI)	+= virt_wifi.o
 +obj-$(CONFIG_WL_ROCKCHIP)	+= rockchip_wlan/
 diff --git a/drivers/nvmem/core.c b/drivers/nvmem/core.c
-index 6b170083c..a8d527cda 100644
+index 21d89d80d..c8db5f945 100644
 --- a/drivers/nvmem/core.c
 +++ b/drivers/nvmem/core.c
-@@ -1665,7 +1665,11 @@ static void __exit nvmem_exit(void)
+@@ -1667,7 +1667,11 @@ static void __exit nvmem_exit(void)
  	bus_unregister(&nvmem_bus_type);
  }
  
@@ -52333,7 +52092,7 @@ index c6f4229eb..46e426cf4 100644
  MODULE_DESCRIPTION("RK805 pin control and GPIO driver");
  MODULE_AUTHOR("Joseph Chen <chenjh@rock-chips.com>");
 diff --git a/drivers/pinctrl/pinctrl-rockchip.c b/drivers/pinctrl/pinctrl-rockchip.c
-index 53a0badc6..c03815d27 100644
+index 9df48e0cf..f835dddc4 100644
 --- a/drivers/pinctrl/pinctrl-rockchip.c
 +++ b/drivers/pinctrl/pinctrl-rockchip.c
 @@ -16,12 +16,14 @@
@@ -55223,14 +54982,14 @@ index 53a0badc6..c03815d27 100644
 -	}
 -	return ret;
 -}
- 
+-
 -static int rockchip_gpiolib_unregister(struct platform_device *pdev,
 -						struct rockchip_pinctrl *info)
 -{
 -	struct rockchip_pin_ctrl *ctrl = info->ctrl;
 -	struct rockchip_pin_bank *bank = ctrl->pin_banks;
 -	int i;
--
+ 
 -	for (i = 0; i < ctrl->nr_banks; ++i, ++bank) {
 -		if (!bank->valid)
 -			continue;
@@ -55441,7 +55200,7 @@ index 53a0badc6..c03815d27 100644
  static int rockchip_pinctrl_probe(struct platform_device *pdev)
  {
  	struct rockchip_pinctrl *info;
-@@ -3814,17 +3337,25 @@ static int rockchip_pinctrl_probe(struct platform_device *pdev)
+@@ -3816,17 +3339,25 @@ static int rockchip_pinctrl_probe(struct platform_device *pdev)
  			return PTR_ERR(info->regmap_pmu);
  	}
  
@@ -55472,7 +55231,7 @@ index 53a0badc6..c03815d27 100644
  
  	return 0;
  }
-@@ -3864,6 +3395,7 @@ static struct rockchip_pin_ctrl px30_pin_ctrl = {
+@@ -3866,6 +3397,7 @@ static struct rockchip_pin_ctrl px30_pin_ctrl = {
  		.pull_calc_reg		= px30_calc_pull_reg_and_bit,
  		.drv_calc_reg		= px30_calc_drv_reg_and_bit,
  		.schmitt_calc_reg	= px30_calc_schmitt_reg_and_bit,
@@ -55480,7 +55239,7 @@ index 53a0badc6..c03815d27 100644
  };
  
  static struct rockchip_pin_bank rv1108_pin_banks[] = {
-@@ -3890,6 +3422,86 @@ static struct rockchip_pin_ctrl rv1108_pin_ctrl = {
+@@ -3892,6 +3424,86 @@ static struct rockchip_pin_ctrl rv1108_pin_ctrl = {
  	.schmitt_calc_reg	= rv1108_calc_schmitt_reg_and_bit,
  };
  
@@ -55567,7 +55326,7 @@ index 53a0badc6..c03815d27 100644
  static struct rockchip_pin_bank rk2928_pin_banks[] = {
  	PIN_BANK(0, 32, "gpio0"),
  	PIN_BANK(1, 32, "gpio1"),
-@@ -4012,9 +3624,9 @@ static struct rockchip_pin_ctrl rk3228_pin_ctrl = {
+@@ -4014,9 +3626,9 @@ static struct rockchip_pin_ctrl rk3228_pin_ctrl = {
  };
  
  static struct rockchip_pin_bank rk3288_pin_banks[] = {
@@ -55580,7 +55339,7 @@ index 53a0badc6..c03815d27 100644
  					     IOMUX_UNROUTED
  			    ),
  	PIN_BANK_IOMUX_FLAGS(1, 32, "gpio1", IOMUX_UNROUTED,
-@@ -4089,6 +3701,7 @@ static struct rockchip_pin_ctrl rk3308_pin_ctrl = {
+@@ -4091,6 +3703,7 @@ static struct rockchip_pin_ctrl rk3308_pin_ctrl = {
  		.niomux_recalced	= ARRAY_SIZE(rk3308_mux_recalced_data),
  		.iomux_routes		= rk3308_mux_route_data,
  		.niomux_routes		= ARRAY_SIZE(rk3308_mux_route_data),
@@ -55588,7 +55347,7 @@ index 53a0badc6..c03815d27 100644
  		.pull_calc_reg		= rk3308_calc_pull_reg_and_bit,
  		.drv_calc_reg		= rk3308_calc_drv_reg_and_bit,
  		.schmitt_calc_reg	= rk3308_calc_schmitt_reg_and_bit,
-@@ -4213,11 +3826,55 @@ static struct rockchip_pin_ctrl rk3399_pin_ctrl = {
+@@ -4215,11 +3828,55 @@ static struct rockchip_pin_ctrl rk3399_pin_ctrl = {
  		.drv_calc_reg		= rk3399_calc_drv_reg_and_bit,
  };
  
@@ -55644,7 +55403,7 @@ index 53a0badc6..c03815d27 100644
  	{ .compatible = "rockchip,rk2928-pinctrl",
  		.data = &rk2928_pin_ctrl },
  	{ .compatible = "rockchip,rk3036-pinctrl",
-@@ -4242,6 +3899,8 @@ static const struct of_device_id rockchip_pinctrl_dt_match[] = {
+@@ -4244,6 +3901,8 @@ static const struct of_device_id rockchip_pinctrl_dt_match[] = {
  		.data = &rk3368_pin_ctrl },
  	{ .compatible = "rockchip,rk3399-pinctrl",
  		.data = &rk3399_pin_ctrl },
@@ -55653,7 +55412,7 @@ index 53a0badc6..c03815d27 100644
  	{},
  };
  
-@@ -4259,3 +3918,14 @@ static int __init rockchip_pinctrl_drv_register(void)
+@@ -4261,3 +3920,14 @@ static int __init rockchip_pinctrl_drv_register(void)
  	return platform_driver_register(&rockchip_pinctrl_driver);
  }
  postcore_initcall(rockchip_pinctrl_drv_register);
@@ -56133,7 +55892,7 @@ index 6ebae5162..81ba62a81 100644
  
  ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
 diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index a6d27334a..470354ae0 100644
+index c65299f8c..525332d29 100644
 --- a/drivers/regulator/core.c
 +++ b/drivers/regulator/core.c
 @@ -51,6 +51,7 @@ static LIST_HEAD(regulator_map_list);
@@ -59948,7 +59707,7 @@ index 54eb6cfc5..3ae1676bc 100644
 +MODULE_DESCRIPTION("ROCKCHIP PM Domain Driver");
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/spi/spi-rockchip.c b/drivers/spi/spi-rockchip.c
-index 624273d0e..b50f84809 100644
+index a9f97023d..b50f84809 100644
 --- a/drivers/spi/spi-rockchip.c
 +++ b/drivers/spi/spi-rockchip.c
 @@ -10,6 +10,7 @@
@@ -60220,10 +59979,12 @@ index 624273d0e..b50f84809 100644
  	writel_relaxed(rockchip_spi_calc_burst_size(xfer->len / rs->n_bytes) - 1,
  		       rs->regs + ROCKCHIP_SPI_DMARDLR);
  	writel_relaxed(dmacr, rs->regs + ROCKCHIP_SPI_DMACR);
-@@ -566,7 +624,46 @@ static size_t rockchip_spi_max_transfer_size(struct spi_device *spi)
+@@ -566,12 +624,45 @@ static size_t rockchip_spi_max_transfer_size(struct spi_device *spi)
  static int rockchip_spi_slave_abort(struct spi_controller *ctlr)
  {
  	struct rockchip_spi *rs = spi_controller_get_devdata(ctlr);
+-
+-	if (atomic_read(&rs->state) & RXDMA)
 +	u32 rx_fifo_left;
 +	struct dma_tx_state state;
 +	enum dma_status status;
@@ -60232,7 +59993,10 @@ index 624273d0e..b50f84809 100644
 +	if (atomic_read(&rs->state) & RXDMA) {
 +		dmaengine_pause(ctlr->dma_rx);
 +		status = dmaengine_tx_status(ctlr->dma_rx, ctlr->dma_rx->cookie, &state);
-+		dmaengine_terminate_sync(ctlr->dma_rx);
+ 		dmaengine_terminate_sync(ctlr->dma_rx);
+-	if (atomic_read(&rs->state) & TXDMA)
+-		dmaengine_terminate_sync(ctlr->dma_tx);
+-	atomic_set(&rs->state, 0);
 +		atomic_set(&rs->state, 0);
 +		if (status == DMA_ERROR) {
 +			rs->rx = rs->xfer->rx_buf;
@@ -60261,13 +60025,12 @@ index 624273d0e..b50f84809 100644
 +
 +		rs->xfer->len = (unsigned int)(rs->rx - rs->xfer->rx_buf);
 +	}
- 
++
 +out:
-+	spi_enable_chip(rs, false);
+ 	spi_enable_chip(rs, false);
  	rs->slave_abort = true;
  	complete(&ctlr->xfer_completion);
- 
-@@ -582,12 +679,6 @@ static int rockchip_spi_transfer_one(
+@@ -588,12 +679,6 @@ static int rockchip_spi_transfer_one(
  	int ret;
  	bool use_dma;
  
@@ -60280,7 +60043,7 @@ index 624273d0e..b50f84809 100644
  	WARN_ON(readl_relaxed(rs->regs + ROCKCHIP_SPI_SSIENR) &&
  		(readl_relaxed(rs->regs + ROCKCHIP_SPI_SR) & SR_BUSY));
  
-@@ -602,7 +693,7 @@ static int rockchip_spi_transfer_one(
+@@ -608,7 +693,7 @@ static int rockchip_spi_transfer_one(
  	}
  
  	rs->n_bytes = xfer->bits_per_word <= 8 ? 1 : 2;
@@ -60289,7 +60052,7 @@ index 624273d0e..b50f84809 100644
  	use_dma = ctlr->can_dma ? ctlr->can_dma(ctlr, spi, xfer) : false;
  
  	ret = rockchip_spi_config(rs, spi, xfer, use_dma, ctlr->slave);
-@@ -612,7 +703,7 @@ static int rockchip_spi_transfer_one(
+@@ -618,7 +703,7 @@ static int rockchip_spi_transfer_one(
  	if (use_dma)
  		return rockchip_spi_prepare_dma(rs, ctlr, xfer);
  
@@ -60298,15 +60061,30 @@ index 624273d0e..b50f84809 100644
  }
  
  static bool rockchip_spi_can_dma(struct spi_controller *ctlr,
-@@ -638,6 +729,7 @@ static int rockchip_spi_probe(struct platform_device *pdev)
+@@ -642,8 +727,9 @@ static int rockchip_spi_probe(struct platform_device *pdev)
+ 	struct spi_controller *ctlr;
+ 	struct resource *mem;
  	struct device_node *np = pdev->dev.of_node;
- 	u32 rsd_nsecs;
+-	u32 rsd_nsecs, num_cs;
++	u32 rsd_nsecs;
  	bool slave_mode;
 +	struct pinctrl *pinctrl = NULL;
  
  	slave_mode = of_property_read_bool(np, "spi-slave");
  
-@@ -785,6 +877,28 @@ static int rockchip_spi_probe(struct platform_device *pdev)
+@@ -750,9 +836,8 @@ static int rockchip_spi_probe(struct platform_device *pdev)
+ 		 * rk spi0 has two native cs, spi1..5 one cs only
+ 		 * if num-cs is missing in the dts, default to 1
+ 		 */
+-		if (of_property_read_u32(np, "num-cs", &num_cs))
+-			num_cs = 1;
+-		ctlr->num_chipselect = num_cs;
++		if (of_property_read_u16(np, "num-cs", &ctlr->num_chipselect))
++			ctlr->num_chipselect = 1;
+ 		ctlr->use_gpio_descriptors = true;
+ 	}
+ 	ctlr->dev.of_node = pdev->dev.of_node;
+@@ -792,6 +877,28 @@ static int rockchip_spi_probe(struct platform_device *pdev)
  		ctlr->can_dma = rockchip_spi_can_dma;
  	}
  
@@ -61453,7 +61231,7 @@ index cae61d1eb..fc81bbc76 100644
  
  MODULE_LICENSE("GPL");
 diff --git a/drivers/tty/serial/8250/8250_dma.c b/drivers/tty/serial/8250/8250_dma.c
-index 890fa7dda..136ed708f 100644
+index b3c3f7e58..d8da0622b 100644
 --- a/drivers/tty/serial/8250/8250_dma.c
 +++ b/drivers/tty/serial/8250/8250_dma.c
 @@ -11,6 +11,12 @@
@@ -61518,7 +61296,7 @@ index 890fa7dda..136ed708f 100644
  int serial8250_tx_dma(struct uart_8250_port *p)
  {
  	struct uart_8250_dma		*dma = p->dma;
-@@ -76,7 +117,12 @@ int serial8250_tx_dma(struct uart_8250_port *p)
+@@ -85,7 +126,12 @@ int serial8250_tx_dma(struct uart_8250_port *p)
  	}
  
  	dma->tx_size = CIRC_CNT_TO_END(xmit->head, xmit->tail, UART_XMIT_SIZE);
@@ -61532,7 +61310,7 @@ index 890fa7dda..136ed708f 100644
  	desc = dmaengine_prep_slave_single(dma->txchan,
  					   dma->tx_addr + xmit->tail,
  					   dma->tx_size, DMA_MEM_TO_DEV,
-@@ -106,6 +152,64 @@ int serial8250_tx_dma(struct uart_8250_port *p)
+@@ -115,6 +161,64 @@ int serial8250_tx_dma(struct uart_8250_port *p)
  	return ret;
  }
  
@@ -61597,7 +61375,7 @@ index 890fa7dda..136ed708f 100644
  int serial8250_rx_dma(struct uart_8250_port *p)
  {
  	struct uart_8250_dma		*dma = p->dma;
-@@ -131,6 +235,8 @@ int serial8250_rx_dma(struct uart_8250_port *p)
+@@ -140,6 +244,8 @@ int serial8250_rx_dma(struct uart_8250_port *p)
  	return 0;
  }
  
@@ -61606,7 +61384,7 @@ index 890fa7dda..136ed708f 100644
  void serial8250_rx_dma_flush(struct uart_8250_port *p)
  {
  	struct uart_8250_dma *dma = p->dma;
-@@ -158,11 +264,19 @@ int serial8250_request_dma(struct uart_8250_port *p)
+@@ -167,11 +273,19 @@ int serial8250_request_dma(struct uart_8250_port *p)
  	dma->rxconf.direction		= DMA_DEV_TO_MEM;
  	dma->rxconf.src_addr_width	= DMA_SLAVE_BUSWIDTH_1_BYTE;
  	dma->rxconf.src_addr		= rx_dma_addr + UART_RX;
@@ -61627,7 +61405,7 @@ index 890fa7dda..136ed708f 100644
  	dma_cap_zero(mask);
  	dma_cap_set(DMA_SLAVE, mask);
  
-@@ -185,54 +299,52 @@ int serial8250_request_dma(struct uart_8250_port *p)
+@@ -194,54 +308,52 @@ int serial8250_request_dma(struct uart_8250_port *p)
  
  	dmaengine_slave_config(dma->rxchan, &dma->rxconf);
  
@@ -61678,6 +61456,7 @@ index 890fa7dda..136ed708f 100644
 -				  dma->rx_buf, dma->rx_addr);
 -		ret = -ENOMEM;
 -		goto err;
+-	}
 +	/* Get a channel for TX */
 +	dma->txchan = dma_request_slave_channel_compat(mask,
 +						       dma->fn, dma->tx_param,
@@ -61697,14 +61476,13 @@ index 890fa7dda..136ed708f 100644
 +			dma_release_channel(dma->txchan);
 +			dma->txchan = NULL;
 +		}
-+
+ 
+-	dev_dbg_ratelimited(p->port.dev, "got both dma channels\n");
 +		dev_info_ratelimited(p->port.dev, "got rx and tx dma channels\n");
 +	} else {
 +		dev_info_ratelimited(p->port.dev, "got rx dma channels only\n");
- 	}
++	}
  
--	dev_dbg_ratelimited(p->port.dev, "got both dma channels\n");
--
 +#if defined(CONFIG_ARCH_ROCKCHIP) && defined(CONFIG_NO_GKI)
 +	/* start dma for rx*/
 +	serial8250_start_rx_dma(p);
@@ -61715,7 +61493,7 @@ index 890fa7dda..136ed708f 100644
  release_rx:
  	dma_release_channel(dma->rxchan);
  	return ret;
-@@ -252,15 +364,18 @@ void serial8250_release_dma(struct uart_8250_port *p)
+@@ -261,15 +373,18 @@ void serial8250_release_dma(struct uart_8250_port *p)
  			  dma->rx_addr);
  	dma_release_channel(dma->rxchan);
  	dma->rxchan = NULL;
@@ -61964,7 +61742,7 @@ index 6d6a78eea..fee4f2933 100644
  	}
  
 diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_port.c
-index 7c07ebb37..1ad77505b 100644
+index 305535351..dbc4a1402 100644
 --- a/drivers/tty/serial/8250/8250_port.c
 +++ b/drivers/tty/serial/8250/8250_port.c
 @@ -1567,8 +1567,13 @@ static inline void __start_tx(struct uart_port *port)
@@ -61981,7 +61759,7 @@ index 7c07ebb37..1ad77505b 100644
  
  	if (serial8250_set_THRI(up)) {
  		if (up->bugs & UART_BUG_TXEN) {
-@@ -1888,6 +1893,12 @@ EXPORT_SYMBOL_GPL(serial8250_modem_status);
+@@ -1898,6 +1903,12 @@ EXPORT_SYMBOL_GPL(serial8250_modem_status);
  
  static bool handle_rx_dma(struct uart_8250_port *up, unsigned int iir)
  {
@@ -61994,7 +61772,7 @@ index 7c07ebb37..1ad77505b 100644
  	switch (iir & 0x3f) {
  	case UART_IIR_RX_TIMEOUT:
  		serial8250_rx_dma_flush(up);
-@@ -1896,6 +1907,7 @@ static bool handle_rx_dma(struct uart_8250_port *up, unsigned int iir)
+@@ -1906,6 +1917,7 @@ static bool handle_rx_dma(struct uart_8250_port *up, unsigned int iir)
  		return true;
  	}
  	return up->dma->rx_dma(up);
@@ -62002,7 +61780,7 @@ index 7c07ebb37..1ad77505b 100644
  }
  
  /*
-@@ -1906,7 +1918,9 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
+@@ -1916,7 +1928,9 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
  	unsigned char status;
  	unsigned long flags;
  	struct uart_8250_port *up = up_to_u8250p(port);
@@ -62012,7 +61790,7 @@ index 7c07ebb37..1ad77505b 100644
  
  	if (iir & UART_IIR_NO_INT)
  		return 0;
-@@ -1915,6 +1929,17 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
+@@ -1925,6 +1939,17 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
  
  	status = serial_port_in(port, UART_LSR);
  
@@ -62030,7 +61808,7 @@ index 7c07ebb37..1ad77505b 100644
  	/*
  	 * If port is stopped and there are no error conditions in the
  	 * FIFO, then don't drain the FIFO, as this may lead to TTY buffer
-@@ -1932,11 +1957,34 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
+@@ -1942,11 +1967,34 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
  		if (!up->dma || handle_rx_dma(up, iir))
  			status = serial8250_rx_chars(up, status);
  	}
@@ -62067,7 +61845,7 @@ index 7c07ebb37..1ad77505b 100644
  	uart_unlock_and_check_sysrq(port, flags);
  	return 1;
  }
-@@ -2405,7 +2453,11 @@ int serial8250_do_startup(struct uart_port *port)
+@@ -2415,7 +2463,11 @@ int serial8250_do_startup(struct uart_port *port)
  		if (uart_console(port))
  			msg = "forbid DMA for kernel console";
  		else if (serial8250_request_dma(up))
@@ -62079,7 +61857,7 @@ index 7c07ebb37..1ad77505b 100644
  		if (msg) {
  			dev_warn_ratelimited(port->dev, "%s\n", msg);
  			up->dma = NULL;
-@@ -2599,6 +2651,10 @@ void serial8250_do_set_divisor(struct uart_port *port, unsigned int baud,
+@@ -2609,6 +2661,10 @@ void serial8250_do_set_divisor(struct uart_port *port, unsigned int baud,
  {
  	struct uart_8250_port *up = up_to_u8250p(port);
  
@@ -62090,7 +61868,7 @@ index 7c07ebb37..1ad77505b 100644
  	/* Workaround to enable 115200 baud on OMAP1510 internal ports */
  	if (is_omap1510_8250(up)) {
  		if (baud == 115200) {
-@@ -2618,6 +2674,17 @@ void serial8250_do_set_divisor(struct uart_port *port, unsigned int baud,
+@@ -2628,6 +2684,17 @@ void serial8250_do_set_divisor(struct uart_port *port, unsigned int baud,
  		serial_port_out(port, UART_LCR, up->lcr | UART_LCR_DLAB);
  
  	serial_dl_write(up, quot);
@@ -62108,7 +61886,7 @@ index 7c07ebb37..1ad77505b 100644
  }
  EXPORT_SYMBOL_GPL(serial8250_do_set_divisor);
  
-@@ -2797,6 +2864,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2807,6 +2874,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  	if ((termios->c_cflag & CREAD) == 0)
  		port->ignore_status_mask |= UART_LSR_DR;
  
@@ -62116,7 +61894,7 @@ index 7c07ebb37..1ad77505b 100644
  	/*
  	 * CTS flow control flag and modem status interrupts
  	 */
-@@ -2810,6 +2878,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2820,6 +2888,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  		up->ier |= UART_IER_RTOIE;
  
  	serial_port_out(port, UART_IER, up->ier);
@@ -62124,7 +61902,7 @@ index 7c07ebb37..1ad77505b 100644
  
  	if (up->capabilities & UART_CAP_EFR) {
  		unsigned char efr = 0;
-@@ -2828,16 +2897,25 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2838,16 +2907,25 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  			serial_port_out(port, UART_EFR, efr);
  	}
  
@@ -62152,7 +61930,7 @@ index 7c07ebb37..1ad77505b 100644
  	if (port->type != PORT_16750) {
  		/* emulated UARTs (Lucent Venus 167x) need two steps */
  		if (up->fcr & UART_FCR_ENABLE_FIFO)
-@@ -2845,6 +2923,23 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2855,6 +2933,23 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  		serial_port_out(port, UART_FCR, up->fcr);	/* set fcr */
  	}
  	serial8250_set_mctrl(port, port->mctrl);
@@ -62189,10 +61967,10 @@ index aa0026a98..379fe28f0 100644
  		return;
  
 diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index af15dbe6b..33e67a24b 100644
+index 18ee3914b..34d32d62d 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -1826,7 +1826,8 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
+@@ -1829,7 +1829,8 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
  	 * bus_resume methods.
  	 */
  	if (hdev->parent) {		/* normal device */
@@ -62882,7 +62660,7 @@ index 1eb4fa2e6..177645f32 100644
  }
  EXPORT_SYMBOL_GPL(usb_ep_autoconfig_ss);
 diff --git a/drivers/usb/gadget/function/f_fs.c b/drivers/usb/gadget/function/f_fs.c
-index cbb7947f3..32475df2e 100644
+index bb0d92837..daa2a13b4 100644
 --- a/drivers/usb/gadget/function/f_fs.c
 +++ b/drivers/usb/gadget/function/f_fs.c
 @@ -71,7 +71,7 @@ struct ffs_function {
@@ -62894,7 +62672,7 @@ index cbb7947f3..32475df2e 100644
  	short				*interfaces_nums;
  
  	struct usb_function		function;
-@@ -2799,7 +2799,7 @@ static int __ffs_func_bind_do_descs(enum ffs_entity_type type, u8 *valuep,
+@@ -2827,7 +2827,7 @@ static int __ffs_func_bind_do_descs(enum ffs_entity_type type, u8 *valuep,
  	struct ffs_function *func = priv;
  	struct ffs_ep *ffs_ep;
  	unsigned ep_desc_id;
@@ -62903,7 +62681,7 @@ index cbb7947f3..32475df2e 100644
  	static const char *speed_names[] = { "full", "high", "super" };
  
  	if (type != FFS_DESCRIPTOR)
-@@ -2872,8 +2872,9 @@ static int __ffs_func_bind_do_descs(enum ffs_entity_type type, u8 *valuep,
+@@ -2900,8 +2900,9 @@ static int __ffs_func_bind_do_descs(enum ffs_entity_type type, u8 *valuep,
  
  		ffs_ep->ep  = ep;
  		ffs_ep->req = req;
@@ -62915,7 +62693,7 @@ index cbb7947f3..32475df2e 100644
  		/*
  		 * If we use virtual address mapping, we restore
  		 * original bEndpointAddress value.
-@@ -3408,7 +3409,10 @@ static void ffs_func_resume(struct usb_function *f)
+@@ -3436,7 +3437,10 @@ static void ffs_func_resume(struct usb_function *f)
  
  static int ffs_func_revmap_ep(struct ffs_function *func, u8 num)
  {
@@ -63941,7 +63719,7 @@ index 633e23d58..5311b0f40 100644
  		return ret;
  
 diff --git a/drivers/usb/gadget/udc/core.c b/drivers/usb/gadget/udc/core.c
-index da691a69f..0e6dbf9da 100644
+index 3a3b5a03d..06c748702 100644
 --- a/drivers/usb/gadget/udc/core.c
 +++ b/drivers/usb/gadget/udc/core.c
 @@ -755,7 +755,7 @@ int usb_gadget_deactivate(struct usb_gadget *gadget)
@@ -63969,7 +63747,7 @@ index e5a971b83..a345f2982 100644
  			max_sectors = PAGE_SIZE >> 9;
  		if (queue_max_hw_sectors(sdev->request_queue) > max_sectors)
 diff --git a/drivers/usb/storage/unusual_devs.h b/drivers/usb/storage/unusual_devs.h
-index 29191d33c..07150541e 100644
+index 1a05e3dcf..4a8399abf 100644
 --- a/drivers/usb/storage/unusual_devs.h
 +++ b/drivers/usb/storage/unusual_devs.h
 @@ -927,6 +927,12 @@ UNUSUAL_DEV(  0x05e3, 0x0723, 0x9451, 0x9451,
@@ -64029,18 +63807,10 @@ index 4051c8cd0..1fcb871c6 100644
  UNUSUAL_DEV(0x2109, 0x0711, 0x0000, 0x9999,
  		"VIA",
 diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 427a993c7..e4c52ca82 100644
+index 427a993c7..c0c623a82 100644
 --- a/drivers/video/Kconfig
 +++ b/drivers/video/Kconfig
-@@ -18,6 +18,7 @@ source "drivers/gpu/host1x/Kconfig"
- source "drivers/gpu/ipu-v3/Kconfig"
- 
- source "drivers/gpu/drm/Kconfig"
-+source "drivers/gpu/arm/Kconfig"
- 
- menu "Frame buffer Devices"
- source "drivers/video/fbdev/Kconfig"
-@@ -25,6 +26,10 @@ endmenu
+@@ -25,6 +25,10 @@ endmenu
  
  source "drivers/video/backlight/Kconfig"
  
@@ -64076,6 +63846,3 @@ index 1cf924f3a..cd3676b96 100644
  	pb->lth_brightness = data->lth_brightness * (div_u64(state.period,
  				pb->scale));
  
--- 
-2.25.1
-

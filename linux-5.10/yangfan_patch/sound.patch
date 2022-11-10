@@ -103,7 +103,7 @@ index 2c5f7e905..51821334f 100644
  }
  
 diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index 34c6dd04b..78e46839a 100644
+index 52c89a6f5..9aa44103e 100644
 --- a/sound/soc/codecs/Kconfig
 +++ b/sound/soc/codecs/Kconfig
 @@ -89,6 +89,7 @@ config SND_SOC_ALL_CODECS
@@ -114,7 +114,7 @@ index 34c6dd04b..78e46839a 100644
  	imply SND_SOC_ES8316
  	imply SND_SOC_ES8328_SPI
  	imply SND_SOC_ES8328_I2C
-@@ -761,6 +762,9 @@ config SND_SOC_DMIC
+@@ -766,6 +767,9 @@ config SND_SOC_DMIC
  	  Enable support for the Generic Digital Microphone CODEC.
  	  Select this if your sound card has DMICs.
  
@@ -124,7 +124,7 @@ index 34c6dd04b..78e46839a 100644
  config SND_SOC_HDMI_CODEC
  	tristate
  	select SND_PCM_ELD
-@@ -1024,6 +1028,9 @@ config SND_SOC_RK3328
+@@ -1029,6 +1033,9 @@ config SND_SOC_RK3328
  	tristate "Rockchip RK3328 audio CODEC"
  	select REGMAP_MMIO
  
@@ -281,7 +281,9 @@ index 65e814d46..83be7d21e 100644
  obj-$(CONFIG_SND_SOC_ROCKCHIP_SPDIF) += snd-soc-rockchip-spdif.o
  
 diff --git a/sound/soc/rockchip/rockchip_i2s.c b/sound/soc/rockchip/rockchip_i2s.c
-index fa84ec695..165d027b4 100644
+old mode 100644
+new mode 100755
+index 785baf98f..165d027b4
 --- a/sound/soc/rockchip/rockchip_i2s.c
 +++ b/sound/soc/rockchip/rockchip_i2s.c
 @@ -15,11 +15,11 @@
@@ -561,7 +563,7 @@ index fa84ec695..165d027b4 100644
  	i2s->dev = &pdev->dev;
  
  	i2s->grf = syscon_regmap_lookup_by_phandle(node, "rockchip,grf");
-@@ -609,26 +691,7 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
+@@ -609,50 +691,40 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
  		i2s->pins = of_id->data;
  	}
  
@@ -580,17 +582,26 @@ index fa84ec695..165d027b4 100644
 -	i2s->mclk = devm_clk_get(&pdev->dev, "i2s_clk");
 -	if (IS_ERR(i2s->mclk)) {
 -		dev_err(&pdev->dev, "Can't retrieve i2s master clock\n");
--		return PTR_ERR(i2s->mclk);
+-		ret = PTR_ERR(i2s->mclk);
+-		goto err_clk;
 -	}
 -
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	regs = devm_ioremap_resource(&pdev->dev, res);
-+	regs = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
- 	if (IS_ERR(regs))
- 		return PTR_ERR(regs);
+ 	regs = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
+-	if (IS_ERR(regs)) {
+-		ret = PTR_ERR(regs);
+-		goto err_clk;
+-	}
++	if (IS_ERR(regs))
++		return PTR_ERR(regs);
  
-@@ -640,16 +703,28 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
- 		return PTR_ERR(i2s->regmap);
+ 	i2s->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+ 					    &rockchip_i2s_regmap_config);
+ 	if (IS_ERR(i2s->regmap)) {
+ 		dev_err(&pdev->dev,
+ 			"Failed to initialise managed register map\n");
+-		ret = PTR_ERR(i2s->regmap);
+-		goto err_clk;
++		return PTR_ERR(i2s->regmap);
  	}
  
 -	i2s->playback_dma_data.addr = res->start + I2S_TXDR;
@@ -625,7 +636,7 @@ index fa84ec695..165d027b4 100644
  	pm_runtime_enable(&pdev->dev);
  	if (!pm_runtime_enabled(&pdev->dev)) {
  		ret = i2s_runtime_resume(&pdev->dev);
-@@ -657,33 +732,20 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
+@@ -660,33 +732,20 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
  			goto err_pm_disable;
  	}
  
@@ -663,11 +674,13 @@ index fa84ec695..165d027b4 100644
  	if (ret) {
  		dev_err(&pdev->dev, "Could not register PCM\n");
  		goto err_suspend;
-@@ -697,6 +759,8 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
+@@ -699,8 +758,9 @@ static int rockchip_i2s_probe(struct platform_device *pdev)
+ 		i2s_runtime_suspend(&pdev->dev);
  err_pm_disable:
  	pm_runtime_disable(&pdev->dev);
- 
-+	clk_disable_unprepare(i2s->hclk);
+-err_clk:
++
+ 	clk_disable_unprepare(i2s->hclk);
 +
  	return ret;
  }
@@ -928,7 +941,7 @@ index 674810851..7f00470ac 100644
  		return PTR_ERR(regs);
  
 diff --git a/sound/usb/quirks.c b/sound/usb/quirks.c
-index 75d4d317b..e60bf1f40 100644
+index 6333a2ecb..03b1f7e35 100644
 --- a/sound/usb/quirks.c
 +++ b/sound/usb/quirks.c
 @@ -1523,6 +1523,9 @@ bool snd_usb_get_sample_rate_quirk(struct snd_usb_audio *chip)
