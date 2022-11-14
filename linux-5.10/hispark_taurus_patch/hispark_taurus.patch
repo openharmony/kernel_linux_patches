@@ -48888,7 +48888,7 @@ diff --git a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c b/drivers/net/ether
 index 3616b77ca..883c5f5db 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-@@ -2092,14 +2092,17 @@ static int mlx4_en_get_module_eeprom(struct net_device *dev,
+@@ -2092,8 +2092,11 @@ static int mlx4_en_get_module_eeprom(struct net_device *dev,
  		ret = mlx4_get_module_info(mdev->dev, priv->port,
  					   offset, ee->len - i, data + i);
  
@@ -48901,13 +48901,6 @@ index 3616b77ca..883c5f5db 100644
  
  		if (ret < 0) {
  			en_err(priv,
- 			       "mlx4_get_module_info i(%d) offset(%d) bytes_to_read(%d) - FAILED (0x%x)\n",
- 			       i, offset, ee->len - i, ret);
--			return 0;
-+			return ret;
- 		}
- 
- 		i += ret;
 diff --git a/drivers/net/mdio/Kconfig b/drivers/net/mdio/Kconfig
 index a10cc460d..42603264a 100644
 --- a/drivers/net/mdio/Kconfig
