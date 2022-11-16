@@ -55324,7 +55324,7 @@ index b75fe5680..bec11c742
 +				 * and each transcation length = 1024B, no any
 +				 * chain trb needed, so skip it.
 +				 */
-+				if (length == (3 * maxp))
++				if (req->request.length == (3 * maxp))
 +					chain_skip = 1;
  			}
 +			if (speed == USB_SPEED_SUPER)
