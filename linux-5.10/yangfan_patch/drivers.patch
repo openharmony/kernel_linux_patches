@@ -63505,8 +63505,6 @@ index 9a01a7d4f..3e92a28d8 100644
  
  #endif /* U_UVC_H */
 diff --git a/drivers/usb/gadget/function/uvc.h b/drivers/usb/gadget/function/uvc.h
-old mode 100644
-new mode 100755
 index 6c4fc4913..0ea4405ff
 --- a/drivers/usb/gadget/function/uvc.h
 +++ b/drivers/usb/gadget/function/uvc.h
