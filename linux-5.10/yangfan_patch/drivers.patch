@@ -7898,7 +7898,7 @@ index 9755672ca..1965fb1bd
 +		dev_err(dp->dev, "failed to read dpcd caps: %d\n", ret);
 +		return ret;
 +	}
-+
+
 +	ret = analogix_dp_link_power_up(dp);
 +	if (ret) {
 +		dev_err(dp->dev, "failed to power up link: %d\n", ret);
