@@ -7326,8 +7326,6 @@ index 2b3aff104..519e916ed 100644
  obj-$(CONFIG_DRM_SII902X) += sii902x.o
  obj-$(CONFIG_DRM_SII9234) += sii9234.o
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-old mode 100644
-new mode 100755
 index 9755672ca..1965fb1bd
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
@@ -25484,8 +25482,6 @@ index 7ffc541be..6a1d8e55b 100644
 +void rockchip_gem_get_ddr_info(void);
  #endif /* _ROCKCHIP_DRM_GEM_H */
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-old mode 100644
-new mode 100755
 index 91568f166..031de4f6b
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
