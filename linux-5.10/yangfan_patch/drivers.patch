@@ -12,10 +12,10 @@ index f13d70df6..f072f4e8f 100644
  obj-y				+= bus/
  
 diff --git a/drivers/block/nbd.c b/drivers/block/nbd.c
-index 07b06fc6f..cc9770936 100644
+index 2e4bd16ef..676b20b40 100644
 --- a/drivers/block/nbd.c
 +++ b/drivers/block/nbd.c
-@@ -2386,12 +2386,6 @@ static int nbd_genl_status(struct sk_buff *skb, struct genl_info *info)
+@@ -2391,12 +2391,6 @@ static int nbd_genl_status(struct sk_buff *skb, struct genl_info *info)
  	}
  
  	dev_list = nla_nest_start_noflag(reply, NBD_ATTR_DEVICE_LIST);
@@ -60,10 +60,10 @@ index c715d4681..42bb63d80 100644
  	tristate "Clock driver for WM831x/2x PMICs"
  	depends on MFD_WM831X
 diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index 92fc08420..7ed6fcb95 100644
+index 2e56cc0a3..bc928840e 100644
 --- a/drivers/clk/clk.c
 +++ b/drivers/clk/clk.c
-@@ -1296,7 +1296,7 @@ static int __init clk_disable_unused(void)
+@@ -1314,7 +1314,7 @@ static int __init clk_disable_unused(void)
  
  	return 0;
  }
@@ -7139,10 +7139,10 @@ index 09dada80a..2d00d22f1 100644
  obj-$(CONFIG_GPIO_SAMA5D2_PIOBU)	+= gpio-sama5d2-piobu.o
  obj-$(CONFIG_GPIO_SCH311X)		+= gpio-sch311x.o
 diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index 2f895a2b8..be9002d62 100644
+index 01424af65..e4a9860ea 100644
 --- a/drivers/gpio/gpiolib-of.c
 +++ b/drivers/gpio/gpiolib-of.c
-@@ -1039,3 +1039,14 @@ void of_gpiochip_remove(struct gpio_chip *chip)
+@@ -1044,3 +1044,14 @@ void of_gpiochip_remove(struct gpio_chip *chip)
  {
  	of_node_put(chip->of_node);
  }
@@ -7326,7 +7326,7 @@ index 2b3aff104..519e916ed 100644
  obj-$(CONFIG_DRM_SII902X) += sii902x.o
  obj-$(CONFIG_DRM_SII9234) += sii9234.o
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index aa1bb8629..1965fb1bd 100644
+index 9755672ca..1965fb1bd
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -8,11 +8,13 @@
@@ -7897,14 +7897,14 @@ index aa1bb8629..1965fb1bd 100644
 +	if (ret < 0) {
 +		dev_err(dp->dev, "failed to read dpcd caps: %d\n", ret);
 +		return ret;
- 	}
- 
++	}
+
 +	ret = analogix_dp_link_power_up(dp);
 +	if (ret) {
 +		dev_err(dp->dev, "failed to power up link: %d\n", ret);
 +		return ret;
-+	}
-+
+ 	}
+ 
 +	if (device_property_read_bool(dp->dev, "panel-self-test"))
 +		return drm_dp_dpcd_writeb(&dp->aux, DP_EDP_CONFIGURATION_SET,
 +					  DP_PANEL_SELF_TEST_ENABLE);
@@ -8547,10 +8547,14 @@ index aa1bb8629..1965fb1bd 100644
  	return 0;
  }
  
-@@ -1643,13 +1815,99 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
- 	return analogix_dp_transfer(dp, msg);
- }
- 
+@@ -1639,20 +1811,96 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
+ 				       struct drm_dp_aux_msg *msg)
+ {
+ 	struct analogix_dp_device *dp = to_dp(aux);
++
++	return analogix_dp_transfer(dp, msg);
++}
++
 +int analogix_dp_audio_hw_params(struct analogix_dp_device *dp,
 +				struct hdmi_codec_daifmt *daifmt,
 +				struct hdmi_codec_params *params)
@@ -8614,33 +8618,40 @@ index aa1bb8629..1965fb1bd 100644
 +
 +int analogix_dp_loader_protect(struct analogix_dp_device *dp)
 +{
-+	int ret;
-+
+ 	int ret;
+ 
+-	pm_runtime_get_sync(dp->dev);
 +	ret = analogix_dp_phy_power_on(dp);
 +	if (ret)
 +		return ret;
-+
+ 
+-	ret = analogix_dp_detect_hpd(dp);
 +	dp->dpms_mode = DRM_MODE_DPMS_ON;
 +
 +	analogix_dp_link_train_restore(dp);
 +
 +	ret = analogix_dp_fast_link_train_detection(dp);
-+	if (ret)
+ 	if (ret)
+-		goto out;
 +		return ret;
-+
+ 
+-	ret = analogix_dp_transfer(dp, msg);
+-out:
+-	pm_runtime_put(dp->dev);
 +	if (analogix_dp_detect_sink_psr(dp)) {
 +		ret = analogix_dp_enable_sink_psr(dp);
 +		if (ret)
 +			return ret;
 +	}
-+
+ 
+-	return ret;
 +	return 0;
-+}
+ }
 +EXPORT_SYMBOL_GPL(analogix_dp_loader_protect);
-+
+ 
  struct analogix_dp_device *
  analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
- {
+@@ -1660,7 +1908,6 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  	struct platform_device *pdev = to_platform_device(dev);
  	struct analogix_dp_device *dp;
  	struct resource *res;
@@ -8648,7 +8659,7 @@ index aa1bb8629..1965fb1bd 100644
  	int ret;
  
  	if (!plat_data) {
-@@ -1663,9 +1921,10 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1674,9 +1921,10 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  
  	dp->dev = &pdev->dev;
  	dp->dpms_mode = DRM_MODE_DPMS_OFF;
@@ -8660,7 +8671,7 @@ index aa1bb8629..1965fb1bd 100644
  
  	/*
  	 * platform dp driver need containor_of the plat_data to get
-@@ -1694,13 +1953,13 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1705,21 +1953,19 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  		}
  	}
  
@@ -8679,7 +8690,23 @@ index aa1bb8629..1965fb1bd 100644
  
  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
  
-@@ -1722,34 +1981,49 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+ 	dp->reg_base = devm_ioremap_resource(&pdev->dev, res);
+-	if (IS_ERR(dp->reg_base)) {
+-		ret = PTR_ERR(dp->reg_base);
+-		goto err_disable_clk;
+-	}
++	if (IS_ERR(dp->reg_base))
++		return ERR_CAST(dp->reg_base);
+ 
+ 	dp->force_hpd = of_property_read_bool(dev->of_node, "force-hpd");
+ 
+@@ -1731,46 +1977,55 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+ 	if (IS_ERR(dp->hpd_gpiod)) {
+ 		dev_err(dev, "error getting HDP GPIO: %ld\n",
+ 			PTR_ERR(dp->hpd_gpiod));
+-		ret = PTR_ERR(dp->hpd_gpiod);
+-		goto err_disable_clk;
++		return ERR_CAST(dp->hpd_gpiod);
  	}
  
  	if (dp->hpd_gpiod) {
@@ -8712,7 +8739,9 @@ index aa1bb8629..1965fb1bd 100644
 +	dp->irq = platform_get_irq(pdev, 0);
  	if (dp->irq == -ENXIO) {
  		dev_err(&pdev->dev, "failed to get irq\n");
- 		return ERR_PTR(-ENODEV);
+-		ret = -ENODEV;
+-		goto err_disable_clk;
++		return ERR_PTR(-ENODEV);
  	}
  
 -	ret = devm_request_threaded_irq(&pdev->dev, dp->irq,
@@ -8724,16 +8753,21 @@ index aa1bb8629..1965fb1bd 100644
 +					IRQF_ONESHOT, dev_name(dev), dp);
  	if (ret) {
  		dev_err(&pdev->dev, "failed to request irq\n");
- 		return ERR_PTR(ret);
+-		goto err_disable_clk;
++		return ERR_PTR(ret);
  	}
 -	disable_irq(dp->irq);
-+
+ 
+-	return dp;
 +	dp->extcon = devm_extcon_dev_allocate(dev, analogix_dp_cable);
 +	if (IS_ERR(dp->extcon)) {
 +		dev_err(dev, "failed to allocate extcon device\n");
 +		return ERR_CAST(dp->extcon);
 +	}
-+
+ 
+-err_disable_clk:
+-	clk_disable_unprepare(dp->clock);
+-	return ERR_PTR(ret);
 +	ret = devm_extcon_dev_register(dev, dp->extcon);
 +	if (ret) {
 +		dev_err(dev, "failed to register extcon device\n");
@@ -8742,10 +8776,12 @@ index aa1bb8629..1965fb1bd 100644
 +
 +	dp->bridge.driver_private = dp;
 +	dp->bridge.funcs = &analogix_dp_bridge_funcs;
- 
- 	return dp;
++
++	return dp;
  }
-@@ -1771,16 +2045,21 @@ int analogix_dp_bind(struct analogix_dp_device *dp, struct drm_device *drm_dev)
+ EXPORT_SYMBOL_GPL(analogix_dp_probe);
+ 
+@@ -1790,16 +2045,21 @@ int analogix_dp_bind(struct analogix_dp_device *dp, struct drm_device *drm_dev)
  		return ret;
  
  	pm_runtime_enable(dp->dev);
@@ -8769,7 +8805,7 @@ index aa1bb8629..1965fb1bd 100644
  	pm_runtime_disable(dp->dev);
  
  	return ret;
-@@ -1789,34 +2068,23 @@ EXPORT_SYMBOL_GPL(analogix_dp_bind);
+@@ -1808,34 +2068,23 @@ EXPORT_SYMBOL_GPL(analogix_dp_bind);
  
  void analogix_dp_unbind(struct analogix_dp_device *dp)
  {
@@ -8808,7 +8844,7 @@ index aa1bb8629..1965fb1bd 100644
  
  	return 0;
  }
-@@ -1824,25 +2092,26 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
+@@ -1843,25 +2092,26 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
  
  int analogix_dp_resume(struct analogix_dp_device *dp)
  {
@@ -14583,7 +14619,7 @@ index b0a826489..3d7182001 100644
  			   from_kuid_munged(seq_user_ns(m), uid),
  			   priv->magic);
 diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
-index 862e173d3..d2be9391b 100644
+index 4334e466b..ab52f7fed 100644
 --- a/drivers/gpu/drm/drm_edid.c
 +++ b/drivers/gpu/drm/drm_edid.c
 @@ -1835,20 +1835,11 @@ static void connector_bad_edid(struct drm_connector *connector,
@@ -15291,7 +15327,7 @@ index 2ba560bca..bb2c16d0f 100644
 +
 +ccflags-y +=-I$(KERNEL_SOURCE_PATH)/drivers/gpu/drm/panel
 diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-index 959dcbd8a..137510d8d 100644
+index bf2c845ef..9a0e15f54 100644
 --- a/drivers/gpu/drm/panel/panel-simple.c
 +++ b/drivers/gpu/drm/panel/panel-simple.c
 @@ -30,6 +30,7 @@
@@ -15762,7 +15798,7 @@ index 959dcbd8a..137510d8d 100644
  
  	drm_panel_add(&panel->base);
  
-@@ -3903,6 +4194,9 @@ static const struct panel_desc arm_rtsm = {
+@@ -3904,6 +4195,9 @@ static const struct panel_desc arm_rtsm = {
  
  static const struct of_device_id platform_of_match[] = {
  	{
@@ -15772,7 +15808,7 @@ index 959dcbd8a..137510d8d 100644
  		.compatible = "ampire,am-1280800n3tzqw-t00h",
  		.data = &ampire_am_1280800n3tzqw_t00h,
  	}, {
-@@ -4311,15 +4605,132 @@ static const struct of_device_id platform_of_match[] = {
+@@ -4312,15 +4606,132 @@ static const struct of_device_id platform_of_match[] = {
  };
  MODULE_DEVICE_TABLE(of, platform_of_match);
  
@@ -15906,7 +15942,7 @@ index 959dcbd8a..137510d8d 100644
  }
  
  static int panel_simple_platform_remove(struct platform_device *pdev)
-@@ -4554,6 +4965,9 @@ static const struct panel_desc_dsi osd101t2045_53ts = {
+@@ -4555,6 +4966,9 @@ static const struct panel_desc_dsi osd101t2045_53ts = {
  
  static const struct of_device_id dsi_of_match[] = {
  	{
@@ -15916,7 +15952,7 @@ index 959dcbd8a..137510d8d 100644
  		.compatible = "auo,b080uan01",
  		.data = &auo_b080uan01
  	}, {
-@@ -4580,9 +4994,33 @@ static const struct of_device_id dsi_of_match[] = {
+@@ -4581,9 +4995,33 @@ static const struct of_device_id dsi_of_match[] = {
  };
  MODULE_DEVICE_TABLE(of, dsi_of_match);
  
@@ -15950,7 +15986,7 @@ index 959dcbd8a..137510d8d 100644
  	const struct of_device_id *id;
  	int err;
  
-@@ -4590,12 +5028,47 @@ static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
+@@ -4591,12 +5029,47 @@ static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
  	if (!id)
  		return -ENODEV;
  
@@ -25446,7 +25482,7 @@ index 7ffc541be..6a1d8e55b 100644
 +void rockchip_gem_get_ddr_info(void);
  #endif /* _ROCKCHIP_DRM_GEM_H */
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-index 0f2314449..031de4f6b 100644
+index 91568f166..031de4f6b
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
 @@ -6,21 +6,28 @@
@@ -27927,12 +27963,17 @@ index 0f2314449..031de4f6b 100644
  };
  
  static int vop_crtc_enable_vblank(struct drm_crtc *crtc)
-@@ -1120,8 +2360,13 @@ static int vop_crtc_enable_vblank(struct drm_crtc *crtc)
+@@ -1115,281 +2355,1485 @@ static int vop_crtc_enable_vblank(struct drm_crtc *crtc)
+ 	struct vop *vop = to_vop(crtc);
+ 	unsigned long flags;
  
- 	spin_lock_irqsave(&vop->irq_lock, flags);
- 
--	VOP_INTR_SET_TYPE(vop, clear, FS_INTR, 1);
--	VOP_INTR_SET_TYPE(vop, enable, FS_INTR, 1);
+-	if (WARN_ON(!vop->is_enabled))
+-		return -EPERM;
++	if (WARN_ON(!vop->is_enabled))
++		return -EPERM;
++
++	spin_lock_irqsave(&vop->irq_lock, flags);
++
 +	if (VOP_MAJOR(vop->version) == 3 && VOP_MINOR(vop->version) >= 7) {
 +		VOP_INTR_SET_TYPE(vop, clear, FS_FIELD_INTR, 1);
 +		VOP_INTR_SET_TYPE(vop, enable, FS_FIELD_INTR, 1);
@@ -27940,93 +27981,56 @@ index 0f2314449..031de4f6b 100644
 +		VOP_INTR_SET_TYPE(vop, clear, FS_INTR, 1);
 +		VOP_INTR_SET_TYPE(vop, enable, FS_INTR, 1);
 +	}
- 
- 	spin_unlock_irqrestore(&vop->irq_lock, flags);
- 
-@@ -1138,258 +2383,1457 @@ static void vop_crtc_disable_vblank(struct drm_crtc *crtc)
- 
- 	spin_lock_irqsave(&vop->irq_lock, flags);
- 
--	VOP_INTR_SET_TYPE(vop, enable, FS_INTR, 0);
++
++	spin_unlock_irqrestore(&vop->irq_lock, flags);
++
++	return 0;
++}
++
++static void vop_crtc_disable_vblank(struct drm_crtc *crtc)
++{
++	struct vop *vop = to_vop(crtc);
++	unsigned long flags;
++
++	if (WARN_ON(!vop->is_enabled))
++		return;
++
++	spin_lock_irqsave(&vop->irq_lock, flags);
++
 +	if (VOP_MAJOR(vop->version) == 3 && VOP_MINOR(vop->version) >= 7)
 +		VOP_INTR_SET_TYPE(vop, enable, FS_FIELD_INTR, 0);
 +	else
 +		VOP_INTR_SET_TYPE(vop, enable, FS_INTR, 0);
- 
- 	spin_unlock_irqrestore(&vop->irq_lock, flags);
- }
- 
--static bool vop_crtc_mode_fixup(struct drm_crtc *crtc,
--				const struct drm_display_mode *mode,
--				struct drm_display_mode *adjusted_mode)
++
++	spin_unlock_irqrestore(&vop->irq_lock, flags);
++}
++
 +static void vop_crtc_cancel_pending_vblank(struct drm_crtc *crtc,
 +					   struct drm_file *file_priv)
- {
++{
 +	struct drm_device *drm = crtc->dev;
- 	struct vop *vop = to_vop(crtc);
--	unsigned long rate;
++	struct vop *vop = to_vop(crtc);
 +	struct drm_pending_vblank_event *e;
 +	unsigned long flags;
- 
--	/*
--	 * Clock craziness.
--	 *
--	 * Key points:
--	 *
--	 * - DRM works in in kHz.
--	 * - Clock framework works in Hz.
--	 * - Rockchip's clock driver picks the clock rate that is the
--	 *   same _OR LOWER_ than the one requested.
--	 *
--	 * Action plan:
--	 *
--	 * 1. When DRM gives us a mode, we should add 999 Hz to it.  That way
--	 *    if the clock we need is 60000001 Hz (~60 MHz) and DRM tells us to
--	 *    make 60000 kHz then the clock framework will actually give us
--	 *    the right clock.
--	 *
--	 *    NOTE: if the PLL (maybe through a divider) could actually make
--	 *    a clock rate 999 Hz higher instead of the one we want then this
--	 *    could be a problem.  Unfortunately there's not much we can do
--	 *    since it's baked into DRM to use kHz.  It shouldn't matter in
--	 *    practice since Rockchip PLLs are controlled by tables and
--	 *    even if there is a divider in the middle I wouldn't expect PLL
--	 *    rates in the table that are just a few kHz different.
--	 *
--	 * 2. Get the clock framework to round the rate for us to tell us
--	 *    what it will actually make.
--	 *
--	 * 3. Store the rounded up rate so that we don't need to worry about
--	 *    this in the actual clk_set_rate().
--	 */
--	rate = clk_round_rate(vop->dclk, adjusted_mode->clock * 1000 + 999);
--	adjusted_mode->clock = DIV_ROUND_UP(rate, 1000);
++
 +	spin_lock_irqsave(&drm->event_lock, flags);
 +	e = vop->event;
 +	if (e && e->base.file_priv == file_priv) {
 +		vop->event = NULL;
- 
--	return true;
++
 +		/* e->base.destroy(&e->base);//todo */
 +		file_priv->event_space += sizeof(e->event);
 +	}
 +	spin_unlock_irqrestore(&drm->event_lock, flags);
- }
- 
--static bool vop_dsp_lut_is_enabled(struct vop *vop)
++}
++
 +static int vop_crtc_loader_protect(struct drm_crtc *crtc, bool on)
- {
--	return vop_read_reg(vop, 0, &vop->data->common->dsp_lut_en);
--}
++{
 +	struct rockchip_drm_private *private = crtc->dev->dev_private;
 +	struct vop *vop = to_vop(crtc);
 +	int sys_status = drm_crtc_index(crtc) ?
 +				SYS_STATUS_LCDC1 : SYS_STATUS_LCDC0;
- 
--static void vop_crtc_write_gamma_lut(struct vop *vop, struct drm_crtc *crtc)
--{
--	struct drm_color_lut *lut = crtc->state->gamma_lut->data;
--	unsigned int i;
++
 +	if (on == vop->loader_protect)
 +		return 0;
 +
@@ -28044,36 +28048,24 @@ index 0f2314449..031de4f6b 100644
 +					vop->pll->use_count++;
 +			}
 +		}
- 
--	for (i = 0; i < crtc->gamma_size; i++) {
--		u32 word;
++
 +		rockchip_set_system_status(sys_status);
 +		vop_initial(crtc);
 +		drm_crtc_vblank_on(crtc);
 +		vop->loader_protect = true;
 +	} else {
 +		vop_crtc_atomic_disable(crtc, NULL);
- 
--		word = (drm_color_lut_extract(lut[i].red, 10) << 20) |
--		       (drm_color_lut_extract(lut[i].green, 10) << 10) |
--			drm_color_lut_extract(lut[i].blue, 10);
--		writel(word, vop->lut_regs + i * 4);
++
 +		if (vop->dclk_source && vop->pll) {
 +			vop->pll->use_count--;
 +			vop->pll = NULL;
 +		}
 +		vop->loader_protect = false;
- 	}
++	}
 +
 +	return 0;
- }
- 
--static void vop_crtc_gamma_set(struct vop *vop, struct drm_crtc *crtc,
--			       struct drm_crtc_state *old_state)
--{
--	struct drm_crtc_state *state = crtc->state;
--	unsigned int idle;
--	int ret;
++}
++
 +#define DEBUG_PRINT(args...) \
 +		do { \
 +			if (s) \
@@ -28081,17 +28073,7 @@ index 0f2314449..031de4f6b 100644
 +			else \
 +				pr_err(args); \
 +		} while (0)
- 
--	if (!vop->lut_regs)
--		return;
--	/*
--	 * To disable gamma (gamma_lut is null) or to write
--	 * an update to the LUT, clear dsp_lut_en.
--	 */
--	spin_lock(&vop->reg_lock);
--	VOP_REG_SET(vop, common, dsp_lut_en, 0);
--	vop_cfg_done(vop);
--	spin_unlock(&vop->reg_lock);
++
 +static int vop_plane_info_dump(struct seq_file *s, struct drm_plane *plane)
 +{
 +	struct vop_win *win = to_vop_win(plane);
@@ -28111,16 +28093,7 @@ index 0f2314449..031de4f6b 100644
 +		    state->crtc ? "ACTIVE" : "DISABLED");
 +	if (!fb)
 +		return 0;
- 
--	/*
--	 * In order to write the LUT to the internal memory,
--	 * we need to first make sure the dsp_lut_en bit is cleared.
--	 */
--	ret = readx_poll_timeout(vop_dsp_lut_is_enabled, vop,
--				 idle, !idle, 5, 30 * 1000);
--	if (ret) {
--		DRM_DEV_ERROR(vop->dev, "display LUT RAM enable timeout!\n");
--		return;
++
 +	src = &pstate->src;
 +	dest = &pstate->dest;
 +
@@ -28147,14 +28120,8 @@ index 0f2314449..031de4f6b 100644
 +
 +		DEBUG_PRINT("\tbuf[%d]: addr: %pad pitch: %d offset: %d\n",
 +			    i, &fb_addr, fb->pitches[i], fb->offsets[i]);
- 	}
- 
--	if (!state->gamma_lut)
--		return;
--
--	spin_lock(&vop->reg_lock);
--	vop_crtc_write_gamma_lut(vop, crtc);
--	VOP_REG_SET(vop, common, dsp_lut_en, 1);
++	}
++
 +	return 0;
 +}
 +
@@ -28512,17 +28479,14 @@ index 0f2314449..031de4f6b 100644
 +	u32 val;
 +
 +	VOP_CTRL_SET(vop, out_mode, mode);
- 	vop_cfg_done(vop);
--	spin_unlock(&vop->reg_lock);
++	vop_cfg_done(vop);
 +	ret = readx_poll_timeout(vop_mode_done, vop, val, val == mode,
 +				 1000, 500 * 1000);
 +	if (ret)
 +		dev_err(vop->dev, "wait mode 0x%x timeout\n", mode);
 +
- }
- 
--static void vop_crtc_atomic_begin(struct drm_crtc *crtc,
--				  struct drm_crtc_state *old_crtc_state)
++}
++
 +static void vop_crtc_send_mcu_cmd(struct drm_crtc *crtc,  u32 type, u32 value)
 +{
 +	struct rockchip_crtc_state *state;
@@ -28568,8 +28532,8 @@ index 0f2314449..031de4f6b 100644
 +}
 +
 +static int vop_crtc_wait_vact_end(struct drm_crtc *crtc, unsigned int mstimeout)
- {
- 	struct vop *vop = to_vop(crtc);
++{
++	struct vop *vop = to_vop(crtc);
 +	unsigned long jiffies_left;
 +	int ret = 0;
 +
@@ -28715,15 +28679,10 @@ index 0f2314449..031de4f6b 100644
 +
 +	VOP_CTRL_SET(vop, overlay_mode, s->yuv_overlay);
 +	VOP_CTRL_SET(vop, dsp_out_yuv, is_yuv_output(s->bus_format));
- 
- 	/*
--	 * Only update GAMMA if the 'active' flag is not changed,
--	 * otherwise it's updated by .atomic_enable.
++
++	/*
 +	 * Background color is 10bit depth if vop version >= 3.5
- 	 */
--	if (crtc->state->color_mgmt_changed &&
--	    !crtc->state->active_changed)
--		vop_crtc_gamma_set(vop, crtc, old_crtc_state);
++	 */
 +	if (!is_yuv_output(s->bus_format))
 +		val = 0;
 +	else if (VOP_MAJOR(vop->version) == 3 && VOP_MINOR(vop->version) == 8 &&
@@ -28786,36 +28745,24 @@ index 0f2314449..031de4f6b 100644
 +	VOP_CTRL_SET(vop, mcu_cs_pend, vop->mcu_timing.mcu_cs_pend);
 +	VOP_CTRL_SET(vop, mcu_rw_pst, vop->mcu_timing.mcu_rw_pst);
 +	VOP_CTRL_SET(vop, mcu_rw_pend, vop->mcu_timing.mcu_rw_pend);
- }
- 
- static void vop_crtc_atomic_enable(struct drm_crtc *crtc,
- 				   struct drm_crtc_state *old_state)
- {
- 	struct vop *vop = to_vop(crtc);
--	const struct vop_data *vop_data = vop->data;
- 	struct rockchip_crtc_state *s = to_rockchip_crtc_state(crtc->state);
- 	struct drm_display_mode *adjusted_mode = &crtc->state->adjusted_mode;
--	u16 hsync_len = adjusted_mode->hsync_end - adjusted_mode->hsync_start;
--	u16 hdisplay = adjusted_mode->hdisplay;
--	u16 htotal = adjusted_mode->htotal;
--	u16 hact_st = adjusted_mode->htotal - adjusted_mode->hsync_start;
++}
++
++static void vop_crtc_atomic_enable(struct drm_crtc *crtc,
++				   struct drm_crtc_state *old_state)
++{
++	struct vop *vop = to_vop(crtc);
++	struct rockchip_crtc_state *s = to_rockchip_crtc_state(crtc->state);
++	struct drm_display_mode *adjusted_mode = &crtc->state->adjusted_mode;
 +	u16 hsync_len = adjusted_mode->crtc_hsync_end - adjusted_mode->crtc_hsync_start;
 +	u16 hdisplay = adjusted_mode->crtc_hdisplay;
 +	u16 htotal = adjusted_mode->crtc_htotal;
 +	u16 hact_st = adjusted_mode->crtc_htotal - adjusted_mode->crtc_hsync_start;
- 	u16 hact_end = hact_st + hdisplay;
--	u16 vdisplay = adjusted_mode->vdisplay;
--	u16 vtotal = adjusted_mode->vtotal;
--	u16 vsync_len = adjusted_mode->vsync_end - adjusted_mode->vsync_start;
--	u16 vact_st = adjusted_mode->vtotal - adjusted_mode->vsync_start;
++	u16 hact_end = hact_st + hdisplay;
 +	u16 vdisplay = adjusted_mode->crtc_vdisplay;
 +	u16 vtotal = adjusted_mode->crtc_vtotal;
 +	u16 vsync_len = adjusted_mode->crtc_vsync_end - adjusted_mode->crtc_vsync_start;
 +	u16 vact_st = adjusted_mode->crtc_vtotal - adjusted_mode->crtc_vsync_start;
- 	u16 vact_end = vact_st + vdisplay;
--	uint32_t pin_pol, val;
--	int dither_bpc = s->output_bpc ? s->output_bpc : 10;
--	int ret;
++	u16 vact_end = vact_st + vdisplay;
 +	int sys_status = drm_crtc_index(crtc) ?
 +				SYS_STATUS_LCDC1 : SYS_STATUS_LCDC0;
 +	uint32_t val;
@@ -28823,17 +28770,16 @@ index 0f2314449..031de4f6b 100644
 +	bool interlaced = !!(adjusted_mode->flags & DRM_MODE_FLAG_INTERLACE);
 +	int for_ddr_freq = 0;
 +	bool dclk_inv, yc_swap = false;
- 
- 	if (old_state && old_state->self_refresh_active) {
- 		drm_crtc_vblank_on(crtc);
--		rockchip_drm_set_win_enabled(crtc, true);
++
++	if (old_state && old_state->self_refresh_active) {
++		drm_crtc_vblank_on(crtc);
 +		if (vop->aclk_rate_reset)
 +			clk_set_rate(vop->aclk, vop->aclk_rate);
 +		vop->aclk_rate_reset = false;
 +
- 		return;
- 	}
- 
++		return;
++	}
++
 +	rockchip_set_system_status(sys_status);
 +	vop_lock(vop);
 +	DRM_DEV_INFO(vop->dev, "Update mode to %dx%d%s%d, type: %d\n",
@@ -28845,29 +28791,17 @@ index 0f2314449..031de4f6b 100644
 +	s->mode_update = vop_crtc_mode_update(crtc);
 +	if (s->mode_update)
 +		vop_disable_all_planes(vop);
- 	/*
--	 * If we have a GAMMA LUT in the state, then let's make sure
--	 * it's updated. We might be coming out of suspend,
--	 * which means the LUT internal memory needs to be re-written.
++	/*
 +	 * restore the lut table.
- 	 */
--	if (crtc->state->gamma_lut)
--		vop_crtc_gamma_set(vop, crtc, old_state);
++	 */
 +	if (vop->lut_active)
 +		vop_crtc_load_lut(crtc);
- 
--	mutex_lock(&vop->vop_lock);
++
 +	if (vop->mcu_timing.mcu_pix_total)
 +		vop_mcu_mode(crtc);
- 
--	WARN_ON(vop->event);
++
 +	dclk_inv = (s->bus_flags & DRM_BUS_FLAG_PIXDATA_DRIVE_NEGEDGE) ? 1 : 0;
- 
--	ret = vop_enable(crtc, old_state);
--	if (ret) {
--		mutex_unlock(&vop->vop_lock);
--		DRM_DEV_ERROR(vop->dev, "Failed to enable vop (%d)\n", ret);
--		return;
++
 +	VOP_CTRL_SET(vop, dclk_pol, dclk_inv);
 +	val = (adjusted_mode->flags & DRM_MODE_FLAG_NHSYNC) ?
 +		   0 : BIT(HSYNC_POSITIVE);
@@ -28879,20 +28813,11 @@ index 0f2314449..031de4f6b 100644
 +		if (clk_set_parent(vop->dclk_source, vop->pll->pll))
 +			DRM_DEV_ERROR(vop->dev,
 +				      "failed to set dclk's parents\n");
- 	}
--	pin_pol = (adjusted_mode->flags & DRM_MODE_FLAG_PHSYNC) ?
--		   BIT(HSYNC_POSITIVE) : 0;
--	pin_pol |= (adjusted_mode->flags & DRM_MODE_FLAG_PVSYNC) ?
--		   BIT(VSYNC_POSITIVE) : 0;
--	VOP_REG_SET(vop, output, pin_pol, pin_pol);
--	VOP_REG_SET(vop, output, mipi_dual_channel_en, 0);
- 
- 	switch (s->output_type) {
++	}
++
++	switch (s->output_type) {
 +	case DRM_MODE_CONNECTOR_DPI:
- 	case DRM_MODE_CONNECTOR_LVDS:
--		VOP_REG_SET(vop, output, rgb_dclk_pol, 1);
--		VOP_REG_SET(vop, output, rgb_pin_pol, pin_pol);
--		VOP_REG_SET(vop, output, rgb_en, 1);
++	case DRM_MODE_CONNECTOR_LVDS:
 +		VOP_CTRL_SET(vop, rgb_en, 1);
 +		VOP_CTRL_SET(vop, rgb_pin_pol, val);
 +		VOP_CTRL_SET(vop, rgb_dclk_pol, dclk_inv);
@@ -28908,29 +28833,18 @@ index 0f2314449..031de4f6b 100644
 +		} else if (s->output_if & VOP_OUTPUT_IF_BT656) {
 +			VOP_CTRL_SET(vop, bt656_en, 1);
 +		}
- 		break;
- 	case DRM_MODE_CONNECTOR_eDP:
--		VOP_REG_SET(vop, output, edp_dclk_pol, 1);
--		VOP_REG_SET(vop, output, edp_pin_pol, pin_pol);
--		VOP_REG_SET(vop, output, edp_en, 1);
++		break;
++	case DRM_MODE_CONNECTOR_eDP:
 +		VOP_CTRL_SET(vop, edp_en, 1);
 +		VOP_CTRL_SET(vop, edp_pin_pol, val);
 +		VOP_CTRL_SET(vop, edp_dclk_pol, dclk_inv);
- 		break;
- 	case DRM_MODE_CONNECTOR_HDMIA:
--		VOP_REG_SET(vop, output, hdmi_dclk_pol, 1);
--		VOP_REG_SET(vop, output, hdmi_pin_pol, pin_pol);
--		VOP_REG_SET(vop, output, hdmi_en, 1);
++		break;
++	case DRM_MODE_CONNECTOR_HDMIA:
 +		VOP_CTRL_SET(vop, hdmi_en, 1);
 +		VOP_CTRL_SET(vop, hdmi_pin_pol, val);
 +		VOP_CTRL_SET(vop, hdmi_dclk_pol, 1);
- 		break;
- 	case DRM_MODE_CONNECTOR_DSI:
--		VOP_REG_SET(vop, output, mipi_dclk_pol, 1);
--		VOP_REG_SET(vop, output, mipi_pin_pol, pin_pol);
--		VOP_REG_SET(vop, output, mipi_en, 1);
--		VOP_REG_SET(vop, output, mipi_dual_channel_en,
--			    !!(s->output_flags & ROCKCHIP_OUTPUT_DSI_DUAL));
++		break;
++	case DRM_MODE_CONNECTOR_DSI:
 +		VOP_CTRL_SET(vop, mipi_en, 1);
 +		VOP_CTRL_SET(vop, mipi_pin_pol, val);
 +		VOP_CTRL_SET(vop, mipi_dclk_pol, dclk_inv);
@@ -28939,11 +28853,8 @@ index 0f2314449..031de4f6b 100644
 +		VOP_CTRL_SET(vop, data01_swap,
 +			!!(s->output_flags & ROCKCHIP_OUTPUT_DATA_SWAP) ||
 +			vop->dual_channel_swap);
- 		break;
- 	case DRM_MODE_CONNECTOR_DisplayPort:
--		VOP_REG_SET(vop, output, dp_dclk_pol, 0);
--		VOP_REG_SET(vop, output, dp_pin_pol, pin_pol);
--		VOP_REG_SET(vop, output, dp_en, 1);
++		break;
++	case DRM_MODE_CONNECTOR_DisplayPort:
 +		VOP_CTRL_SET(vop, dp_dclk_pol, 0);
 +		VOP_CTRL_SET(vop, dp_pin_pol, val);
 +		VOP_CTRL_SET(vop, dp_en, 1);
@@ -28961,12 +28872,10 @@ index 0f2314449..031de4f6b 100644
 +		VOP_CTRL_SET(vop, sw_genlock, 1);
 +		VOP_CTRL_SET(vop, sw_uv_offset_en, 1);
 +		VOP_CTRL_SET(vop, dither_up_en, 1);
- 		break;
- 	default:
--		DRM_DEV_ERROR(vop->dev, "unsupported connector_type [%d]\n",
--			      s->output_type);
++		break;
++	default:
 +		DRM_ERROR("unsupported connector_type[%d]\n", s->output_type);
- 	}
++	}
 +	vop_update_csc(crtc);
 +	VOP_CTRL_SET(vop, htotal_pw, (htotal << 16) | hsync_len);
 +	val = hact_st << 16;
@@ -29227,17 +29136,23 @@ index 0f2314449..031de4f6b 100644
 +	pzpos = kmalloc_array(vop_data->win_size, sizeof(*pzpos), GFP_KERNEL);
 +	if (!pzpos)
 +		return -ENOMEM;
-+
+ 
+-	spin_lock_irqsave(&vop->irq_lock, flags);
 +	for (i = 0; i < vop_data->win_size; i++) {
 +		const struct vop_win_data *win_data = &vop_data->win[i];
 +		struct vop_win *win;
-+
+ 
+-	VOP_INTR_SET_TYPE(vop, clear, FS_INTR, 1);
+-	VOP_INTR_SET_TYPE(vop, enable, FS_INTR, 1);
 +		if (!win_data->phy)
 +			continue;
-+
+ 
+-	spin_unlock_irqrestore(&vop->irq_lock, flags);
 +		for (j = 0; j < vop->num_wins; j++) {
 +			win = &vop->win[j];
-+
+ 
+-	return 0;
+-}
 +			if (win->win_id == i && !win->area_id)
 +				break;
 +		}
@@ -29245,7 +29160,11 @@ index 0f2314449..031de4f6b 100644
 +			ret = -EINVAL;
 +			goto err_free_pzpos;
 +		}
-+
+ 
+-static void vop_crtc_disable_vblank(struct drm_crtc *crtc)
+-{
+-	struct vop *vop = to_vop(crtc);
+-	unsigned long flags;
 +		plane = &win->base;
 +		pstate = state->planes[drm_plane_index(plane)].state;
 +		/*
@@ -29255,40 +29174,88 @@ index 0f2314449..031de4f6b 100644
 +		if (!pstate)
 +			pstate = plane->state;
 +		plane_state = to_vop_plane_state(pstate);
-+
+ 
+-	if (WARN_ON(!vop->is_enabled))
+-		return;
 +		if (!pstate->visible)
 +			pzpos[cnt].zpos = INT_MAX;
 +		else
 +			pzpos[cnt].zpos = plane_state->zpos;
 +		pzpos[cnt++].win_id = win->win_id;
 +	}
-+
+ 
+-	spin_lock_irqsave(&vop->irq_lock, flags);
 +	sort(pzpos, cnt, sizeof(pzpos[0]), vop_zpos_cmp, NULL);
-+
+ 
+-	VOP_INTR_SET_TYPE(vop, enable, FS_INTR, 0);
 +	for (i = 0, cnt = 0; i < vop_data->win_size; i++) {
 +		const struct vop_win_data *win_data = &vop_data->win[i];
 +		int shift = i * 2;
-+
+ 
+-	spin_unlock_irqrestore(&vop->irq_lock, flags);
+-}
 +		if (win_data->phy) {
 +			struct vop_zpos *zpos = &pzpos[cnt++];
-+
+ 
+-static bool vop_crtc_mode_fixup(struct drm_crtc *crtc,
+-				const struct drm_display_mode *mode,
+-				struct drm_display_mode *adjusted_mode)
+-{
+-	struct vop *vop = to_vop(crtc);
+-	unsigned long rate;
 +			dsp_layer_sel |= zpos->win_id << shift;
 +		} else {
 +			dsp_layer_sel |= i << shift;
 +		}
 +	}
-+
+ 
+-	/*
+-	 * Clock craziness.
+-	 *
+-	 * Key points:
+-	 *
+-	 * - DRM works in in kHz.
+-	 * - Clock framework works in Hz.
+-	 * - Rockchip's clock driver picks the clock rate that is the
+-	 *   same _OR LOWER_ than the one requested.
+-	 *
+-	 * Action plan:
+-	 *
+-	 * 1. When DRM gives us a mode, we should add 999 Hz to it.  That way
+-	 *    if the clock we need is 60000001 Hz (~60 MHz) and DRM tells us to
+-	 *    make 60000 kHz then the clock framework will actually give us
+-	 *    the right clock.
+-	 *
+-	 *    NOTE: if the PLL (maybe through a divider) could actually make
+-	 *    a clock rate 999 Hz higher instead of the one we want then this
+-	 *    could be a problem.  Unfortunately there's not much we can do
+-	 *    since it's baked into DRM to use kHz.  It shouldn't matter in
+-	 *    practice since Rockchip PLLs are controlled by tables and
+-	 *    even if there is a divider in the middle I wouldn't expect PLL
+-	 *    rates in the table that are just a few kHz different.
+-	 *
+-	 * 2. Get the clock framework to round the rate for us to tell us
+-	 *    what it will actually make.
+-	 *
+-	 * 3. Store the rounded up rate so that we don't need to worry about
+-	 *    this in the actual clk_set_rate().
+-	 */
+-	rate = clk_round_rate(vop->dclk, adjusted_mode->clock * 1000 + 999);
+-	adjusted_mode->clock = DIV_ROUND_UP(rate, 1000);
 +	s->dsp_layer_sel = dsp_layer_sel;
-+
+ 
+-	return true;
 +	vop_dclk_source_generate(crtc, crtc_state);
 +
 +err_free_pzpos:
 +	kfree(pzpos);
 +	return ret;
-+}
-+
+ }
+ 
+-static bool vop_dsp_lut_is_enabled(struct vop *vop)
 +static void vop_post_config(struct drm_crtc *crtc)
-+{
+ {
+-	return vop_read_reg(vop, 0, &vop->data->common->dsp_lut_en);
 +	struct vop *vop = to_vop(crtc);
 +	struct rockchip_crtc_state *s = to_rockchip_crtc_state(crtc->state);
 +	struct drm_display_mode *mode = &crtc->state->adjusted_mode;
@@ -29331,19 +29298,28 @@ index 0f2314449..031de4f6b 100644
 +		val = vact_st_f1 << 16 | vact_end_f1;
 +		VOP_CTRL_SET(vop, vpost_st_end_f1, val);
 +	}
-+}
-+
+ }
+ 
+-static void vop_crtc_write_gamma_lut(struct vop *vop, struct drm_crtc *crtc)
 +static void vop_update_hdr(struct drm_crtc *crtc,
 +			   struct drm_crtc_state *old_crtc_state)
-+{
+ {
+-	struct drm_color_lut *lut = crtc->state->gamma_lut->data;
+-	unsigned int i;
 +	struct rockchip_crtc_state *s =
 +			to_rockchip_crtc_state(crtc->state);
 +	struct vop *vop = to_vop(crtc);
 +	struct rockchip_sdr2hdr_state *sdr2hdr_state = &s->hdr.sdr2hdr_state;
-+
+ 
+-	for (i = 0; i < crtc->gamma_size; i++) {
+-		u32 word;
 +	if (!vop->data->hdr_table)
 +		return;
-+
+ 
+-		word = (drm_color_lut_extract(lut[i].red, 10) << 20) |
+-		       (drm_color_lut_extract(lut[i].green, 10) << 10) |
+-			drm_color_lut_extract(lut[i].blue, 10);
+-		writel(word, vop->lut_regs + i * 4);
 +	if (s->hdr.hdr2sdr_en) {
 +		vop_load_hdr2sdr_table(vop);
 +		/* This is ic design bug, when in hdr2sdr mode, the overlay mode
@@ -29351,7 +29327,7 @@ index 0f2314449..031de4f6b 100644
 +		 * we must close win0 y2r.
 +		 */
 +		VOP_CTRL_SET(vop, hdr2sdr_en_win0_csc, 0);
-+	}
+ 	}
 +	VOP_CTRL_SET(vop, hdr2sdr_en, s->hdr.hdr2sdr_en);
 +
 +	VOP_CTRL_SET(vop, bt1886eotf_pre_conv_en,
@@ -29377,11 +29353,16 @@ index 0f2314449..031de4f6b 100644
 +	    sdr2hdr_state->bt1886eotf_post_conv_en)
 +		vop_load_sdr2hdr_table(vop, sdr2hdr_state->sdr2hdr_func);
 +	VOP_CTRL_SET(vop, win_csc_mode_sel, 1);
-+}
-+
+ }
+ 
+-static void vop_crtc_gamma_set(struct vop *vop, struct drm_crtc *crtc,
+-			       struct drm_crtc_state *old_state)
 +static void vop_tv_config_update(struct drm_crtc *crtc,
 +				 struct drm_crtc_state *old_crtc_state)
-+{
+ {
+-	struct drm_crtc_state *state = crtc->state;
+-	unsigned int idle;
+-	int ret;
 +	struct rockchip_crtc_state *s =
 +			to_rockchip_crtc_state(crtc->state);
 +	struct rockchip_crtc_state *old_s =
@@ -29389,12 +29370,22 @@ index 0f2314449..031de4f6b 100644
 +	int brightness, contrast, saturation, hue, sin_hue, cos_hue;
 +	struct vop *vop = to_vop(crtc);
 +	const struct vop_data *vop_data = vop->data;
-+
+ 
+-	if (!vop->lut_regs)
 +	if (!s->tv_state)
-+		return;
+ 		return;
+-	/*
+-	 * To disable gamma (gamma_lut is null) or to write
+-	 * an update to the LUT, clear dsp_lut_en.
+-	 */
+-	spin_lock(&vop->reg_lock);
+-	VOP_REG_SET(vop, common, dsp_lut_en, 0);
+-	vop_cfg_done(vop);
+-	spin_unlock(&vop->reg_lock);
  
  	/*
--	 * if vop is not support RGB10 output, need force RGB10 to RGB888.
+-	 * In order to write the LUT to the internal memory,
+-	 * we need to first make sure the dsp_lut_en bit is cleared.
 +	 * The BCSH only need to config once except one of the following
 +	 * condition changed:
 +	 *   1. tv_state: include brightness,contrast,saturation and hue;
@@ -29403,14 +29394,15 @@ index 0f2314449..031de4f6b 100644
 +	 *   4. bcsh_en: control the BCSH module enable or disable state;
 +	 *   5. bus_format: it is related to BCSH y2r module;
  	 */
--	if (s->output_mode == ROCKCHIP_OUT_MODE_AAAA &&
--	    !(vop_data->feature & VOP_FEATURE_OUTPUT_RGB10))
--		s->output_mode = ROCKCHIP_OUT_MODE_P888;
+-	ret = readx_poll_timeout(vop_dsp_lut_is_enabled, vop,
+-				 idle, !idle, 5, 30 * 1000);
+-	if (ret) {
+-		DRM_DEV_ERROR(vop->dev, "display LUT RAM enable timeout!\n");
 +	if (!memcmp(s->tv_state,
 +		    &vop->active_tv_state, sizeof(*s->tv_state)) &&
 +	    s->yuv_overlay == old_s->yuv_overlay && s->mode_update &&
 +	    s->bcsh_en == old_s->bcsh_en && s->bus_format == old_s->bus_format)
-+		return;
+ 		return;
 +
 +	memcpy(&vop->active_tv_state, s->tv_state, sizeof(*s->tv_state));
 +	/* post BCSH CSC */
@@ -29434,10 +29426,9 @@ index 0f2314449..031de4f6b 100644
 +			s->post_r2y_en = 1;
 +		if (s->yuv_overlay && !is_yuv_output(s->bus_format))
 +			s->post_y2r_en = 1;
-+	}
+ 	}
  
--	if (s->output_mode == ROCKCHIP_OUT_MODE_AAAA && dither_bpc <= 8)
--		VOP_REG_SET(vop, common, pre_dither_down, 1);
+-	if (!state->gamma_lut)
 +	s->post_csc_mode = to_vop_csc_mode(s->color_space);
 +	VOP_CTRL_SET(vop, bcsh_r2y_en, s->post_r2y_en);
 +	VOP_CTRL_SET(vop, bcsh_y2r_en, s->post_y2r_en);
@@ -29445,17 +29436,26 @@ index 0f2314449..031de4f6b 100644
 +	VOP_CTRL_SET(vop, bcsh_y2r_csc_mode, s->post_csc_mode);
 +	if (!s->bcsh_en) {
 +		VOP_CTRL_SET(vop, bcsh_en, s->bcsh_en);
-+		return;
+ 		return;
 +	}
-+
+ 
+-	spin_lock(&vop->reg_lock);
+-	vop_crtc_write_gamma_lut(vop, crtc);
+-	VOP_REG_SET(vop, common, dsp_lut_en, 1);
+-	vop_cfg_done(vop);
+-	spin_unlock(&vop->reg_lock);
+-}
 +	if (vop_data->feature & VOP_FEATURE_OUTPUT_10BIT)
 +		brightness = interpolate(0, -128, 100, 127, s->tv_state->brightness);
 +	else if (VOP_MAJOR(vop->version) == 2 && VOP_MINOR(vop->version) == 6) /* px30 vopb */
 +		brightness = interpolate(0, -64, 100, 63, s->tv_state->brightness);
- 	else
--		VOP_REG_SET(vop, common, pre_dither_down, 0);
++	else
 +		brightness = interpolate(0, -32, 100, 31, s->tv_state->brightness);
-+
+ 
+-static void vop_crtc_atomic_begin(struct drm_crtc *crtc,
+-				  struct drm_crtc_state *old_crtc_state)
+-{
+-	struct vop *vop = to_vop(crtc);
 +	if ((VOP_MAJOR(vop->version) == 3) ||
 +	    (VOP_MAJOR(vop->version) == 2 && VOP_MINOR(vop->version) == 6)) { /* px30 vopb */
 +		contrast = interpolate(0, 0, 100, 511, s->tv_state->contrast);
@@ -29473,12 +29473,14 @@ index 0f2314449..031de4f6b 100644
 +		cos_hue = fixp_cos32(hue) >> 23;
 +		VOP_CTRL_SET(vop, bcsh_sat_con, saturation * contrast / 0x100);
  
--	if (dither_bpc == 6) {
--		VOP_REG_SET(vop, common, dither_down_sel, DITHER_DOWN_ALLEGRO);
--		VOP_REG_SET(vop, common, dither_down_mode, RGB888_TO_RGB666);
--		VOP_REG_SET(vop, common, dither_down_en, 1);
- 	} else {
--		VOP_REG_SET(vop, common, dither_down_en, 0);
+-	/*
+-	 * Only update GAMMA if the 'active' flag is not changed,
+-	 * otherwise it's updated by .atomic_enable.
+-	 */
+-	if (crtc->state->color_mgmt_changed &&
+-	    !crtc->state->active_changed)
+-		vop_crtc_gamma_set(vop, crtc, old_crtc_state);
++	} else {
 +		contrast = interpolate(0, 0, 100, 255, s->tv_state->contrast);
 +		saturation = interpolate(0, 0, 100, 255, s->tv_state->saturation);
 +		/*
@@ -29493,9 +29495,8 @@ index 0f2314449..031de4f6b 100644
 +		sin_hue = fixp_sin32(hue) >> 24;
 +		cos_hue = fixp_cos32(hue) >> 24;
 +		VOP_CTRL_SET(vop, bcsh_sat_con, saturation * contrast / 0x80);
- 	}
- 
--	VOP_REG_SET(vop, common, out_mode, s->output_mode);
++	}
++
 +	VOP_CTRL_SET(vop, bcsh_brightness, brightness);
 +	VOP_CTRL_SET(vop, bcsh_contrast, contrast);
 +	VOP_CTRL_SET(vop, bcsh_sin_hue, sin_hue);
@@ -29504,39 +29505,113 @@ index 0f2314449..031de4f6b 100644
 +	if (VOP_MAJOR(vop->version) == 3 && VOP_MINOR(vop->version) == 0)
 +		VOP_CTRL_SET(vop, auto_gate_en, 0);
 +	VOP_CTRL_SET(vop, bcsh_en, s->bcsh_en);
-+}
+ }
  
--	VOP_REG_SET(vop, modeset, htotal_pw, (htotal << 16) | hsync_len);
--	val = hact_st << 16;
--	val |= hact_end;
--	VOP_REG_SET(vop, modeset, hact_st_end, val);
--	VOP_REG_SET(vop, modeset, hpost_st_end, val);
+-static void vop_crtc_atomic_enable(struct drm_crtc *crtc,
+-				   struct drm_crtc_state *old_state)
 +static void vop_cfg_update(struct drm_crtc *crtc,
 +			   struct drm_crtc_state *old_crtc_state)
-+{
+ {
 +	struct rockchip_crtc_state *s =
 +			to_rockchip_crtc_state(crtc->state);
-+	struct vop *vop = to_vop(crtc);
-+	const struct vop_data *vop_data = vop->data;
+ 	struct vop *vop = to_vop(crtc);
+ 	const struct vop_data *vop_data = vop->data;
+-	struct rockchip_crtc_state *s = to_rockchip_crtc_state(crtc->state);
+-	struct drm_display_mode *adjusted_mode = &crtc->state->adjusted_mode;
+-	u16 hsync_len = adjusted_mode->hsync_end - adjusted_mode->hsync_start;
+-	u16 hdisplay = adjusted_mode->hdisplay;
+-	u16 htotal = adjusted_mode->htotal;
+-	u16 hact_st = adjusted_mode->htotal - adjusted_mode->hsync_start;
+-	u16 hact_end = hact_st + hdisplay;
+-	u16 vdisplay = adjusted_mode->vdisplay;
+-	u16 vtotal = adjusted_mode->vtotal;
+-	u16 vsync_len = adjusted_mode->vsync_end - adjusted_mode->vsync_start;
+-	u16 vact_st = adjusted_mode->vtotal - adjusted_mode->vsync_start;
+-	u16 vact_end = vact_st + vdisplay;
+-	uint32_t pin_pol, val;
+-	int dither_bpc = s->output_bpc ? s->output_bpc : 10;
+-	int ret;
+-
+-	if (old_state && old_state->self_refresh_active) {
+-		drm_crtc_vblank_on(crtc);
+-		rockchip_drm_set_win_enabled(crtc, true);
+-		return;
+-	}
+-
+-	/*
+-	 * If we have a GAMMA LUT in the state, then let's make sure
+-	 * it's updated. We might be coming out of suspend,
+-	 * which means the LUT internal memory needs to be re-written.
+-	 */
+-	if (crtc->state->gamma_lut)
+-		vop_crtc_gamma_set(vop, crtc, old_state);
+-
+-	mutex_lock(&vop->vop_lock);
  
--	VOP_REG_SET(vop, modeset, vtotal_pw, (vtotal << 16) | vsync_len);
--	val = vact_st << 16;
--	val |= vact_end;
--	VOP_REG_SET(vop, modeset, vact_st_end, val);
--	VOP_REG_SET(vop, modeset, vpost_st_end, val);
+-	WARN_ON(vop->event);
 +	spin_lock(&vop->reg_lock);
  
--	VOP_REG_SET(vop, intr, line_flag_num[0], vact_end);
+-	ret = vop_enable(crtc, old_state);
+-	if (ret) {
+-		mutex_unlock(&vop->vop_lock);
+-		DRM_DEV_ERROR(vop->dev, "Failed to enable vop (%d)\n", ret);
+-		return;
+-	}
+-	pin_pol = (adjusted_mode->flags & DRM_MODE_FLAG_PHSYNC) ?
+-		   BIT(HSYNC_POSITIVE) : 0;
+-	pin_pol |= (adjusted_mode->flags & DRM_MODE_FLAG_PVSYNC) ?
+-		   BIT(VSYNC_POSITIVE) : 0;
+-	VOP_REG_SET(vop, output, pin_pol, pin_pol);
+-	VOP_REG_SET(vop, output, mipi_dual_channel_en, 0);
 +	vop_update_csc(crtc);
  
--	clk_set_rate(vop->dclk, adjusted_mode->clock * 1000);
+-	switch (s->output_type) {
+-	case DRM_MODE_CONNECTOR_LVDS:
+-		VOP_REG_SET(vop, output, rgb_dclk_pol, 1);
+-		VOP_REG_SET(vop, output, rgb_pin_pol, pin_pol);
+-		VOP_REG_SET(vop, output, rgb_en, 1);
+-		break;
+-	case DRM_MODE_CONNECTOR_eDP:
+-		VOP_REG_SET(vop, output, edp_dclk_pol, 1);
+-		VOP_REG_SET(vop, output, edp_pin_pol, pin_pol);
+-		VOP_REG_SET(vop, output, edp_en, 1);
+-		break;
+-	case DRM_MODE_CONNECTOR_HDMIA:
+-		VOP_REG_SET(vop, output, hdmi_dclk_pol, 1);
+-		VOP_REG_SET(vop, output, hdmi_pin_pol, pin_pol);
+-		VOP_REG_SET(vop, output, hdmi_en, 1);
+-		break;
+-	case DRM_MODE_CONNECTOR_DSI:
+-		VOP_REG_SET(vop, output, mipi_dclk_pol, 1);
+-		VOP_REG_SET(vop, output, mipi_pin_pol, pin_pol);
+-		VOP_REG_SET(vop, output, mipi_en, 1);
+-		VOP_REG_SET(vop, output, mipi_dual_channel_en,
+-			    !!(s->output_flags & ROCKCHIP_OUTPUT_DSI_DUAL));
+-		break;
+-	case DRM_MODE_CONNECTOR_DisplayPort:
+-		VOP_REG_SET(vop, output, dp_dclk_pol, 0);
+-		VOP_REG_SET(vop, output, dp_pin_pol, pin_pol);
+-		VOP_REG_SET(vop, output, dp_en, 1);
+-		break;
+-	default:
+-		DRM_DEV_ERROR(vop->dev, "unsupported connector_type [%d]\n",
+-			      s->output_type);
+-	}
 +	vop_tv_config_update(crtc, old_crtc_state);
  
--	VOP_REG_SET(vop, common, standby, 0);
--	mutex_unlock(&vop->vop_lock);
+-	/*
+-	 * if vop is not support RGB10 output, need force RGB10 to RGB888.
+-	 */
+-	if (s->output_mode == ROCKCHIP_OUT_MODE_AAAA &&
+-	    !(vop_data->feature & VOP_FEATURE_OUTPUT_RGB10))
+-		s->output_mode = ROCKCHIP_OUT_MODE_P888;
 +	if (s->afbdc_en) {
 +		u32 pic_size, pic_offset;
-+
+ 
+-	if (s->output_mode == ROCKCHIP_OUT_MODE_AAAA && dither_bpc <= 8)
+-		VOP_REG_SET(vop, common, pre_dither_down, 1);
+-	else
+-		VOP_REG_SET(vop, common, pre_dither_down, 0);
 +		VOP_CTRL_SET(vop, afbdc_format, s->afbdc_win_format | 1 << 4);
 +		VOP_CTRL_SET(vop, afbdc_hreg_block_split, 0);
 +		VOP_CTRL_SET(vop, afbdc_sel, s->afbdc_win_id);
@@ -29544,19 +29619,43 @@ index 0f2314449..031de4f6b 100644
 +		pic_size = (s->afbdc_win_width & 0xffff);
 +		pic_size |= s->afbdc_win_height << 16;
 +		VOP_CTRL_SET(vop, afbdc_pic_size, pic_size);
-+
+ 
+-	if (dither_bpc == 6) {
+-		VOP_REG_SET(vop, common, dither_down_sel, DITHER_DOWN_ALLEGRO);
+-		VOP_REG_SET(vop, common, dither_down_mode, RGB888_TO_RGB666);
+-		VOP_REG_SET(vop, common, dither_down_en, 1);
+-	} else {
+-		VOP_REG_SET(vop, common, dither_down_en, 0);
 +		VOP_CTRL_SET(vop, afbdc_pic_vir_width, s->afbdc_win_vir_width);
 +		pic_offset = (s->afbdc_win_xoffset & 0xffff);
 +		pic_offset |= s->afbdc_win_yoffset << 16;
 +		VOP_CTRL_SET(vop, afbdc_pic_offset, pic_offset);
-+	}
-+
+ 	}
+ 
+-	VOP_REG_SET(vop, common, out_mode, s->output_mode);
 +	VOP_CTRL_SET(vop, afbdc_en, s->afbdc_en);
-+
+ 
+-	VOP_REG_SET(vop, modeset, htotal_pw, (htotal << 16) | hsync_len);
+-	val = hact_st << 16;
+-	val |= hact_end;
+-	VOP_REG_SET(vop, modeset, hact_st_end, val);
+-	VOP_REG_SET(vop, modeset, hpost_st_end, val);
+-
+-	VOP_REG_SET(vop, modeset, vtotal_pw, (vtotal << 16) | vsync_len);
+-	val = vact_st << 16;
+-	val |= vact_end;
+-	VOP_REG_SET(vop, modeset, vact_st_end, val);
+-	VOP_REG_SET(vop, modeset, vpost_st_end, val);
+-
+-	VOP_REG_SET(vop, intr, line_flag_num[0], vact_end);
 +	VOP_CTRL_SET(vop, dsp_layer_sel, s->dsp_layer_sel);
 +	if (vop_data->feature & VOP_FEATURE_OVERSCAN)
 +		vop_post_config(crtc);
-+
+ 
+-	clk_set_rate(vop->dclk, adjusted_mode->clock * 1000);
+-
+-	VOP_REG_SET(vop, common, standby, 0);
+-	mutex_unlock(&vop->vop_lock);
 +	spin_unlock(&vop->reg_lock);
  }
  
@@ -29888,7 +29987,7 @@ index 0f2314449..031de4f6b 100644
  };
  
  static void vop_fb_unref_worker(struct drm_flip_work *work, void *val)
-@@ -1642,115 +4187,368 @@ static void vop_fb_unref_worker(struct drm_flip_work *work, void *val)
+@@ -1642,22 +4187,23 @@ static void vop_fb_unref_worker(struct drm_flip_work *work, void *val)
  	struct vop *vop = container_of(work, struct vop, fb_unref_work);
  	struct drm_framebuffer *fb = val;
  
@@ -29913,60 +30012,42 @@ index 0f2314449..031de4f6b 100644
  	}
 -	spin_unlock(&drm->event_lock);
 +	spin_unlock_irqrestore(&drm->event_lock, flags);
-+
-+	if (test_and_clear_bit(VOP_PENDING_FB_UNREF, &vop->pending))
-+		drm_flip_work_commit(&vop->fb_unref_work, system_unbound_wq);
-+}
-+
-+static irqreturn_t vop_isr(int irq, void *data)
-+{
-+	struct vop *vop = data;
+ 
+ 	if (test_and_clear_bit(VOP_PENDING_FB_UNREF, &vop->pending))
+ 		drm_flip_work_commit(&vop->fb_unref_work, system_unbound_wq);
+@@ -1666,8 +4212,9 @@ static void vop_handle_vblank(struct vop *vop)
+ static irqreturn_t vop_isr(int irq, void *data)
+ {
+ 	struct vop *vop = data;
+-	struct drm_crtc *crtc = &vop->crtc;
 +	struct drm_crtc *crtc = &vop->rockchip_crtc.crtc;
-+	uint32_t active_irqs;
+ 	uint32_t active_irqs;
 +	unsigned long flags;
-+	int ret = IRQ_NONE;
-+
-+	/*
-+	 * The irq is shared with the iommu. If the runtime-pm state of the
-+	 * vop-device is disabled the irq has to be targeted at the iommu.
-+	 */
-+	if (!pm_runtime_get_if_in_use(vop->dev))
-+		return IRQ_NONE;
-+
-+	if (vop_core_clks_enable(vop)) {
-+		DRM_DEV_ERROR_RATELIMITED(vop->dev, "couldn't enable clocks\n");
-+		goto out;
-+	}
-+
-+	/*
-+	 * interrupt register has interrupt status, enable and clear bits, we
-+	 * must hold irq_lock to avoid a race with enable/disable_vblank().
-+	*/
+ 	int ret = IRQ_NONE;
+ 
+ 	/*
+@@ -1686,14 +4233,14 @@ static irqreturn_t vop_isr(int irq, void *data)
+ 	 * interrupt register has interrupt status, enable and clear bits, we
+ 	 * must hold irq_lock to avoid a race with enable/disable_vblank().
+ 	*/
+-	spin_lock(&vop->irq_lock);
 +	spin_lock_irqsave(&vop->irq_lock, flags);
-+
-+	active_irqs = VOP_INTR_GET_TYPE(vop, status, INTR_MASK);
-+	/* Clear all active interrupt sources */
-+	if (active_irqs)
-+		VOP_INTR_SET_TYPE(vop, clear, active_irqs, 1);
-+
+ 
+ 	active_irqs = VOP_INTR_GET_TYPE(vop, status, INTR_MASK);
+ 	/* Clear all active interrupt sources */
+ 	if (active_irqs)
+ 		VOP_INTR_SET_TYPE(vop, clear, active_irqs, 1);
+ 
+-	spin_unlock(&vop->irq_lock);
 +	spin_unlock_irqrestore(&vop->irq_lock, flags);
-+
-+	/* This is expected for vop iommu irqs, since the irq is shared */
-+	if (!active_irqs)
-+		goto out_disable;
-+
-+	if (active_irqs & DSP_HOLD_VALID_INTR) {
-+		complete(&vop->dsp_hold_completion);
-+		active_irqs &= ~DSP_HOLD_VALID_INTR;
-+		ret = IRQ_HANDLED;
-+	}
-+
-+	if (active_irqs & LINE_FLAG_INTR) {
-+		complete(&vop->line_flag_completion);
-+		active_irqs &= ~LINE_FLAG_INTR;
-+		ret = IRQ_HANDLED;
-+	}
-+
+ 
+ 	/* This is expected for vop iommu irqs, since the irq is shared */
+ 	if (!active_irqs)
+@@ -1711,17 +4258,41 @@ static irqreturn_t vop_isr(int irq, void *data)
+ 		ret = IRQ_HANDLED;
+ 	}
+ 
+-	if (active_irqs & FS_INTR) {
 +	if ((active_irqs & FS_INTR) || (active_irqs & FS_FIELD_INTR)) {
 +		/* This is IC design not reasonable, this two register bit need
 +		 * frame effective, but actually it's effective immediately, so
@@ -29976,12 +30057,13 @@ index 0f2314449..031de4f6b 100644
 +		VOP_CTRL_SET(vop, level2_overlay_en, vop->pre_overlay);
 +		VOP_CTRL_SET(vop, alpha_hard_calc, vop->pre_overlay);
 +		spin_unlock_irqrestore(&vop->irq_lock, flags);
-+		drm_crtc_handle_vblank(crtc);
-+		vop_handle_vblank(vop);
+ 		drm_crtc_handle_vblank(crtc);
+ 		vop_handle_vblank(vop);
+-		active_irqs &= ~FS_INTR;
 +		active_irqs &= ~(FS_INTR | FS_FIELD_INTR);
-+		ret = IRQ_HANDLED;
-+	}
-+
+ 		ret = IRQ_HANDLED;
+ 	}
+ 
 +#define ERROR_HANDLER(x) \
 +	do { \
 +		if (active_irqs & x##_INTR) {\
@@ -29999,31 +30081,37 @@ index 0f2314449..031de4f6b 100644
 +	ERROR_HANDLER(HWC_EMPTY);
 +	ERROR_HANDLER(POST_BUF_EMPTY);
 +
-+	/* Unhandled irqs are spurious. */
-+	if (active_irqs)
+ 	/* Unhandled irqs are spurious. */
+ 	if (active_irqs)
+-		DRM_DEV_ERROR(vop->dev, "Unknown VOP IRQs: %#02x\n",
+-			      active_irqs);
 +		DRM_ERROR("Unknown VOP IRQs: %#02x\n", active_irqs);
-+
-+out_disable:
-+	vop_core_clks_disable(vop);
-+out:
-+	pm_runtime_put(vop->dev);
-+	return ret;
-+}
-+
+ 
+ out_disable:
+ 	vop_core_clks_disable(vop);
+@@ -1730,27 +4301,254 @@ static irqreturn_t vop_isr(int irq, void *data)
+ 	return ret;
+ }
+ 
+-static void vop_plane_add_properties(struct drm_plane *plane,
+-				     const struct vop_win_data *win_data)
 +static void vop_plane_add_properties(struct vop *vop,
 +				     struct drm_plane *plane,
 +				     const struct vop_win *win)
-+{
-+	unsigned int flags = 0;
-+
+ {
+ 	unsigned int flags = 0;
+ 
+-	flags |= VOP_WIN_HAS_REG(win_data, x_mir_en) ? DRM_MODE_REFLECT_X : 0;
+-	flags |= VOP_WIN_HAS_REG(win_data, y_mir_en) ? DRM_MODE_REFLECT_Y : 0;
 +	flags |= (VOP_WIN_SUPPORT(vop, win, xmirror)) ? DRM_MODE_REFLECT_X : 0;
 +	flags |= (VOP_WIN_SUPPORT(vop, win, ymirror)) ? DRM_MODE_REFLECT_Y : 0;
 +
-+	if (flags)
-+		drm_plane_create_rotation_property(plane, DRM_MODE_ROTATE_0,
-+						   DRM_MODE_ROTATE_0 | flags);
-+}
-+
+ 	if (flags)
+ 		drm_plane_create_rotation_property(plane, DRM_MODE_ROTATE_0,
+ 						   DRM_MODE_ROTATE_0 | flags);
+ }
+ 
+-static int vop_create_crtc(struct vop *vop)
 +static int vop_plane_create_name_property(struct vop *vop, struct vop_win *win)
 +{
 +	struct drm_prop_enum_list *props = vop->plane_name_list;
@@ -30120,9 +30208,7 @@ index 0f2314449..031de4f6b 100644
 +		DRM_ERROR("failed to create property\n");
 +		return -ENOMEM;
 +	}
- 
--	if (test_and_clear_bit(VOP_PENDING_FB_UNREF, &vop->pending))
--		drm_flip_work_commit(&vop->fb_unref_work, system_unbound_wq);
++
 +	drm_object_attach_property(&win->base.base, win->input_width_prop, 0);
 +	drm_object_attach_property(&win->base.base, win->input_height_prop, 0);
 +	drm_object_attach_property(&win->base.base, win->output_width_prop, 0);
@@ -30131,34 +30217,20 @@ index 0f2314449..031de4f6b 100644
 +	drm_object_attach_property(&win->base.base, win->color_key_prop, 0);
 +
 +	return 0;
- }
- 
--static irqreturn_t vop_isr(int irq, void *data)
++}
++
 +static int vop_of_init_display_lut(struct vop *vop)
- {
--	struct vop *vop = data;
--	struct drm_crtc *crtc = &vop->crtc;
--	uint32_t active_irqs;
--	int ret = IRQ_NONE;
++{
 +	struct device_node *node = vop->dev->of_node;
 +	struct device_node *dsp_lut;
 +	u32 lut_len = vop->lut_len;
 +	struct property *prop;
 +	int length, i, j;
 +	int ret;
- 
--	/*
--	 * The irq is shared with the iommu. If the runtime-pm state of the
--	 * vop-device is disabled the irq has to be targeted at the iommu.
--	 */
--	if (!pm_runtime_get_if_in_use(vop->dev))
--		return IRQ_NONE;
++
 +	if (!vop->lut)
 +		return -ENOMEM;
- 
--	if (vop_core_clks_enable(vop)) {
--		DRM_DEV_ERROR_RATELIMITED(vop->dev, "couldn't enable clocks\n");
--		goto out;
++
 +	dsp_lut = of_parse_phandle(node, "dsp-lut", 0);
 +	if (!dsp_lut)
 +		return -ENXIO;
@@ -30167,24 +30239,14 @@ index 0f2314449..031de4f6b 100644
 +	if (!prop) {
 +		dev_err(vop->dev, "failed to find gamma_lut\n");
 +		return -ENXIO;
- 	}
- 
--	/*
--	 * interrupt register has interrupt status, enable and clear bits, we
--	 * must hold irq_lock to avoid a race with enable/disable_vblank().
--	*/
--	spin_lock(&vop->irq_lock);
++	}
++
 +	length >>= 2;
- 
--	active_irqs = VOP_INTR_GET_TYPE(vop, status, INTR_MASK);
--	/* Clear all active interrupt sources */
--	if (active_irqs)
--		VOP_INTR_SET_TYPE(vop, clear, active_irqs, 1);
++
 +	if (length != lut_len) {
 +		u32 r, g, b;
 +		u32 *lut = kmalloc_array(length, sizeof(*lut), GFP_KERNEL);
- 
--	spin_unlock(&vop->irq_lock);
++
 +		if (!lut)
 +			return -ENOMEM;
 +		ret = of_property_read_u32_array(dsp_lut, "gamma-lut", lut,
@@ -30194,40 +30256,23 @@ index 0f2314449..031de4f6b 100644
 +			kfree(lut);
 +			return -EINVAL;
 +		}
- 
--	/* This is expected for vop iommu irqs, since the irq is shared */
--	if (!active_irqs)
--		goto out_disable;
++
 +		for (i = 0; i < lut_len; i++) {
 +			j = i * length / lut_len;
 +			r = lut[j] / length / length * lut_len / length;
 +			g = lut[j] / length % length * lut_len / length;
 +			b = lut[j] % length * lut_len / length;
- 
--	if (active_irqs & DSP_HOLD_VALID_INTR) {
--		complete(&vop->dsp_hold_completion);
--		active_irqs &= ~DSP_HOLD_VALID_INTR;
--		ret = IRQ_HANDLED;
--	}
++
 +			vop->lut[i] = r * lut_len * lut_len + g * lut_len + b;
 +		}
- 
--	if (active_irqs & LINE_FLAG_INTR) {
--		complete(&vop->line_flag_completion);
--		active_irqs &= ~LINE_FLAG_INTR;
--		ret = IRQ_HANDLED;
++
 +		kfree(lut);
 +	} else {
 +		of_property_read_u32_array(dsp_lut, "gamma-lut",
 +					   vop->lut, vop->lut_len);
- 	}
++	}
 +	vop->lut_active = true;
- 
--	if (active_irqs & FS_INTR) {
--		drm_crtc_handle_vblank(crtc);
--		vop_handle_vblank(vop);
--		active_irqs &= ~FS_INTR;
--		ret = IRQ_HANDLED;
++
 +	return 0;
 +}
 +
@@ -30249,35 +30294,18 @@ index 0f2314449..031de4f6b 100644
 +	if (!prop) {
 +		DRM_DEV_ERROR(vop->dev, "create plane_mask prop for vp%d failed\n", vop->id);
 +		return -ENOMEM;
- 	}
- 
--	/* Unhandled irqs are spurious. */
--	if (active_irqs)
--		DRM_DEV_ERROR(vop->dev, "Unknown VOP IRQs: %#02x\n",
--			      active_irqs);
++	}
++
 +	vop->plane_mask_prop = prop;
 +	drm_object_attach_property(&crtc->base, vop->plane_mask_prop, vop->plane_mask);
- 
--out_disable:
--	vop_core_clks_disable(vop);
--out:
--	pm_runtime_put(vop->dev);
--	return ret;
++
 +	return 0;
- }
- 
--static void vop_plane_add_properties(struct drm_plane *plane,
--				     const struct vop_win_data *win_data)
++}
++
 +static int vop_crtc_create_feature_property(struct vop *vop, struct drm_crtc *crtc)
  {
--	unsigned int flags = 0;
-+	const struct vop_data *vop_data = vop->data;
- 
--	flags |= VOP_WIN_HAS_REG(win_data, x_mir_en) ? DRM_MODE_REFLECT_X : 0;
--	flags |= VOP_WIN_HAS_REG(win_data, y_mir_en) ? DRM_MODE_REFLECT_Y : 0;
--	if (flags)
--		drm_plane_create_rotation_property(plane, DRM_MODE_ROTATE_0,
--						   DRM_MODE_ROTATE_0 | flags);
+ 	const struct vop_data *vop_data = vop->data;
++
 +	struct drm_property *prop;
 +	u64 feature = 0;
 +
@@ -30307,11 +30335,10 @@ index 0f2314449..031de4f6b 100644
 +	drm_object_attach_property(&crtc->base, vop->feature_prop, feature);
 +
 +	return 0;
- }
- 
- static int vop_create_crtc(struct vop *vop)
- {
--	const struct vop_data *vop_data = vop->data;
++}
++
++static int vop_create_crtc(struct vop *vop)
++{
  	struct device *dev = vop->dev;
  	struct drm_device *drm_dev = vop->drm_dev;
 +	struct rockchip_drm_private *private = drm_dev->dev_private;
@@ -30813,7 +30840,6 @@ index 0f2314449..031de4f6b 100644
 +		return ret;
  
 -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	vop->len = resource_size(res);
 +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "regs");
 +	if (!res) {
 +		dev_warn(vop->dev, "failed to get vop register byname\n");
@@ -30822,13 +30848,13 @@ index 0f2314449..031de4f6b 100644
  	vop->regs = devm_ioremap_resource(dev, res);
  	if (IS_ERR(vop->regs))
  		return PTR_ERR(vop->regs);
-+	vop->len = resource_size(res);
-+
+ 	vop->len = resource_size(res);
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 +	vop->regsbak = devm_kzalloc(dev, vop->len, GFP_KERNEL);
 +	if (!vop->regsbak)
 +		return -ENOMEM;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++
 +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "gamma_lut");
  	if (res) {
 -		if (!vop_data->lut_size) {
@@ -40542,7 +40568,7 @@ index 42b295337..1f17875da 100644
  		if (!(tmp & GITS_CBASER_SHAREABILITY_MASK)) {
  			/*
 diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 04d1b3963..0d576407c 100644
+index e5e3fd6b9..ef7327f2e 100644
 --- a/drivers/irqchip/irq-gic-v3.c
 +++ b/drivers/irqchip/irq-gic-v3.c
 @@ -18,6 +18,9 @@
@@ -40591,7 +40617,7 @@ index 04d1b3963..0d576407c 100644
  static struct irq_chip gic_chip = {
  	.name			= "GICv3",
  	.irq_mask		= gic_mask_irq,
-@@ -1781,6 +1806,7 @@ static int __init gic_init_bases(void __iomem *dist_base,
+@@ -1787,6 +1812,7 @@ static int __init gic_init_bases(void __iomem *dist_base,
  	gic_cpu_init();
  	gic_smp_init();
  	gic_cpu_pm_init();
@@ -45675,7 +45701,7 @@ index 596c185b5..0f45d8123 100644
  }
  core_initcall(opp_debug_init);
 diff --git a/drivers/opp/of.c b/drivers/opp/of.c
-index 5de46aa99..446862368 100644
+index 3d7adc0de..b163f5d13 100644
 --- a/drivers/opp/of.c
 +++ b/drivers/opp/of.c
 @@ -1328,7 +1328,7 @@ int dev_pm_opp_of_register_em(struct device *dev, struct cpumask *cpus)
@@ -52092,7 +52118,7 @@ index c6f4229eb..46e426cf4 100644
  MODULE_DESCRIPTION("RK805 pin control and GPIO driver");
  MODULE_AUTHOR("Joseph Chen <chenjh@rock-chips.com>");
 diff --git a/drivers/pinctrl/pinctrl-rockchip.c b/drivers/pinctrl/pinctrl-rockchip.c
-index 9df48e0cf..f835dddc4 100644
+index 07b120417..9d7ae4f8f 100644
 --- a/drivers/pinctrl/pinctrl-rockchip.c
 +++ b/drivers/pinctrl/pinctrl-rockchip.c
 @@ -16,12 +16,14 @@
@@ -52457,7 +52483,7 @@ index 9df48e0cf..f835dddc4 100644
  static  struct rockchip_mux_recalced_data rk3128_mux_recalced_data[] = {
  	{
  		.num = 2,
-@@ -757,11 +598,47 @@ static struct rockchip_mux_recalced_data rk3308_mux_recalced_data[] = {
+@@ -772,11 +613,47 @@ static struct rockchip_mux_recalced_data rk3308_mux_recalced_data[] = {
  
  static struct rockchip_mux_recalced_data rk3328_mux_recalced_data[] = {
  	{
@@ -52505,7 +52531,7 @@ index 9df48e0cf..f835dddc4 100644
  	}, {
  		.num = 2,
  		.pin = 15,
-@@ -777,6 +654,103 @@ static struct rockchip_mux_recalced_data rk3328_mux_recalced_data[] = {
+@@ -792,6 +669,103 @@ static struct rockchip_mux_recalced_data rk3328_mux_recalced_data[] = {
  	},
  };
  
@@ -52609,7 +52635,7 @@ index 9df48e0cf..f835dddc4 100644
  static void rockchip_get_recalced_mux(struct rockchip_pin_bank *bank, int pin,
  				      int *reg, u8 *bit, int *mask)
  {
-@@ -800,598 +774,218 @@ static void rockchip_get_recalced_mux(struct rockchip_pin_bank *bank, int pin,
+@@ -815,598 +789,218 @@ static void rockchip_get_recalced_mux(struct rockchip_pin_bank *bank, int pin,
  	*bit = data->bit;
  }
  
@@ -53398,7 +53424,7 @@ index 9df48e0cf..f835dddc4 100644
  };
  
  static bool rockchip_get_mux_route(struct rockchip_pin_bank *bank, int pin,
-@@ -1439,8 +1033,12 @@ static int rockchip_get_mux(struct rockchip_pin_bank *bank, int pin)
+@@ -1454,8 +1048,12 @@ static int rockchip_get_mux(struct rockchip_pin_bank *bank, int pin)
  	if (bank->iomux[iomux_num].type & IOMUX_GPIO_ONLY)
  		return RK_FUNC_GPIO;
  
@@ -53413,7 +53439,7 @@ index 9df48e0cf..f835dddc4 100644
  
  	/* get basic quadrupel of mux registers and the correct reg inside */
  	mux_type = bank->iomux[iomux_num].type;
-@@ -1527,8 +1125,12 @@ static int rockchip_set_mux(struct rockchip_pin_bank *bank, int pin, int mux)
+@@ -1542,8 +1140,12 @@ static int rockchip_set_mux(struct rockchip_pin_bank *bank, int pin, int mux)
  	dev_dbg(info->dev, "setting mux of GPIO%d-%d to %d\n",
  						bank->bank_num, pin, mux);
  
@@ -53428,7 +53454,7 @@ index 9df48e0cf..f835dddc4 100644
  
  	/* get basic quadrupel of mux registers and the correct reg inside */
  	mux_type = bank->iomux[iomux_num].type;
-@@ -1551,6 +1153,9 @@ static int rockchip_set_mux(struct rockchip_pin_bank *bank, int pin, int mux)
+@@ -1566,6 +1168,9 @@ static int rockchip_set_mux(struct rockchip_pin_bank *bank, int pin, int mux)
  	if (bank->recalced_mask & BIT(pin))
  		rockchip_get_recalced_mux(bank, pin, &reg, &bit, &mask);
  
@@ -53438,7 +53464,7 @@ index 9df48e0cf..f835dddc4 100644
  	if (bank->route_mask & BIT(pin)) {
  		if (rockchip_get_mux_route(bank, pin, mux, &route_location,
  					   &route_reg, &route_val)) {
-@@ -1572,10 +1177,20 @@ static int rockchip_set_mux(struct rockchip_pin_bank *bank, int pin, int mux)
+@@ -1587,10 +1192,20 @@ static int rockchip_set_mux(struct rockchip_pin_bank *bank, int pin, int mux)
  		}
  	}
  
@@ -53463,7 +53489,7 @@ index 9df48e0cf..f835dddc4 100644
  
  	return ret;
  }
-@@ -1760,6 +1375,115 @@ static int rv1108_calc_schmitt_reg_and_bit(struct rockchip_pin_bank *bank,
+@@ -1775,6 +1390,115 @@ static int rv1108_calc_schmitt_reg_and_bit(struct rockchip_pin_bank *bank,
  	return 0;
  }
  
@@ -53579,7 +53605,7 @@ index 9df48e0cf..f835dddc4 100644
  #define RK3308_SCHMITT_PINS_PER_REG		8
  #define RK3308_SCHMITT_BANK_STRIDE		16
  #define RK3308_SCHMITT_GRF_OFFSET		0x1a0
-@@ -1780,6 +1504,111 @@ static int rk3308_calc_schmitt_reg_and_bit(struct rockchip_pin_bank *bank,
+@@ -1795,6 +1519,111 @@ static int rk3308_calc_schmitt_reg_and_bit(struct rockchip_pin_bank *bank,
  	return 0;
  }
  
@@ -53691,7 +53717,7 @@ index 9df48e0cf..f835dddc4 100644
  #define RK2928_PULL_OFFSET		0x118
  #define RK2928_PULL_PINS_PER_REG	16
  #define RK2928_PULL_BANK_STRIDE		8
-@@ -2102,6 +1931,100 @@ static void rk3399_calc_drv_reg_and_bit(struct rockchip_pin_bank *bank,
+@@ -2117,6 +1946,100 @@ static void rk3399_calc_drv_reg_and_bit(struct rockchip_pin_bank *bank,
  		*bit = (pin_num % 8) * 2;
  }
  
@@ -53792,7 +53818,7 @@ index 9df48e0cf..f835dddc4 100644
  static int rockchip_perpin_drv_list[DRV_TYPE_MAX][8] = {
  	{ 2, 4, 8, 12, -1, -1, -1, -1 },
  	{ 3, 6, 9, 12, -1, -1, -1, -1 },
-@@ -2202,6 +2125,15 @@ static int rockchip_set_drive_perpin(struct rockchip_pin_bank *bank,
+@@ -2217,6 +2140,15 @@ static int rockchip_set_drive_perpin(struct rockchip_pin_bank *bank,
  		bank->bank_num, pin_num, strength);
  
  	ctrl->drv_calc_reg(bank, pin_num, &regmap, &reg, &bit);
@@ -53808,7 +53834,7 @@ index 9df48e0cf..f835dddc4 100644
  
  	ret = -EINVAL;
  	for (i = 0; i < ARRAY_SIZE(rockchip_perpin_drv_list[drv_type]); i++) {
-@@ -2271,14 +2203,42 @@ static int rockchip_set_drive_perpin(struct rockchip_pin_bank *bank,
+@@ -2286,14 +2218,42 @@ static int rockchip_set_drive_perpin(struct rockchip_pin_bank *bank,
  		return -EINVAL;
  	}
  
@@ -53852,7 +53878,7 @@ index 9df48e0cf..f835dddc4 100644
  }
  
  static int rockchip_pull_list[PULL_TYPE_MAX][4] = {
-@@ -2323,11 +2283,14 @@ static int rockchip_get_pull(struct rockchip_pin_bank *bank, int pin_num)
+@@ -2338,11 +2298,14 @@ static int rockchip_get_pull(struct rockchip_pin_bank *bank, int pin_num)
  				: PIN_CONFIG_BIAS_DISABLE;
  	case PX30:
  	case RV1108:
@@ -53867,7 +53893,7 @@ index 9df48e0cf..f835dddc4 100644
  		pull_type = bank->pull_type[pin_num / 8];
  		data >>= bit;
  		data &= (1 << RK3188_PULL_BITS_PER_PIN) - 1;
-@@ -2368,11 +2331,14 @@ static int rockchip_set_pull(struct rockchip_pin_bank *bank,
+@@ -2383,11 +2346,14 @@ static int rockchip_set_pull(struct rockchip_pin_bank *bank,
  		break;
  	case PX30:
  	case RV1108:
@@ -53882,7 +53908,7 @@ index 9df48e0cf..f835dddc4 100644
  		pull_type = bank->pull_type[pin_num / 8];
  		ret = -EINVAL;
  		for (i = 0; i < ARRAY_SIZE(rockchip_pull_list[pull_type]);
-@@ -2382,6 +2348,14 @@ static int rockchip_set_pull(struct rockchip_pin_bank *bank,
+@@ -2397,6 +2363,14 @@ static int rockchip_set_pull(struct rockchip_pin_bank *bank,
  				break;
  			}
  		}
@@ -53897,7 +53923,7 @@ index 9df48e0cf..f835dddc4 100644
  
  		if (ret < 0) {
  			dev_err(info->dev, "unsupported pull setting %d\n",
-@@ -2426,6 +2400,35 @@ static int rk3328_calc_schmitt_reg_and_bit(struct rockchip_pin_bank *bank,
+@@ -2441,6 +2415,35 @@ static int rk3328_calc_schmitt_reg_and_bit(struct rockchip_pin_bank *bank,
  	return 0;
  }
  
@@ -53933,7 +53959,7 @@ index 9df48e0cf..f835dddc4 100644
  static int rockchip_get_schmitt(struct rockchip_pin_bank *bank, int pin_num)
  {
  	struct rockchip_pinctrl *info = bank->drvdata;
-@@ -2444,10 +2447,17 @@ static int rockchip_get_schmitt(struct rockchip_pin_bank *bank, int pin_num)
+@@ -2459,10 +2462,17 @@ static int rockchip_get_schmitt(struct rockchip_pin_bank *bank, int pin_num)
  		return ret;
  
  	data >>= bit;
@@ -53955,7 +53981,7 @@ index 9df48e0cf..f835dddc4 100644
  				int pin_num, int enable)
  {
  	struct rockchip_pinctrl *info = bank->drvdata;
-@@ -2465,7 +2475,91 @@ static int rockchip_set_schmitt(struct rockchip_pin_bank *bank,
+@@ -2480,7 +2490,91 @@ static int rockchip_set_schmitt(struct rockchip_pin_bank *bank,
  		return ret;
  
  	/* enable the write to the equivalent lower bits */
@@ -54048,7 +54074,7 @@ index 9df48e0cf..f835dddc4 100644
  	rmask = BIT(bit + 16) | BIT(bit);
  
  	return regmap_update_bits(regmap, reg, rmask, data);
-@@ -2526,9 +2620,9 @@ static int rockchip_pmx_set(struct pinctrl_dev *pctldev, unsigned selector,
+@@ -2541,9 +2635,9 @@ static int rockchip_pmx_set(struct pinctrl_dev *pctldev, unsigned selector,
  			break;
  	}
  
@@ -54060,7 +54086,7 @@ index 9df48e0cf..f835dddc4 100644
  			rockchip_set_mux(bank, pins[cnt] - bank->pin_base, 0);
  
  		return ret;
-@@ -2537,86 +2631,11 @@ static int rockchip_pmx_set(struct pinctrl_dev *pctldev, unsigned selector,
+@@ -2552,86 +2646,11 @@ static int rockchip_pmx_set(struct pinctrl_dev *pctldev, unsigned selector,
  	return 0;
  }
  
@@ -54147,7 +54173,7 @@ index 9df48e0cf..f835dddc4 100644
  };
  
  /*
-@@ -2635,26 +2654,27 @@ static bool rockchip_pinconf_pull_valid(struct rockchip_pin_ctrl *ctrl,
+@@ -2650,26 +2669,27 @@ static bool rockchip_pinconf_pull_valid(struct rockchip_pin_ctrl *ctrl,
  		return pull ? false : true;
  	case PX30:
  	case RV1108:
@@ -54178,7 +54204,7 @@ index 9df48e0cf..f835dddc4 100644
  	enum pin_config_param param;
  	u32 arg;
  	int i;
-@@ -2687,10 +2707,13 @@ static int rockchip_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
+@@ -2702,10 +2722,13 @@ static int rockchip_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
  				return rc;
  			break;
  		case PIN_CONFIG_OUTPUT:
@@ -54196,7 +54222,7 @@ index 9df48e0cf..f835dddc4 100644
  			if (rc)
  				return rc;
  			break;
-@@ -2713,9 +2736,17 @@ static int rockchip_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
+@@ -2728,9 +2751,17 @@ static int rockchip_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
  			if (rc < 0)
  				return rc;
  			break;
@@ -54215,7 +54241,7 @@ index 9df48e0cf..f835dddc4 100644
  		}
  	} /* for each config */
  
-@@ -2728,6 +2759,7 @@ static int rockchip_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
+@@ -2743,6 +2774,7 @@ static int rockchip_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
  {
  	struct rockchip_pinctrl *info = pinctrl_dev_get_drvdata(pctldev);
  	struct rockchip_pin_bank *bank = pin_to_bank(info, pin);
@@ -54223,7 +54249,7 @@ index 9df48e0cf..f835dddc4 100644
  	enum pin_config_param param = pinconf_to_config_param(*config);
  	u16 arg;
  	int rc;
-@@ -2753,10 +2785,12 @@ static int rockchip_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
+@@ -2768,10 +2800,12 @@ static int rockchip_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
  		break;
  	case PIN_CONFIG_OUTPUT:
  		rc = rockchip_get_mux(bank, pin - bank->pin_base);
@@ -54238,7 +54264,7 @@ index 9df48e0cf..f835dddc4 100644
  		if (rc < 0)
  			return rc;
  
-@@ -2781,11 +2815,20 @@ static int rockchip_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
+@@ -2796,11 +2830,20 @@ static int rockchip_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
  		if (rc < 0)
  			return rc;
  
@@ -54260,7 +54286,7 @@ index 9df48e0cf..f835dddc4 100644
  	}
  
  	*config = pinconf_to_config_packed(param, arg);
-@@ -2848,716 +2891,173 @@ static int rockchip_pinctrl_parse_groups(struct device_node *np,
+@@ -2863,716 +2906,173 @@ static int rockchip_pinctrl_parse_groups(struct device_node *np,
  		return -EINVAL;
  	}
  
@@ -55096,7 +55122,7 @@ index 9df48e0cf..f835dddc4 100644
  }
  
  static const struct of_device_id rockchip_pinctrl_dt_match[];
-@@ -3569,7 +3069,6 @@ static struct rockchip_pin_ctrl *rockchip_pinctrl_get_soc_data(
+@@ -3584,7 +3084,6 @@ static struct rockchip_pin_ctrl *rockchip_pinctrl_get_soc_data(
  {
  	const struct of_device_id *match;
  	struct device_node *node = pdev->dev.of_node;
@@ -55104,7 +55130,7 @@ index 9df48e0cf..f835dddc4 100644
  	struct rockchip_pin_ctrl *ctrl;
  	struct rockchip_pin_bank *bank;
  	int grf_offs, pmu_offs, drv_grf_offs, drv_pmu_offs, i, j;
-@@ -3577,23 +3076,6 @@ static struct rockchip_pin_ctrl *rockchip_pinctrl_get_soc_data(
+@@ -3592,23 +3091,6 @@ static struct rockchip_pin_ctrl *rockchip_pinctrl_get_soc_data(
  	match = of_match_node(rockchip_pinctrl_dt_match, node);
  	ctrl = (struct rockchip_pin_ctrl *)match->data;
  
@@ -55128,7 +55154,7 @@ index 9df48e0cf..f835dddc4 100644
  	grf_offs = ctrl->grf_mux_offset;
  	pmu_offs = ctrl->pmu_mux_offset;
  	drv_pmu_offs = ctrl->pmu_drv_offset;
-@@ -3618,12 +3100,13 @@ static struct rockchip_pin_ctrl *rockchip_pinctrl_get_soc_data(
+@@ -3633,12 +3115,13 @@ static struct rockchip_pin_ctrl *rockchip_pinctrl_get_soc_data(
  
  			/* preset iomux offset value, set new start value */
  			if (iom->offset >= 0) {
@@ -55144,7 +55170,7 @@ index 9df48e0cf..f835dddc4 100644
  							pmu_offs : grf_offs;
  			}
  
-@@ -3648,7 +3131,7 @@ static struct rockchip_pin_ctrl *rockchip_pinctrl_get_soc_data(
+@@ -3663,7 +3146,7 @@ static struct rockchip_pin_ctrl *rockchip_pinctrl_get_soc_data(
  			inc = (iom->type & (IOMUX_WIDTH_4BIT |
  					    IOMUX_WIDTH_3BIT |
  					    IOMUX_WIDTH_2BIT)) ? 8 : 4;
@@ -55153,7 +55179,7 @@ index 9df48e0cf..f835dddc4 100644
  				pmu_offs += inc;
  			else
  				grf_offs += inc;
-@@ -3743,6 +3226,46 @@ static int __maybe_unused rockchip_pinctrl_resume(struct device *dev)
+@@ -3758,6 +3241,46 @@ static int __maybe_unused rockchip_pinctrl_resume(struct device *dev)
  static SIMPLE_DEV_PM_OPS(rockchip_pinctrl_dev_pm_ops, rockchip_pinctrl_suspend,
  			 rockchip_pinctrl_resume);
  
@@ -55200,7 +55226,7 @@ index 9df48e0cf..f835dddc4 100644
  static int rockchip_pinctrl_probe(struct platform_device *pdev)
  {
  	struct rockchip_pinctrl *info;
-@@ -3816,17 +3339,25 @@ static int rockchip_pinctrl_probe(struct platform_device *pdev)
+@@ -3831,17 +3354,25 @@ static int rockchip_pinctrl_probe(struct platform_device *pdev)
  			return PTR_ERR(info->regmap_pmu);
  	}
  
@@ -55231,7 +55257,7 @@ index 9df48e0cf..f835dddc4 100644
  
  	return 0;
  }
-@@ -3866,6 +3397,7 @@ static struct rockchip_pin_ctrl px30_pin_ctrl = {
+@@ -3881,6 +3412,7 @@ static struct rockchip_pin_ctrl px30_pin_ctrl = {
  		.pull_calc_reg		= px30_calc_pull_reg_and_bit,
  		.drv_calc_reg		= px30_calc_drv_reg_and_bit,
  		.schmitt_calc_reg	= px30_calc_schmitt_reg_and_bit,
@@ -55239,7 +55265,7 @@ index 9df48e0cf..f835dddc4 100644
  };
  
  static struct rockchip_pin_bank rv1108_pin_banks[] = {
-@@ -3892,6 +3424,86 @@ static struct rockchip_pin_ctrl rv1108_pin_ctrl = {
+@@ -3907,6 +3439,86 @@ static struct rockchip_pin_ctrl rv1108_pin_ctrl = {
  	.schmitt_calc_reg	= rv1108_calc_schmitt_reg_and_bit,
  };
  
@@ -55326,7 +55352,7 @@ index 9df48e0cf..f835dddc4 100644
  static struct rockchip_pin_bank rk2928_pin_banks[] = {
  	PIN_BANK(0, 32, "gpio0"),
  	PIN_BANK(1, 32, "gpio1"),
-@@ -4014,9 +3626,9 @@ static struct rockchip_pin_ctrl rk3228_pin_ctrl = {
+@@ -4029,9 +3641,9 @@ static struct rockchip_pin_ctrl rk3228_pin_ctrl = {
  };
  
  static struct rockchip_pin_bank rk3288_pin_banks[] = {
@@ -55339,7 +55365,7 @@ index 9df48e0cf..f835dddc4 100644
  					     IOMUX_UNROUTED
  			    ),
  	PIN_BANK_IOMUX_FLAGS(1, 32, "gpio1", IOMUX_UNROUTED,
-@@ -4091,6 +3703,7 @@ static struct rockchip_pin_ctrl rk3308_pin_ctrl = {
+@@ -4106,6 +3718,7 @@ static struct rockchip_pin_ctrl rk3308_pin_ctrl = {
  		.niomux_recalced	= ARRAY_SIZE(rk3308_mux_recalced_data),
  		.iomux_routes		= rk3308_mux_route_data,
  		.niomux_routes		= ARRAY_SIZE(rk3308_mux_route_data),
@@ -55347,7 +55373,7 @@ index 9df48e0cf..f835dddc4 100644
  		.pull_calc_reg		= rk3308_calc_pull_reg_and_bit,
  		.drv_calc_reg		= rk3308_calc_drv_reg_and_bit,
  		.schmitt_calc_reg	= rk3308_calc_schmitt_reg_and_bit,
-@@ -4215,11 +3828,55 @@ static struct rockchip_pin_ctrl rk3399_pin_ctrl = {
+@@ -4230,11 +3843,55 @@ static struct rockchip_pin_ctrl rk3399_pin_ctrl = {
  		.drv_calc_reg		= rk3399_calc_drv_reg_and_bit,
  };
  
@@ -55403,7 +55429,7 @@ index 9df48e0cf..f835dddc4 100644
  	{ .compatible = "rockchip,rk2928-pinctrl",
  		.data = &rk2928_pin_ctrl },
  	{ .compatible = "rockchip,rk3036-pinctrl",
-@@ -4244,6 +3901,8 @@ static const struct of_device_id rockchip_pinctrl_dt_match[] = {
+@@ -4259,6 +3916,8 @@ static const struct of_device_id rockchip_pinctrl_dt_match[] = {
  		.data = &rk3368_pin_ctrl },
  	{ .compatible = "rockchip,rk3399-pinctrl",
  		.data = &rk3399_pin_ctrl },
@@ -55412,7 +55438,7 @@ index 9df48e0cf..f835dddc4 100644
  	{},
  };
  
-@@ -4261,3 +3920,14 @@ static int __init rockchip_pinctrl_drv_register(void)
+@@ -4276,3 +3935,14 @@ static int __init rockchip_pinctrl_drv_register(void)
  	return platform_driver_register(&rockchip_pinctrl_driver);
  }
  postcore_initcall(rockchip_pinctrl_drv_register);
@@ -55892,7 +55918,7 @@ index 6ebae5162..81ba62a81 100644
  
  ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
 diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index c65299f8c..525332d29 100644
+index 2c5b23aab..c55def8bb 100644
 --- a/drivers/regulator/core.c
 +++ b/drivers/regulator/core.c
 @@ -51,6 +51,7 @@ static LIST_HEAD(regulator_map_list);
@@ -55915,7 +55941,7 @@ index c65299f8c..525332d29 100644
  static int _regulator_is_enabled(struct regulator_dev *rdev);
  static int _regulator_disable(struct regulator *regulator);
  static int _regulator_get_current_limit(struct regulator_dev *rdev);
-@@ -4931,11 +4937,265 @@ static void regulator_dev_release(struct device *dev)
+@@ -4934,11 +4940,265 @@ static void regulator_dev_release(struct device *dev)
  	kfree(rdev);
  }
  
@@ -56181,7 +56207,7 @@ index c65299f8c..525332d29 100644
  
  	/* Avoid duplicate debugfs directory names */
  	if (parent && rname == rdev->desc->name) {
-@@ -4956,8 +5216,88 @@ static void rdev_init_debugfs(struct regulator_dev *rdev)
+@@ -4959,8 +5219,88 @@ static void rdev_init_debugfs(struct regulator_dev *rdev)
  			   &rdev->open_count);
  	debugfs_create_u32("bypass_count", 0444, rdev->debugfs,
  			   &rdev->bypass_count);
@@ -56270,7 +56296,7 @@ index c65299f8c..525332d29 100644
  static int regulator_register_resolve_supply(struct device *dev, void *data)
  {
  	struct regulator_dev *rdev = dev_to_rdev(dev);
-@@ -5432,7 +5772,7 @@ void regulator_unregister(struct regulator_dev *rdev)
+@@ -5435,7 +5775,7 @@ void regulator_unregister(struct regulator_dev *rdev)
  
  	mutex_lock(&regulator_list_mutex);
  
@@ -56279,7 +56305,7 @@ index c65299f8c..525332d29 100644
  	WARN_ON(rdev->open_count);
  	regulator_remove_coupling(rdev);
  	unset_regulator_supplies(rdev);
-@@ -5863,7 +6203,11 @@ static int __init regulator_init(void)
+@@ -5866,7 +6206,11 @@ static int __init regulator_init(void)
  }
  
  /* init early to allow our consumers to complete system booting */
@@ -61118,7 +61144,7 @@ index aa9e0e31e..e1c667e8f 100644
  
  module_platform_driver(rockchip_thermal_driver);
 diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index d9e34ac37..595046139 100644
+index 5e48e9cfa..5a69a2d91 100644
 --- a/drivers/thermal/thermal_core.c
 +++ b/drivers/thermal/thermal_core.c
 @@ -542,6 +542,7 @@ int thermal_zone_device_is_enabled(struct thermal_zone_device *tz)
@@ -61742,7 +61768,7 @@ index 6d6a78eea..fee4f2933 100644
  	}
  
 diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_port.c
-index 305535351..dbc4a1402 100644
+index e0fa24f0f..c2c84a424 100644
 --- a/drivers/tty/serial/8250/8250_port.c
 +++ b/drivers/tty/serial/8250/8250_port.c
 @@ -1567,8 +1567,13 @@ static inline void __start_tx(struct uart_port *port)
@@ -61981,7 +62007,7 @@ index 18ee3914b..34d32d62d 100644
  		const struct hc_driver *drv = bus_to_hcd(hdev->bus)->driver;
  
 diff --git a/drivers/usb/core/quirks.c b/drivers/usb/core/quirks.c
-index baf80e2ac..465de8233 100644
+index f03ee889e..a2397a197 100644
 --- a/drivers/usb/core/quirks.c
 +++ b/drivers/usb/core/quirks.c
 @@ -322,6 +322,10 @@ static const struct usb_device_id usb_quirk_list[] = {
@@ -61995,7 +62021,7 @@ index baf80e2ac..465de8233 100644
  	/* appletouch */
  	{ USB_DEVICE(0x05ac, 0x021a), .driver_info = USB_QUIRK_RESET_RESUME },
  
-@@ -411,6 +415,10 @@ static const struct usb_device_id usb_quirk_list[] = {
+@@ -414,6 +418,10 @@ static const struct usb_device_id usb_quirk_list[] = {
  	/* Generic RTL8153 based ethernet adapters */
  	{ USB_DEVICE(0x0bda, 0x8153), .driver_info = USB_QUIRK_NO_LPM },
  
@@ -62221,7 +62247,7 @@ index a98079990..553382ce3 100644
  
  	.suspend	= composite_suspend,
 diff --git a/drivers/usb/gadget/configfs.c b/drivers/usb/gadget/configfs.c
-index 9b7fa53d6..13cd4a21a 100644
+index d51ea1c05..1478f76c5 100644
 --- a/drivers/usb/gadget/configfs.c
 +++ b/drivers/usb/gadget/configfs.c
 @@ -10,6 +10,32 @@
@@ -62347,7 +62373,7 @@ index 9b7fa53d6..13cd4a21a 100644
  static void configfs_composite_unbind(struct usb_gadget *gadget)
  {
  	struct usb_composite_dev	*cdev;
-@@ -1447,6 +1533,51 @@ static void configfs_composite_unbind(struct usb_gadget *gadget)
+@@ -1449,6 +1535,51 @@ static void configfs_composite_unbind(struct usb_gadget *gadget)
  	spin_unlock_irqrestore(&gi->spinlock, flags);
  }
  
@@ -62399,7 +62425,7 @@ index 9b7fa53d6..13cd4a21a 100644
  static int configfs_composite_setup(struct usb_gadget *gadget,
  		const struct usb_ctrlrequest *ctrl)
  {
-@@ -1472,6 +1603,8 @@ static int configfs_composite_setup(struct usb_gadget *gadget,
+@@ -1474,6 +1605,8 @@ static int configfs_composite_setup(struct usb_gadget *gadget,
  	return ret;
  }
  
@@ -62408,7 +62434,7 @@ index 9b7fa53d6..13cd4a21a 100644
  static void configfs_composite_disconnect(struct usb_gadget *gadget)
  {
  	struct usb_composite_dev *cdev;
-@@ -1482,6 +1615,14 @@ static void configfs_composite_disconnect(struct usb_gadget *gadget)
+@@ -1484,6 +1617,14 @@ static void configfs_composite_disconnect(struct usb_gadget *gadget)
  	if (!cdev)
  		return;
  
@@ -62423,7 +62449,7 @@ index 9b7fa53d6..13cd4a21a 100644
  	gi = container_of(cdev, struct gadget_info, cdev);
  	spin_lock_irqsave(&gi->spinlock, flags);
  	cdev = get_gadget_data(gadget);
-@@ -1490,10 +1631,36 @@ static void configfs_composite_disconnect(struct usb_gadget *gadget)
+@@ -1492,10 +1633,36 @@ static void configfs_composite_disconnect(struct usb_gadget *gadget)
  		return;
  	}
  
@@ -62460,7 +62486,7 @@ index 9b7fa53d6..13cd4a21a 100644
  static void configfs_composite_suspend(struct usb_gadget *gadget)
  {
  	struct usb_composite_dev *cdev;
-@@ -1542,10 +1709,13 @@ static const struct usb_gadget_driver configfs_driver_template = {
+@@ -1544,10 +1711,13 @@ static const struct usb_gadget_driver configfs_driver_template = {
  	.bind           = configfs_composite_bind,
  	.unbind         = configfs_composite_unbind,
  
@@ -62476,7 +62502,7 @@ index 9b7fa53d6..13cd4a21a 100644
  	.suspend	= configfs_composite_suspend,
  	.resume		= configfs_composite_resume,
  
-@@ -1557,6 +1727,91 @@ static const struct usb_gadget_driver configfs_driver_template = {
+@@ -1559,6 +1729,91 @@ static const struct usb_gadget_driver configfs_driver_template = {
  	.match_existing_only = 1,
  };
  
@@ -62568,7 +62594,7 @@ index 9b7fa53d6..13cd4a21a 100644
  static struct config_group *gadgets_make(
  		struct config_group *group,
  		const char *name)
-@@ -1609,7 +1864,11 @@ static struct config_group *gadgets_make(
+@@ -1611,7 +1866,11 @@ static struct config_group *gadgets_make(
  	if (!gi->composite.gadget_driver.function)
  		goto err;
  
@@ -62580,7 +62606,7 @@ index 9b7fa53d6..13cd4a21a 100644
  err:
  	kfree(gi);
  	return ERR_PTR(-ENOMEM);
-@@ -1617,7 +1876,11 @@ static struct config_group *gadgets_make(
+@@ -1619,7 +1878,11 @@ static struct config_group *gadgets_make(
  
  static void gadgets_drop(struct config_group *group, struct config_item *item)
  {
@@ -62592,7 +62618,7 @@ index 9b7fa53d6..13cd4a21a 100644
  }
  
  static struct configfs_group_operations gadgets_ops = {
-@@ -1657,6 +1920,13 @@ static int __init gadget_cfs_init(void)
+@@ -1659,6 +1922,13 @@ static int __init gadget_cfs_init(void)
  	config_group_init(&gadget_subsys.su_group);
  
  	ret = configfs_register_subsystem(&gadget_subsys);
@@ -62606,7 +62632,7 @@ index 9b7fa53d6..13cd4a21a 100644
  	return ret;
  }
  module_init(gadget_cfs_init);
-@@ -1664,5 +1934,10 @@ module_init(gadget_cfs_init);
+@@ -1666,5 +1936,10 @@ module_init(gadget_cfs_init);
  static void __exit gadget_cfs_exit(void)
  {
  	configfs_unregister_subsystem(&gadget_subsys);
@@ -62706,7 +62732,7 @@ index bb0d92837..daa2a13b4 100644
  }
  
 diff --git a/drivers/usb/gadget/function/f_uvc.c b/drivers/usb/gadget/function/f_uvc.c
-index f48a00e49..31cc58171 100644
+index fecdba85a..baf8dee72 100644
 --- a/drivers/usb/gadget/function/f_uvc.c
 +++ b/drivers/usb/gadget/function/f_uvc.c
 @@ -124,6 +124,18 @@ static struct usb_interface_descriptor uvc_streaming_intf_alt0 = {
@@ -62963,13 +62989,13 @@ index f48a00e49..31cc58171 100644
 +			if (ret)
 +				return ret;
 +			usb_ep_enable(uvc->video.ep);
-+
+ 
+-		if (!uvc->video.ep)
 +			memset(&v4l2_event, 0, sizeof(v4l2_event));
 +			v4l2_event.type = UVC_EVENT_STREAMON;
 +			v4l2_event_queue(&uvc->vdev, &v4l2_event);
 +			return USB_GADGET_DELAYED_STATUS;
- 
--		if (!uvc->video.ep)
++
 +		default:
  			return -EINVAL;
 +		}
@@ -63419,7 +63445,7 @@ index f48a00e49..31cc58171 100644
  
  	ret = uvcg_attach_configfs(opts);
  	if (ret < 0) {
-@@ -948,6 +1242,8 @@ static struct usb_function *uvc_alloc(struct usb_function_instance *fi)
+@@ -974,6 +1268,8 @@ static struct usb_function *uvc_alloc(struct usb_function_instance *fi)
  	uvc->func.disable = uvc_function_disable;
  	uvc->func.setup = uvc_function_setup;
  	uvc->func.free_func = uvc_free;
@@ -63479,18 +63505,18 @@ index 9a01a7d4f..3e92a28d8 100644
  
  #endif /* U_UVC_H */
 diff --git a/drivers/usb/gadget/function/uvc.h b/drivers/usb/gadget/function/uvc.h
-index 893aaa70f..ed28b90f6 100644
+index 6c4fc4913..0ea4405ff
 --- a/drivers/usb/gadget/function/uvc.h
 +++ b/drivers/usb/gadget/function/uvc.h
-@@ -14,6 +14,7 @@
- #include <linux/spinlock.h>
+@@ -15,6 +15,7 @@
  #include <linux/usb/composite.h>
  #include <linux/videodev2.h>
+ #include <linux/wait.h>
 +#include <linux/pm_qos.h>
  
  #include <media/v4l2-device.h>
  #include <media/v4l2-dev.h>
-@@ -68,6 +69,7 @@ extern unsigned int uvc_gadget_trace_param;
+@@ -69,6 +70,7 @@ extern unsigned int uvc_gadget_trace_param;
  #define UVC_NUM_REQUESTS			4
  #define UVC_MAX_REQUEST_SIZE			64
  #define UVC_MAX_EVENTS				4
@@ -63498,7 +63524,7 @@ index 893aaa70f..ed28b90f6 100644
  
  /* ------------------------------------------------------------------------
   * Structures
-@@ -89,8 +91,8 @@ struct uvc_video {
+@@ -90,8 +92,8 @@ struct uvc_video {
  
  	/* Requests */
  	unsigned int req_size;
@@ -63509,16 +63535,16 @@ index 893aaa70f..ed28b90f6 100644
  	struct list_head req_free;
  	spinlock_t req_lock;
  
-@@ -118,6 +120,8 @@ struct uvc_device {
- 	struct usb_function func;
+@@ -120,6 +122,8 @@ struct uvc_device {
  	struct uvc_video video;
  	bool func_connected;
+ 	wait_queue_head_t func_connected_queue;
 +	/* for creating and issuing QoS requests */
 +	struct pm_qos_request pm_qos;
  
  	/* Descriptors */
  	struct {
-@@ -138,6 +142,7 @@ struct uvc_device {
+@@ -140,6 +144,7 @@ struct uvc_device {
  	/* Events */
  	unsigned int event_length;
  	unsigned int event_setup_out : 1;
@@ -63527,7 +63553,7 @@ index 893aaa70f..ed28b90f6 100644
  
  static inline struct uvc_device *to_uvc(struct usb_function *f)
 diff --git a/drivers/usb/gadget/function/uvc_queue.c b/drivers/usb/gadget/function/uvc_queue.c
-index 61e2c94cc..3cc3da8ff 100644
+index cab1e3046..0f5e6fb93 100644
 --- a/drivers/usb/gadget/function/uvc_queue.c
 +++ b/drivers/usb/gadget/function/uvc_queue.c
 @@ -124,6 +124,14 @@ int uvcg_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
@@ -63546,7 +63572,7 @@ index 61e2c94cc..3cc3da8ff 100644
  	if (ret)
  		return ret;
 diff --git a/drivers/usb/gadget/function/uvc_v4l2.c b/drivers/usb/gadget/function/uvc_v4l2.c
-index 197c26f7a..10fab9220 100644
+index 65abd55ce..4216c9147 100644
 --- a/drivers/usb/gadget/function/uvc_v4l2.c
 +++ b/drivers/usb/gadget/function/uvc_v4l2.c
 @@ -41,6 +41,7 @@ uvc_send_response(struct uvc_device *uvc, struct uvc_request_data *data)
@@ -63592,7 +63618,7 @@ index 197c26f7a..10fab9220 100644
  
  	return 0;
  }
-@@ -389,6 +402,9 @@ const struct v4l2_file_operations uvc_v4l2_fops = {
+@@ -390,6 +403,9 @@ const struct v4l2_file_operations uvc_v4l2_fops = {
  	.open		= uvc_v4l2_open,
  	.release	= uvc_v4l2_release,
  	.unlocked_ioctl	= video_ioctl2,
