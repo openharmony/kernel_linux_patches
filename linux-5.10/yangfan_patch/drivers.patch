@@ -12,7 +12,7 @@ index f13d70df6..f072f4e8f 100644
  obj-y				+= bus/
  
 diff --git a/drivers/block/nbd.c b/drivers/block/nbd.c
-index ff14210e8..991d73e4e 100644
+index 2e4bd16ef..676b20b40 100644
 --- a/drivers/block/nbd.c
 +++ b/drivers/block/nbd.c
 @@ -2398,12 +2398,6 @@ static int nbd_genl_status(struct sk_buff *skb, struct genl_info *info)
@@ -7139,7 +7139,7 @@ index 09dada80a..2d00d22f1 100644
  obj-$(CONFIG_GPIO_SAMA5D2_PIOBU)	+= gpio-sama5d2-piobu.o
  obj-$(CONFIG_GPIO_SCH311X)		+= gpio-sch311x.o
 diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index 2e63274a4..ab666917b 100644
+index 01424af65..e4a9860ea 100644
 --- a/drivers/gpio/gpiolib-of.c
 +++ b/drivers/gpio/gpiolib-of.c
 @@ -1046,3 +1046,14 @@ void of_gpiochip_remove(struct gpio_chip *chip)
@@ -7326,7 +7326,7 @@ index 2b3aff104..519e916ed 100644
  obj-$(CONFIG_DRM_SII902X) += sii902x.o
  obj-$(CONFIG_DRM_SII9234) += sii9234.o
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index a7bcb429c..8c682d8b5
+index 9755672ca..1965fb1bd
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -8,11 +8,13 @@
@@ -14326,7 +14326,7 @@ index 376fa6eb4..163dcc03b 100644
  MODULE_AUTHOR("Philippe Cornu <philippe.cornu@st.com>");
  MODULE_DESCRIPTION("DW MIPI DSI host controller driver");
 diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
-index 7fc8e7000..4108c7265 100644
+index 8a871e5c3..9418d0847 100644
 --- a/drivers/gpu/drm/drm_atomic_helper.c
 +++ b/drivers/gpu/drm/drm_atomic_helper.c
 @@ -296,12 +296,14 @@ update_connector_routing(struct drm_atomic_state *state,
@@ -16067,7 +16067,7 @@ index 4c6bdea55..597cf1459 100644
  
  static inline struct panfrost_device *to_panfrost_device(struct drm_device *ddev)
 diff --git a/drivers/gpu/drm/panfrost/panfrost_drv.c b/drivers/gpu/drm/panfrost/panfrost_drv.c
-index 1dfc457bb..bd1f663d7 100644
+index a70261809..689be734e 100644
 --- a/drivers/gpu/drm/panfrost/panfrost_drv.c
 +++ b/drivers/gpu/drm/panfrost/panfrost_drv.c
 @@ -417,7 +417,7 @@ static int panfrost_ioctl_madvise(struct drm_device *dev, void *data,
@@ -16243,7 +16243,7 @@ index 7e1a5664d..04e6f6f9b 100644
  
  				dma_fence_signal_locked(job->done_fence);
 diff --git a/drivers/gpu/drm/panfrost/panfrost_mmu.c b/drivers/gpu/drm/panfrost/panfrost_mmu.c
-index 13596961a..b73e17de1 100644
+index 7fc45b13a..21e552d1a 100644
 --- a/drivers/gpu/drm/panfrost/panfrost_mmu.c
 +++ b/drivers/gpu/drm/panfrost/panfrost_mmu.c
 @@ -1,8 +1,5 @@
@@ -16737,7 +16737,7 @@ index 17a9e7eb2..fda134d9b 100644
 +ccflags-y +=-I$(KERNEL_SOURCE_PATH)/drivers/gpu/drm/
 \ No newline at end of file
 diff --git a/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
-index 512581698..ae3c74cc9
+index ade2327a1..edad62bc7 100644
 --- a/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
 +++ b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
 @@ -16,6 +16,7 @@
@@ -25485,7 +25485,7 @@ index 7ffc541be..6a1d8e55b 100644
 +void rockchip_gem_get_ddr_info(void);
  #endif /* _ROCKCHIP_DRM_GEM_H */
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-index af98bfcde..7cafe8798
+index 91568f166..031de4f6b
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
 @@ -6,21 +6,28 @@
@@ -38473,7 +38473,7 @@ index 02ddb237f..0b3adca2e 100644
  MODULE_DESCRIPTION("Rockchip RK3xxx I2C Bus driver");
  MODULE_AUTHOR("Max Schwarz <max.schwarz@online.de>");
 diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index 34fecf97a..d041b7fa5 100644
+index bdce6d3e5..c0315596d 100644
 --- a/drivers/i2c/i2c-core-base.c
 +++ b/drivers/i2c/i2c-core-base.c
 @@ -61,6 +61,7 @@
@@ -40375,7 +40375,7 @@ index e5d86b717..b359fcf2c 100644
 +MODULE_ALIAS("platform:rockchip-iommu");
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index 3c24bf452..ddcd884d1 100644
+index dc062e8c2..122f81a09 100644
 --- a/drivers/irqchip/Kconfig
 +++ b/drivers/irqchip/Kconfig
 @@ -417,8 +417,9 @@ config IRQ_UNIPHIER_AIDET
@@ -40574,7 +40574,7 @@ index 42b295337..1f17875da 100644
  		if (!(tmp & GITS_CBASER_SHAREABILITY_MASK)) {
  			/*
 diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 4c8f18f0c..e3c45597b 100644
+index e5e3fd6b9..ef7327f2e 100644
 --- a/drivers/irqchip/irq-gic-v3.c
 +++ b/drivers/irqchip/irq-gic-v3.c
 @@ -18,6 +18,9 @@
@@ -42479,7 +42479,7 @@ index d109b9f14..fd755d98a 100644
  MODULE_LICENSE("GPL");
  MODULE_AUTHOR("Chris Zhong <zyw@rock-chips.com>");
 diff --git a/drivers/mmc/core/block.c b/drivers/mmc/core/block.c
-index 66a00b7c7..e3f6efb81 100644
+index 99b981a05..ea72d4a42 100644
 --- a/drivers/mmc/core/block.c
 +++ b/drivers/mmc/core/block.c
 @@ -2892,6 +2892,9 @@ static void mmc_blk_remove_debugfs(struct mmc_card *card,
@@ -57017,7 +57017,7 @@ index aa426183b..5d83e1311 100644
  };
  
 diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
-index 5d844697c..b11a434ec 100644
+index 06c0b15fe..564f928eb 100644
 --- a/drivers/regulator/of_regulator.c
 +++ b/drivers/regulator/of_regulator.c
 @@ -417,8 +417,12 @@ device_node *regulator_of_get_init_node(struct device *dev,
@@ -58224,7 +58224,7 @@ index 875032f73..7ac36a26a 100644
 +ccflags-y +=-I$(KERNEL_SOURCE_PATH)/drivers/mmc/host/
 \ No newline at end of file
 diff --git a/drivers/soc/rockchip/grf.c b/drivers/soc/rockchip/grf.c
-index 343ff61cc..14f85382d 100644
+index 494cf2b5b..a252b07a6 100644
 --- a/drivers/soc/rockchip/grf.c
 +++ b/drivers/soc/rockchip/grf.c
 @@ -7,6 +7,7 @@
@@ -61150,7 +61150,7 @@ index aa9e0e31e..e1c667e8f 100644
  
  module_platform_driver(rockchip_thermal_driver);
 diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index dd449945e..560b1b83d 100644
+index 5e48e9cfa..5a69a2d91 100644
 --- a/drivers/thermal/thermal_core.c
 +++ b/drivers/thermal/thermal_core.c
 @@ -542,6 +542,7 @@ int thermal_zone_device_is_enabled(struct thermal_zone_device *tz)
@@ -61173,7 +61173,7 @@ index 681209db4..5e80cb326 100644
 -
  #endif /* __THERMAL_CORE_H__ */
 diff --git a/drivers/tty/serial/8250/8250.h b/drivers/tty/serial/8250/8250.h
-index b6dc9003b..f7261181d 100644
+index 34aa2714f..71ace116f 100644
 --- a/drivers/tty/serial/8250/8250.h
 +++ b/drivers/tty/serial/8250/8250.h
 @@ -48,6 +48,9 @@ struct uart_8250_dma {
@@ -61220,7 +61220,7 @@ index b6dc9003b..f7261181d 100644
  static inline int serial8250_request_dma(struct uart_8250_port *p)
  {
 diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index 98ce484f1..36ee2fe24 100644
+index cae61d1eb..fc81bbc76 100644
 --- a/drivers/tty/serial/8250/8250_core.c
 +++ b/drivers/tty/serial/8250/8250_core.c
 @@ -559,6 +559,7 @@ static void __init serial8250_isa_init_ports(void)
@@ -61553,7 +61553,7 @@ index b3c3f7e58..d8da0622b 100644
  }
  EXPORT_SYMBOL_GPL(serial8250_release_dma);
 diff --git a/drivers/tty/serial/8250/8250_dw.c b/drivers/tty/serial/8250/8250_dw.c
-index ace221afe..c5bba750f 100644
+index 49559731b..f6010822f 100644
 --- a/drivers/tty/serial/8250/8250_dw.c
 +++ b/drivers/tty/serial/8250/8250_dw.c
 @@ -33,6 +33,7 @@
@@ -61774,7 +61774,7 @@ index 6d6a78eea..fee4f2933 100644
  	}
  
 diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_port.c
-index 9d60418e4..44f8d9d10 100644
+index e0fa24f0f..c2c84a424 100644
 --- a/drivers/tty/serial/8250/8250_port.c
 +++ b/drivers/tty/serial/8250/8250_port.c
 @@ -1548,8 +1548,13 @@ static inline void __start_tx(struct uart_port *port)
