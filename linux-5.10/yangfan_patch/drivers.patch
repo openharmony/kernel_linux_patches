@@ -15,7 +15,7 @@ diff --git a/drivers/block/nbd.c b/drivers/block/nbd.c
 index 2e4bd16ef..676b20b40 100644
 --- a/drivers/block/nbd.c
 +++ b/drivers/block/nbd.c
-@@ -2391,12 +2391,6 @@ static int nbd_genl_status(struct sk_buff *skb, struct genl_info *info)
+@@ -2398,12 +2398,6 @@ static int nbd_genl_status(struct sk_buff *skb, struct genl_info *info)
  	}
  
  	dev_list = nla_nest_start_noflag(reply, NBD_ATTR_DEVICE_LIST);
@@ -7142,7 +7142,7 @@ diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
 index 01424af65..e4a9860ea 100644
 --- a/drivers/gpio/gpiolib-of.c
 +++ b/drivers/gpio/gpiolib-of.c
-@@ -1044,3 +1044,14 @@ void of_gpiochip_remove(struct gpio_chip *chip)
+@@ -1046,3 +1046,14 @@ void of_gpiochip_remove(struct gpio_chip *chip)
  {
  	of_node_put(chip->of_node);
  }
@@ -7817,7 +7817,7 @@ index 9755672ca..1965fb1bd
  {
  	struct analogix_dp_device *dp = arg;
 -	enum dp_irq_type irq_type;
- 
+-
 -	irq_type = analogix_dp_get_irq_type(dp);
 -	if (irq_type & DP_IRQ_TYPE_HP_CABLE_IN ||
 -	    irq_type & DP_IRQ_TYPE_HP_CABLE_OUT) {
@@ -7825,7 +7825,7 @@ index 9755672ca..1965fb1bd
 -		if (dp->drm_dev)
 -			drm_helper_hpd_irq_event(dp->drm_dev);
 -	}
--
+ 
 -	if (irq_type != DP_IRQ_TYPE_UNKNOWN) {
 -		analogix_dp_clear_hotplug_interrupts(dp);
 -		analogix_dp_unmute_hpd_interrupt(dp);
@@ -7898,7 +7898,7 @@ index 9755672ca..1965fb1bd
 +		dev_err(dp->dev, "failed to read dpcd caps: %d\n", ret);
 +		return ret;
 +	}
-
++
 +	ret = analogix_dp_link_power_up(dp);
 +	if (ret) {
 +		dev_err(dp->dev, "failed to power up link: %d\n", ret);
@@ -8174,7 +8174,7 @@ index 9755672ca..1965fb1bd
  					 DRM_MODE_CONNECTOR_eDP);
  		if (ret) {
  			DRM_ERROR("Failed to initialize connector with drm\n");
-@@ -1268,11 +1344,20 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
+@@ -1268,6 +1344,14 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
  	return 0;
  }
  
@@ -8187,6 +8187,9 @@ index 9755672ca..1965fb1bd
 +}
 +
  static
+ struct drm_crtc *analogix_dp_get_old_crtc(struct analogix_dp_device *dp,
+ 					  struct drm_atomic_state *state)
+@@ -1291,7 +1375,8 @@ static
  struct drm_crtc *analogix_dp_get_new_crtc(struct analogix_dp_device *dp,
  					  struct drm_atomic_state *state)
  {
@@ -8196,7 +8199,7 @@ index 9755672ca..1965fb1bd
  	struct drm_connector *connector;
  	struct drm_connector_state *conn_state;
  
-@@ -1295,7 +1380,6 @@ analogix_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
+@@ -1314,7 +1399,6 @@ analogix_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
  	struct analogix_dp_device *dp = bridge->driver_private;
  	struct drm_crtc *crtc;
  	struct drm_crtc_state *old_crtc_state;
@@ -8204,7 +8207,7 @@ index 9755672ca..1965fb1bd
  
  	crtc = analogix_dp_get_new_crtc(dp, old_state);
  	if (!crtc)
-@@ -1306,27 +1390,20 @@ analogix_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
+@@ -1325,27 +1409,20 @@ analogix_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
  	if (old_crtc_state && old_crtc_state->self_refresh_active)
  		return;
  
@@ -8237,7 +8240,7 @@ index 9755672ca..1965fb1bd
  
  	ret = analogix_dp_init_dp(dp);
  	if (ret)
-@@ -1344,28 +1421,35 @@ static int analogix_dp_set_bridge(struct analogix_dp_device *dp)
+@@ -1363,28 +1440,35 @@ static int analogix_dp_set_bridge(struct analogix_dp_device *dp)
  	}
  
  	ret = analogix_dp_commit(dp);
@@ -8280,7 +8283,7 @@ index 9755672ca..1965fb1bd
  static void
  analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
  				 struct drm_bridge_state *old_bridge_state)
-@@ -1404,12 +1488,14 @@ analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
+@@ -1423,12 +1507,14 @@ analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
  		usleep_range(10, 11);
  	}
  	dev_err(dp->dev, "too many times retry set bridge, give it up\n");
@@ -8296,7 +8299,7 @@ index 9755672ca..1965fb1bd
  
  	if (dp->dpms_mode != DRM_MODE_DPMS_ON)
  		return;
-@@ -1421,21 +1507,17 @@ static void analogix_dp_bridge_disable(struct drm_bridge *bridge)
+@@ -1440,21 +1526,17 @@ static void analogix_dp_bridge_disable(struct drm_bridge *bridge)
  		}
  	}
  
@@ -8323,7 +8326,7 @@ index 9755672ca..1965fb1bd
  
  	dp->fast_train_enable = false;
  	dp->psr_supported = false;
-@@ -1492,14 +1574,19 @@ analogix_dp_bridge_atomic_post_disable(struct drm_bridge *bridge,
+@@ -1526,14 +1608,19 @@ analogix_dp_bridge_atomic_post_disable(struct drm_bridge *bridge,
  
  static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
  				const struct drm_display_mode *orig_mode,
@@ -8344,7 +8347,7 @@ index 9755672ca..1965fb1bd
  	/* Input video interlaces & hsync pol & vsync pol */
  	video->interlaced = !!(mode->flags & DRM_MODE_FLAG_INTERLACE);
  	video->v_sync_polarity = !!(mode->flags & DRM_MODE_FLAG_NVSYNC);
-@@ -1508,16 +1595,12 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
+@@ -1542,16 +1629,12 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
  	/* Input video dynamic_range & colorimetry */
  	vic = drm_match_cea_mode(mode);
  	if ((vic == 6) || (vic == 7) || (vic == 21) || (vic == 22) ||
@@ -8364,7 +8367,7 @@ index 9755672ca..1965fb1bd
  
  	/* Input vide bpc and color_formats */
  	switch (display_info->bpc) {
-@@ -1537,12 +1620,16 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
+@@ -1571,12 +1654,16 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
  		video->color_depth = COLOR_8;
  		break;
  	}
@@ -8384,7 +8387,7 @@ index 9755672ca..1965fb1bd
  
  	/*
  	 * NOTE: those property parsing code is used for providing backward
-@@ -1567,6 +1654,56 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
+@@ -1601,6 +1688,56 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
  		video->interlaced = true;
  }
  
@@ -8441,7 +8444,7 @@ index 9755672ca..1965fb1bd
  static const struct drm_bridge_funcs analogix_dp_bridge_funcs = {
  	.atomic_duplicate_state = drm_atomic_helper_bridge_duplicate_state,
  	.atomic_destroy_state = drm_atomic_helper_bridge_destroy_state,
-@@ -1577,29 +1714,30 @@ static const struct drm_bridge_funcs analogix_dp_bridge_funcs = {
+@@ -1611,29 +1748,30 @@ static const struct drm_bridge_funcs analogix_dp_bridge_funcs = {
  	.atomic_post_disable = analogix_dp_bridge_atomic_post_disable,
  	.mode_set = analogix_dp_bridge_mode_set,
  	.attach = analogix_dp_bridge_attach,
@@ -8487,7 +8490,7 @@ index 9755672ca..1965fb1bd
  	}
  
  	return 0;
-@@ -1609,10 +1747,11 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
+@@ -1643,10 +1781,11 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
  {
  	struct device_node *dp_node = dp->dev->of_node;
  	struct video_info *video_info = &dp->video_info;
@@ -8500,7 +8503,7 @@ index 9755672ca..1965fb1bd
  		/*
  		 * Like Rk3288 DisplayPort TRM indicate that "Main link
  		 * containing 4 physical lanes of 2.7/1.62 Gbps/lane".
-@@ -1620,6 +1759,10 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
+@@ -1654,6 +1793,10 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
  		video_info->max_link_rate = 0x0A;
  		video_info->max_lane_count = 0x04;
  		break;
@@ -8511,7 +8514,7 @@ index 9755672ca..1965fb1bd
  	case EXYNOS_DP:
  		/*
  		 * NOTE: those property parseing code is used for
-@@ -1632,6 +1775,35 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
+@@ -1666,6 +1809,35 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
  		break;
  	}
  
@@ -8547,7 +8550,7 @@ index 9755672ca..1965fb1bd
  	return 0;
  }
  
-@@ -1639,20 +1811,96 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
+@@ -1673,20 +1845,96 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
  				       struct drm_dp_aux_msg *msg)
  {
  	struct analogix_dp_device *dp = to_dp(aux);
@@ -8651,7 +8654,7 @@ index 9755672ca..1965fb1bd
  
  struct analogix_dp_device *
  analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
-@@ -1660,7 +1908,6 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1694,7 +1942,6 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  	struct platform_device *pdev = to_platform_device(dev);
  	struct analogix_dp_device *dp;
  	struct resource *res;
@@ -8659,7 +8662,7 @@ index 9755672ca..1965fb1bd
  	int ret;
  
  	if (!plat_data) {
-@@ -1674,9 +1921,10 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1708,9 +1955,10 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  
  	dp->dev = &pdev->dev;
  	dp->dpms_mode = DRM_MODE_DPMS_OFF;
@@ -8671,7 +8674,7 @@ index 9755672ca..1965fb1bd
  
  	/*
  	 * platform dp driver need containor_of the plat_data to get
-@@ -1705,21 +1953,19 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1739,21 +1987,19 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  		}
  	}
  
@@ -8700,7 +8703,7 @@ index 9755672ca..1965fb1bd
  
  	dp->force_hpd = of_property_read_bool(dev->of_node, "force-hpd");
  
-@@ -1731,46 +1977,55 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1765,46 +2011,55 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  	if (IS_ERR(dp->hpd_gpiod)) {
  		dev_err(dev, "error getting HDP GPIO: %ld\n",
  			PTR_ERR(dp->hpd_gpiod));
@@ -8781,7 +8784,7 @@ index 9755672ca..1965fb1bd
  }
  EXPORT_SYMBOL_GPL(analogix_dp_probe);
  
-@@ -1790,16 +2045,21 @@ int analogix_dp_bind(struct analogix_dp_device *dp, struct drm_device *drm_dev)
+@@ -1824,16 +2079,21 @@ int analogix_dp_bind(struct analogix_dp_device *dp, struct drm_device *drm_dev)
  		return ret;
  
  	pm_runtime_enable(dp->dev);
@@ -8805,7 +8808,7 @@ index 9755672ca..1965fb1bd
  	pm_runtime_disable(dp->dev);
  
  	return ret;
-@@ -1808,34 +2068,23 @@ EXPORT_SYMBOL_GPL(analogix_dp_bind);
+@@ -1842,34 +2102,23 @@ EXPORT_SYMBOL_GPL(analogix_dp_bind);
  
  void analogix_dp_unbind(struct analogix_dp_device *dp)
  {
@@ -8844,7 +8847,7 @@ index 9755672ca..1965fb1bd
  
  	return 0;
  }
-@@ -1843,25 +2092,26 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
+@@ -1877,25 +2126,26 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
  
  int analogix_dp_resume(struct analogix_dp_device *dp)
  {
@@ -14353,7 +14356,7 @@ index 8a871e5c3..9418d0847 100644
  
  	DRM_DEBUG_ATOMIC("[CONNECTOR:%d:%s] using [ENCODER:%d:%s] on [CRTC:%d:%s]\n",
  			 connector->base.id,
-@@ -3544,6 +3547,9 @@ int drm_atomic_helper_legacy_gamma_set(struct drm_crtc *crtc,
+@@ -3554,6 +3557,9 @@ int drm_atomic_helper_legacy_gamma_set(struct drm_crtc *crtc,
  	replaced  = drm_property_replace_blob(&crtc_state->degamma_lut, NULL);
  	replaced |= drm_property_replace_blob(&crtc_state->ctm, NULL);
  	replaced |= drm_property_replace_blob(&crtc_state->gamma_lut, blob);
@@ -17282,10 +17285,10 @@ index ade2327a1..edad62bc7 100644
 +		secondary->plat_data.split_mode = true;
 +	}
 +
- 	return component_add(dev, &rockchip_dp_component_ops);
- }
- 
-@@ -411,8 +630,7 @@ static int rockchip_dp_remove(struct platform_device *pdev)
+ 	ret = component_add(dev, &rockchip_dp_component_ops);
+ 	if (ret)
+ 		goto err_dp_remove;
+@@ -419,8 +638,7 @@ static int rockchip_dp_remove(struct platform_device *pdev)
  	return 0;
  }
  
@@ -17295,7 +17298,7 @@ index ade2327a1..edad62bc7 100644
  {
  	struct rockchip_dp_device *dp = dev_get_drvdata(dev);
  
-@@ -422,7 +640,7 @@ static int rockchip_dp_suspend(struct device *dev)
+@@ -430,7 +648,7 @@ static int rockchip_dp_suspend(struct device *dev)
  	return analogix_dp_suspend(dp->adp);
  }
  
@@ -17304,7 +17307,7 @@ index ade2327a1..edad62bc7 100644
  {
  	struct rockchip_dp_device *dp = dev_get_drvdata(dev);
  
-@@ -431,27 +649,49 @@ static int rockchip_dp_resume(struct device *dev)
+@@ -439,27 +657,49 @@ static int rockchip_dp_resume(struct device *dev)
  
  	return analogix_dp_resume(dp->adp);
  }
@@ -29815,7 +29818,7 @@ index 91568f166..031de4f6b
  	.atomic_flush = vop_crtc_atomic_flush,
  	.atomic_enable = vop_crtc_atomic_enable,
  	.atomic_disable = vop_crtc_atomic_disable,
-@@ -1526,11 +3962,33 @@ static void vop_crtc_destroy(struct drm_crtc *crtc)
+@@ -1526,14 +3962,36 @@ static void vop_crtc_destroy(struct drm_crtc *crtc)
  	drm_crtc_cleanup(crtc);
  }
  
@@ -29845,13 +29848,16 @@ index 91568f166..031de4f6b
 -	struct rockchip_crtc_state *rockchip_state;
 +	struct rockchip_crtc_state *rockchip_state, *old_state;
  
+ 	if (WARN_ON(!crtc->state))
+ 		return NULL;
+ 
 -	rockchip_state = kzalloc(sizeof(*rockchip_state), GFP_KERNEL);
 +	old_state = to_rockchip_crtc_state(crtc->state);
 +	rockchip_state = kmemdup(old_state, sizeof(*old_state), GFP_KERNEL);
  	if (!rockchip_state)
  		return NULL;
  
-@@ -1547,17 +4005,6 @@ static void vop_crtc_destroy_state(struct drm_crtc *crtc,
+@@ -1550,17 +4008,6 @@ static void vop_crtc_destroy_state(struct drm_crtc *crtc,
  	kfree(s);
  }
  
@@ -29869,7 +29875,7 @@ index 91568f166..031de4f6b
  #ifdef CONFIG_DRM_ANALOGIX_DP
  static struct drm_connector *vop_get_edp_connector(struct vop *vop)
  {
-@@ -1623,18 +4070,116 @@ vop_crtc_verify_crc_source(struct drm_crtc *crtc, const char *source_name,
+@@ -1626,18 +4073,116 @@ vop_crtc_verify_crc_source(struct drm_crtc *crtc, const char *source_name,
  }
  #endif
  
@@ -29987,7 +29993,7 @@ index 91568f166..031de4f6b
  };
  
  static void vop_fb_unref_worker(struct drm_flip_work *work, void *val)
-@@ -1642,22 +4187,23 @@ static void vop_fb_unref_worker(struct drm_flip_work *work, void *val)
+@@ -1645,22 +4190,23 @@ static void vop_fb_unref_worker(struct drm_flip_work *work, void *val)
  	struct vop *vop = container_of(work, struct vop, fb_unref_work);
  	struct drm_framebuffer *fb = val;
  
@@ -30015,7 +30021,7 @@ index 91568f166..031de4f6b
  
  	if (test_and_clear_bit(VOP_PENDING_FB_UNREF, &vop->pending))
  		drm_flip_work_commit(&vop->fb_unref_work, system_unbound_wq);
-@@ -1666,8 +4212,9 @@ static void vop_handle_vblank(struct vop *vop)
+@@ -1669,8 +4215,9 @@ static void vop_handle_vblank(struct vop *vop)
  static irqreturn_t vop_isr(int irq, void *data)
  {
  	struct vop *vop = data;
@@ -30026,7 +30032,7 @@ index 91568f166..031de4f6b
  	int ret = IRQ_NONE;
  
  	/*
-@@ -1686,14 +4233,14 @@ static irqreturn_t vop_isr(int irq, void *data)
+@@ -1689,14 +4236,14 @@ static irqreturn_t vop_isr(int irq, void *data)
  	 * interrupt register has interrupt status, enable and clear bits, we
  	 * must hold irq_lock to avoid a race with enable/disable_vblank().
  	*/
@@ -30043,7 +30049,7 @@ index 91568f166..031de4f6b
  
  	/* This is expected for vop iommu irqs, since the irq is shared */
  	if (!active_irqs)
-@@ -1711,17 +4258,41 @@ static irqreturn_t vop_isr(int irq, void *data)
+@@ -1714,17 +4261,41 @@ static irqreturn_t vop_isr(int irq, void *data)
  		ret = IRQ_HANDLED;
  	}
  
@@ -30089,7 +30095,7 @@ index 91568f166..031de4f6b
  
  out_disable:
  	vop_core_clks_disable(vop);
-@@ -1730,27 +4301,254 @@ static irqreturn_t vop_isr(int irq, void *data)
+@@ -1733,27 +4304,254 @@ static irqreturn_t vop_isr(int irq, void *data)
  	return ret;
  }
  
@@ -30351,7 +30357,7 @@ index 91568f166..031de4f6b
  	int i;
  
  	/*
-@@ -1758,29 +4556,19 @@ static int vop_create_crtc(struct vop *vop)
+@@ -1761,29 +4559,19 @@ static int vop_create_crtc(struct vop *vop)
  	 * to pass them to drm_crtc_init_with_planes, which sets the
  	 * "possible_crtcs" to the newly initialized crtc.
  	 */
@@ -30388,7 +30394,7 @@ index 91568f166..031de4f6b
  		if (plane->type == DRM_PLANE_TYPE_PRIMARY)
  			primary = plane;
  		else if (plane->type == DRM_PLANE_TYPE_CURSOR)
-@@ -1793,37 +4581,23 @@ static int vop_create_crtc(struct vop *vop)
+@@ -1796,37 +4584,23 @@ static int vop_create_crtc(struct vop *vop)
  		goto err_cleanup_planes;
  
  	drm_crtc_helper_add(crtc, &vop_crtc_helper_funcs);
@@ -30432,7 +30438,7 @@ index 91568f166..031de4f6b
  	}
  
  	port = of_get_child_by_name(dev->of_node, "port");
-@@ -1840,15 +4614,65 @@ static int vop_create_crtc(struct vop *vop)
+@@ -1843,15 +4617,65 @@ static int vop_create_crtc(struct vop *vop)
  	init_completion(&vop->dsp_hold_completion);
  	init_completion(&vop->line_flag_completion);
  	crtc->port = port;
@@ -30501,7 +30507,7 @@ index 91568f166..031de4f6b
  err_cleanup_crtc:
  	drm_crtc_cleanup(crtc);
  err_cleanup_planes:
-@@ -1860,7 +4684,7 @@ static int vop_create_crtc(struct vop *vop)
+@@ -1863,7 +4687,7 @@ static int vop_create_crtc(struct vop *vop)
  
  static void vop_destroy_crtc(struct vop *vop)
  {
@@ -30510,7 +30516,7 @@ index 91568f166..031de4f6b
  	struct drm_device *drm_dev = vop->drm_dev;
  	struct drm_plane *plane, *tmp;
  
-@@ -1888,187 +4712,130 @@ static void vop_destroy_crtc(struct vop *vop)
+@@ -1891,187 +4715,130 @@ static void vop_destroy_crtc(struct vop *vop)
  	drm_flip_work_cleanup(&vop->fb_unref_work);
  }
  
@@ -30795,7 +30801,7 @@ index 91568f166..031de4f6b
  
  static int vop_bind(struct device *dev, struct device *master, void *data)
  {
-@@ -2077,46 +4844,97 @@ static int vop_bind(struct device *dev, struct device *master, void *data)
+@@ -2080,46 +4847,97 @@ static int vop_bind(struct device *dev, struct device *master, void *data)
  	struct drm_device *drm_dev = data;
  	struct vop *vop;
  	struct resource *res;
@@ -30906,7 +30912,7 @@ index 91568f166..031de4f6b
  	irq = platform_get_irq(pdev, 0);
  	if (irq < 0) {
  		DRM_DEV_ERROR(dev, "cannot find irq for vop\n");
-@@ -2128,53 +4946,51 @@ static int vop_bind(struct device *dev, struct device *master, void *data)
+@@ -2131,53 +4949,51 @@ static int vop_bind(struct device *dev, struct device *master, void *data)
  	spin_lock_init(&vop->irq_lock);
  	mutex_init(&vop->vop_lock);
  
@@ -40372,7 +40378,7 @@ diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
 index dc062e8c2..122f81a09 100644
 --- a/drivers/irqchip/Kconfig
 +++ b/drivers/irqchip/Kconfig
-@@ -416,8 +416,9 @@ config IRQ_UNIPHIER_AIDET
+@@ -417,8 +417,9 @@ config IRQ_UNIPHIER_AIDET
  	  Support for the UniPhier AIDET (ARM Interrupt Detector).
  
  config MESON_IRQ_GPIO
@@ -42476,7 +42482,7 @@ diff --git a/drivers/mmc/core/block.c b/drivers/mmc/core/block.c
 index 99b981a05..ea72d4a42 100644
 --- a/drivers/mmc/core/block.c
 +++ b/drivers/mmc/core/block.c
-@@ -2893,6 +2893,9 @@ static void mmc_blk_remove_debugfs(struct mmc_card *card,
+@@ -2892,6 +2892,9 @@ static void mmc_blk_remove_debugfs(struct mmc_card *card,
  
  #endif /* CONFIG_DEBUG_FS */
  
@@ -57014,7 +57020,7 @@ diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
 index 06c0b15fe..564f928eb 100644
 --- a/drivers/regulator/of_regulator.c
 +++ b/drivers/regulator/of_regulator.c
-@@ -413,8 +413,12 @@ device_node *regulator_of_get_init_node(struct device *dev,
+@@ -417,8 +417,12 @@ device_node *regulator_of_get_init_node(struct device *dev,
  
  	for_each_available_child_of_node(search, child) {
  		name = of_get_property(child, "regulator-compatible", NULL);
@@ -58327,7 +58333,7 @@ index 494cf2b5b..a252b07a6 100644
  	},
  	{ /* sentinel */ },
  };
-@@ -173,3 +235,6 @@ static int __init rockchip_grf_init(void)
+@@ -175,3 +237,6 @@ static int __init rockchip_grf_init(void)
  	return 0;
  }
  postcore_initcall(rockchip_grf_init);
@@ -61180,7 +61186,7 @@ index 34aa2714f..71ace116f 100644
  };
  
  struct old_serial_port {
-@@ -136,6 +139,9 @@ static inline bool serial8250_set_THRI(struct uart_8250_port *up)
+@@ -158,6 +161,9 @@ static inline bool serial8250_set_THRI(struct uart_8250_port *up)
  	if (up->ier & UART_IER_THRI)
  		return false;
  	up->ier |= UART_IER_THRI;
@@ -61190,7 +61196,7 @@ index 34aa2714f..71ace116f 100644
  	serial_out(up, UART_IER, up->ier);
  	return true;
  }
-@@ -305,6 +311,9 @@ static inline int is_omap1510_8250(struct uart_8250_port *pt)
+@@ -327,6 +333,9 @@ static inline int is_omap1510_8250(struct uart_8250_port *pt)
  #ifdef CONFIG_SERIAL_8250_DMA
  extern int serial8250_tx_dma(struct uart_8250_port *);
  extern int serial8250_rx_dma(struct uart_8250_port *);
@@ -61200,7 +61206,7 @@ index 34aa2714f..71ace116f 100644
  extern void serial8250_rx_dma_flush(struct uart_8250_port *);
  extern int serial8250_request_dma(struct uart_8250_port *);
  extern void serial8250_release_dma(struct uart_8250_port *);
-@@ -317,6 +326,12 @@ static inline int serial8250_rx_dma(struct uart_8250_port *p)
+@@ -339,6 +348,12 @@ static inline int serial8250_rx_dma(struct uart_8250_port *p)
  {
  	return -1;
  }
@@ -61217,7 +61223,7 @@ diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_
 index cae61d1eb..fc81bbc76 100644
 --- a/drivers/tty/serial/8250/8250_core.c
 +++ b/drivers/tty/serial/8250/8250_core.c
-@@ -558,6 +558,7 @@ static void __init serial8250_isa_init_ports(void)
+@@ -559,6 +559,7 @@ static void __init serial8250_isa_init_ports(void)
  static void __init
  serial8250_register_ports(struct uart_driver *drv, struct device *dev)
  {
@@ -61225,7 +61231,7 @@ index cae61d1eb..fc81bbc76 100644
  	int i;
  
  	for (i = 0; i < nr_uarts; i++) {
-@@ -574,6 +575,7 @@ serial8250_register_ports(struct uart_driver *drv, struct device *dev)
+@@ -578,6 +579,7 @@ serial8250_register_ports(struct uart_driver *drv, struct device *dev)
  		serial8250_apply_quirks(up);
  		uart_add_one_port(drv, &up->port);
  	}
@@ -61233,7 +61239,7 @@ index cae61d1eb..fc81bbc76 100644
  }
  
  #ifdef CONFIG_SERIAL_8250_CONSOLE
-@@ -1019,7 +1021,9 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
+@@ -1023,7 +1025,9 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
  		uart->rs485_start_tx	= up->rs485_start_tx;
  		uart->rs485_stop_tx	= up->rs485_stop_tx;
  		uart->dma		= up->dma;
@@ -61244,7 +61250,7 @@ index cae61d1eb..fc81bbc76 100644
  		/* Take tx_loadsz from fifosize if it wasn't set separately */
  		if (uart->port.fifosize && !uart->tx_loadsz)
  			uart->tx_loadsz = uart->port.fifosize;
-@@ -1243,7 +1247,11 @@ static void __exit serial8250_exit(void)
+@@ -1247,7 +1251,11 @@ static void __exit serial8250_exit(void)
  #endif
  }
  
@@ -61570,7 +61576,7 @@ index 49559731b..f6010822f 100644
  	unsigned int		skip_autocfg:1;
  	unsigned int		uart_16550_compatible:1;
  };
-@@ -235,10 +241,9 @@ static unsigned int dw8250_serial_in32be(struct uart_port *p, int offset)
+@@ -238,10 +244,9 @@ static unsigned int dw8250_serial_in32be(struct uart_port *p, int offset)
  
  static int dw8250_handle_irq(struct uart_port *p)
  {
@@ -61582,7 +61588,7 @@ index 49559731b..f6010822f 100644
  	unsigned long flags;
  
  	/*
-@@ -247,15 +252,13 @@ static int dw8250_handle_irq(struct uart_port *p)
+@@ -250,15 +255,13 @@ static int dw8250_handle_irq(struct uart_port *p)
  	 * data available.  If we see such a case then we'll do a bogus
  	 * read.  If we don't do this then the "RX TIMEOUT" interrupt will
  	 * fire forever.
@@ -61602,7 +61608,7 @@ index 49559731b..f6010822f 100644
  			(void) p->serial_in(p, UART_RX);
  
  		spin_unlock_irqrestore(&p->lock, flags);
-@@ -329,12 +332,49 @@ dw8250_do_pm(struct uart_port *port, unsigned int state, unsigned int old)
+@@ -332,12 +335,49 @@ dw8250_do_pm(struct uart_port *port, unsigned int state, unsigned int old)
  static void dw8250_set_termios(struct uart_port *p, struct ktermios *termios,
  			       struct ktermios *old)
  {
@@ -61652,7 +61658,7 @@ index 49559731b..f6010822f 100644
  	rate = clk_round_rate(d->clk, newrate);
  	if (rate > 0) {
  		/*
-@@ -348,6 +388,7 @@ static void dw8250_set_termios(struct uart_port *p, struct ktermios *termios,
+@@ -351,6 +391,7 @@ static void dw8250_set_termios(struct uart_port *p, struct ktermios *termios,
  		if (ret)
  			swap(p->uartclk, rate);
  	}
@@ -61660,7 +61666,7 @@ index 49559731b..f6010822f 100644
  	clk_prepare_enable(d->clk);
  
  	p->status &= ~UPSTAT_AUTOCTS;
-@@ -480,6 +521,9 @@ static int dw8250_probe(struct platform_device *pdev)
+@@ -483,6 +524,9 @@ static int dw8250_probe(struct platform_device *pdev)
  	data->data.dma.fn = dw8250_fallback_dma_filter;
  	data->usr_reg = DW_UART_USR;
  	p->private_data = &data->data;
@@ -61670,7 +61676,7 @@ index 49559731b..f6010822f 100644
  
  	data->uart_16550_compatible = device_property_read_bool(dev,
  						"snps,uart-16550-compatible");
-@@ -519,6 +563,13 @@ static int dw8250_probe(struct platform_device *pdev)
+@@ -522,6 +566,13 @@ static int dw8250_probe(struct platform_device *pdev)
  		data->msr_mask_off |= UART_MSR_TERI;
  	}
  
@@ -61684,7 +61690,7 @@ index 49559731b..f6010822f 100644
  	/* Always ask for fixed clock rate from a property. */
  	device_property_read_u32(dev, "clock-frequency", &p->uartclk);
  
-@@ -599,7 +650,10 @@ static int dw8250_probe(struct platform_device *pdev)
+@@ -602,7 +653,10 @@ static int dw8250_probe(struct platform_device *pdev)
  		else
  			queue_work(system_unbound_wq, &data->clk_work);
  	}
@@ -61696,7 +61702,7 @@ index 49559731b..f6010822f 100644
  	platform_set_drvdata(pdev, data);
  
  	pm_runtime_set_active(dev);
-@@ -642,6 +696,10 @@ static int dw8250_remove(struct platform_device *pdev)
+@@ -645,6 +699,10 @@ static int dw8250_remove(struct platform_device *pdev)
  
  	pm_runtime_disable(dev);
  	pm_runtime_put_noidle(dev);
@@ -61707,7 +61713,7 @@ index 49559731b..f6010822f 100644
  
  	return 0;
  }
-@@ -652,6 +710,13 @@ static int dw8250_suspend(struct device *dev)
+@@ -655,6 +713,13 @@ static int dw8250_suspend(struct device *dev)
  	struct dw8250_data *data = dev_get_drvdata(dev);
  
  	serial8250_suspend_port(data->data.line);
@@ -61721,7 +61727,7 @@ index 49559731b..f6010822f 100644
  
  	return 0;
  }
-@@ -661,6 +726,15 @@ static int dw8250_resume(struct device *dev)
+@@ -664,6 +729,15 @@ static int dw8250_resume(struct device *dev)
  	struct dw8250_data *data = dev_get_drvdata(dev);
  
  	serial8250_resume_port(data->data.line);
@@ -61771,7 +61777,7 @@ diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_
 index e0fa24f0f..c2c84a424 100644
 --- a/drivers/tty/serial/8250/8250_port.c
 +++ b/drivers/tty/serial/8250/8250_port.c
-@@ -1567,8 +1567,13 @@ static inline void __start_tx(struct uart_port *port)
+@@ -1548,8 +1548,13 @@ static inline void __start_tx(struct uart_port *port)
  {
  	struct uart_8250_port *up = up_to_u8250p(port);
  
@@ -61785,7 +61791,7 @@ index e0fa24f0f..c2c84a424 100644
  
  	if (serial8250_set_THRI(up)) {
  		if (up->bugs & UART_BUG_TXEN) {
-@@ -1898,6 +1903,12 @@ EXPORT_SYMBOL_GPL(serial8250_modem_status);
+@@ -1879,6 +1884,12 @@ EXPORT_SYMBOL_GPL(serial8250_modem_status);
  
  static bool handle_rx_dma(struct uart_8250_port *up, unsigned int iir)
  {
@@ -61798,7 +61804,7 @@ index e0fa24f0f..c2c84a424 100644
  	switch (iir & 0x3f) {
  	case UART_IIR_RX_TIMEOUT:
  		serial8250_rx_dma_flush(up);
-@@ -1906,6 +1917,7 @@ static bool handle_rx_dma(struct uart_8250_port *up, unsigned int iir)
+@@ -1887,6 +1898,7 @@ static bool handle_rx_dma(struct uart_8250_port *up, unsigned int iir)
  		return true;
  	}
  	return up->dma->rx_dma(up);
@@ -61806,7 +61812,7 @@ index e0fa24f0f..c2c84a424 100644
  }
  
  /*
-@@ -1916,7 +1928,9 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
+@@ -1897,7 +1909,9 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
  	unsigned char status;
  	unsigned long flags;
  	struct uart_8250_port *up = up_to_u8250p(port);
@@ -61816,7 +61822,7 @@ index e0fa24f0f..c2c84a424 100644
  
  	if (iir & UART_IIR_NO_INT)
  		return 0;
-@@ -1925,6 +1939,17 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
+@@ -1906,6 +1920,17 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
  
  	status = serial_port_in(port, UART_LSR);
  
@@ -61834,7 +61840,7 @@ index e0fa24f0f..c2c84a424 100644
  	/*
  	 * If port is stopped and there are no error conditions in the
  	 * FIFO, then don't drain the FIFO, as this may lead to TTY buffer
-@@ -1942,11 +1967,34 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
+@@ -1923,11 +1948,34 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
  		if (!up->dma || handle_rx_dma(up, iir))
  			status = serial8250_rx_chars(up, status);
  	}
@@ -61871,7 +61877,7 @@ index e0fa24f0f..c2c84a424 100644
  	uart_unlock_and_check_sysrq(port, flags);
  	return 1;
  }
-@@ -2415,7 +2463,11 @@ int serial8250_do_startup(struct uart_port *port)
+@@ -2396,7 +2444,11 @@ int serial8250_do_startup(struct uart_port *port)
  		if (uart_console(port))
  			msg = "forbid DMA for kernel console";
  		else if (serial8250_request_dma(up))
@@ -61883,7 +61889,7 @@ index e0fa24f0f..c2c84a424 100644
  		if (msg) {
  			dev_warn_ratelimited(port->dev, "%s\n", msg);
  			up->dma = NULL;
-@@ -2609,6 +2661,10 @@ void serial8250_do_set_divisor(struct uart_port *port, unsigned int baud,
+@@ -2590,6 +2642,10 @@ void serial8250_do_set_divisor(struct uart_port *port, unsigned int baud,
  {
  	struct uart_8250_port *up = up_to_u8250p(port);
  
@@ -61894,7 +61900,7 @@ index e0fa24f0f..c2c84a424 100644
  	/* Workaround to enable 115200 baud on OMAP1510 internal ports */
  	if (is_omap1510_8250(up)) {
  		if (baud == 115200) {
-@@ -2628,6 +2684,17 @@ void serial8250_do_set_divisor(struct uart_port *port, unsigned int baud,
+@@ -2609,6 +2665,17 @@ void serial8250_do_set_divisor(struct uart_port *port, unsigned int baud,
  		serial_port_out(port, UART_LCR, up->lcr | UART_LCR_DLAB);
  
  	serial_dl_write(up, quot);
@@ -61912,7 +61918,7 @@ index e0fa24f0f..c2c84a424 100644
  }
  EXPORT_SYMBOL_GPL(serial8250_do_set_divisor);
  
-@@ -2807,6 +2874,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2788,6 +2855,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  	if ((termios->c_cflag & CREAD) == 0)
  		port->ignore_status_mask |= UART_LSR_DR;
  
@@ -61920,7 +61926,7 @@ index e0fa24f0f..c2c84a424 100644
  	/*
  	 * CTS flow control flag and modem status interrupts
  	 */
-@@ -2820,6 +2888,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2801,6 +2869,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  		up->ier |= UART_IER_RTOIE;
  
  	serial_port_out(port, UART_IER, up->ier);
@@ -61928,7 +61934,7 @@ index e0fa24f0f..c2c84a424 100644
  
  	if (up->capabilities & UART_CAP_EFR) {
  		unsigned char efr = 0;
-@@ -2838,16 +2907,25 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2819,16 +2888,25 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  			serial_port_out(port, UART_EFR, efr);
  	}
  
@@ -61956,7 +61962,7 @@ index e0fa24f0f..c2c84a424 100644
  	if (port->type != PORT_16750) {
  		/* emulated UARTs (Lucent Venus 167x) need two steps */
  		if (up->fcr & UART_FCR_ENABLE_FIFO)
-@@ -2855,6 +2933,23 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
+@@ -2836,6 +2914,23 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
  		serial_port_out(port, UART_FCR, up->fcr);	/* set fcr */
  	}
  	serial8250_set_mctrl(port, port->mctrl);
