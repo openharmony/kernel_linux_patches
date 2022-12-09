@@ -74,26 +74,15 @@ index 2c5f7e905..51821334f 100644
  		cable->pause &= ~stream;
  		err = cable->ops->start(dpcm);
  		spin_unlock(&cable->lock);
-@@ -608,15 +627,16 @@ static unsigned int loopback_jiffies_timer_pos_update
+@@ -608,6 +627,7 @@ static unsigned int loopback_jiffies_timer_pos_update
  			cable->streams[SNDRV_PCM_STREAM_CAPTURE];
- 	unsigned long delta_play = 0, delta_capt = 0;
+ 	unsigned long delta_play = 0, delta_capt = 0, cur_jiffies;
  	unsigned int running, count1, count2;
 +	unsigned long cur_jiffies = cycles_to_jiffies();
  
+ 	cur_jiffies = jiffies;
  	running = cable->running ^ cable->pause;
- 	if (running & (1 << SNDRV_PCM_STREAM_PLAYBACK)) {
--		delta_play = jiffies - dpcm_play->last_jiffies;
-+		delta_play = cur_jiffies - dpcm_play->last_jiffies;
- 		dpcm_play->last_jiffies += delta_play;
- 	}
- 
- 	if (running & (1 << SNDRV_PCM_STREAM_CAPTURE)) {
--		delta_capt = jiffies - dpcm_capt->last_jiffies;
-+		delta_capt = cur_jiffies - dpcm_capt->last_jiffies;
- 		dpcm_capt->last_jiffies += delta_capt;
- 	}
- 
-@@ -842,7 +862,7 @@ static void loopback_jiffies_timer_dpcm_info(struct loopback_pcm *dpcm,
+@@ -843,7 +863,7 @@ static void loopback_jiffies_timer_dpcm_info(struct loopback_pcm *dpcm,
  	snd_iprintf(buffer, "    irq_pos:\t\t%u\n", dpcm->irq_pos);
  	snd_iprintf(buffer, "    period_frac:\t%u\n", dpcm->period_size_frac);
  	snd_iprintf(buffer, "    last_jiffies:\t%lu (%lu)\n",
@@ -281,8 +270,6 @@ index 65e814d46..83be7d21e 100644
  obj-$(CONFIG_SND_SOC_ROCKCHIP_SPDIF) += snd-soc-rockchip-spdif.o
  
 diff --git a/sound/soc/rockchip/rockchip_i2s.c b/sound/soc/rockchip/rockchip_i2s.c
-old mode 100644
-new mode 100755
 index 785baf98f..165d027b4
 --- a/sound/soc/rockchip/rockchip_i2s.c
 +++ b/sound/soc/rockchip/rockchip_i2s.c
