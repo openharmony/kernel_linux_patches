@@ -12341,13 +12341,13 @@ index c0a7f0d90..a5ca33ad8 100644
  
  static void __init zone_sizes_init(unsigned long min, unsigned long max)
 diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 826b2b19d..96840663d 100644
+index abf8938eb..2e65f9182 100644
 --- a/drivers/Kconfig
 +++ b/drivers/Kconfig
-@@ -242,4 +242,11 @@ source "drivers/accesstokenid/Kconfig"
-
- source "drivers/hooks/Kconfig"
-
+@@ -244,4 +244,11 @@ source "drivers/hooks/Kconfig"
+ 
+ source "drivers/hck/Kconfig"
+ 
 +source "drivers/hidmac/Kconfig"
 +
 +source "drivers/hiedmac/Kconfig"
@@ -12357,13 +12357,13 @@ index 826b2b19d..96840663d 100644
 +source "drivers/hi_vdmav100/Kconfig"
  endmenu
 diff --git a/drivers/Makefile b/drivers/Makefile
-index f13d70df6557..22c0f9f57eda 100644
+index d9e92b5e3..e9e62665f 100644
 --- a/drivers/Makefile
 +++ b/drivers/Makefile
-@@ -194,3 +194,7 @@ obj-$(CONFIG_COUNTER)		+= counter/
- obj-$(CONFIG_MOST)		+= most/
+@@ -195,3 +195,7 @@ obj-$(CONFIG_MOST)		+= most/
  obj-$(CONFIG_ACCESS_TOKENID)	+= accesstokenid/
  obj-$(CONFIG_VENDOR_HOOKS)	+= hooks/
+ obj-$(CONFIG_HCK_VENDOR_HOOKS)	+= hck/
 +obj-$(CONFIG_HI_DMAC)          += hidmac/
 +obj-$(CONFIG_HIEDMAC)          += hiedmac/
 +obj-$(CONFIG_ARCH_HISI_BVT)    += hisilicon/
