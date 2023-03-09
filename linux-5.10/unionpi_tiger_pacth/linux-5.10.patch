@@ -38663,7 +38663,7 @@ diff -Naur a/vendor/amlogic/input/keyboard/Kconfig b/vendor/amlogic/input/keyboa
 diff -Naur a/vendor/amlogic/input/keyboard/Makefile b/vendor/amlogic/input/keyboard/Makefile
 --- a/vendor/amlogic/input/keyboard/Makefile	1970-01-01 08:00:00.000000000 +0800
 +++ b/vendor/amlogic/input/keyboard/Makefile	2022-06-30 16:25:40.030803814 +0800
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,24 @@
 +#
 +# Makefile for the keyboard device drivers.
 +# Support OpenHammony HDF Input
@@ -38678,6 +38678,10 @@ diff -Naur a/vendor/amlogic/input/keyboard/Makefile b/vendor/amlogic/input/keybo
 +             $(HDF_ROOT_DIR)/framework/core/common/include/host \
 +             $(HDF_ROOT_DIR)/framework/include/utils \
 +             $(HDF_ROOT_DIR)/framework/include/osal \
++             $(HDF_ROOT_DIR)/inner_api/utils \
++             $(HDF_ROOT_DIR)/inner_api/osal/shared \
++             $(HDF_ROOT_DIR)/inner_api/core \
++             $(HDF_ROOT_DIR)/inner_api/host/shared \
 +             $(HDF_ROOT_DIR)/framework/ability/sbuf/include \
 +             $(HDF_ROOT_DIR)/khdf/osal/include \
 +             $(HDF_ROOT_DIR)/evdev
