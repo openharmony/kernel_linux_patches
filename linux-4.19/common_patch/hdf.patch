@@ -71,7 +71,7 @@ diff --git a/drivers/hid/Makefile b/drivers/hid/Makefile
 index bd7ac53b7..d7efd1e3d 100644
 --- a/drivers/hid/Makefile
 +++ b/drivers/hid/Makefile
-@@ -2,6 +2,15 @@
+@@ -2,6 +2,19 @@
  #
  # Makefile for the HID driver
  #
@@ -82,6 +82,10 @@ index bd7ac53b7..d7efd1e3d 100644
 +             $(HDF_ROOT_DIR)/framework/include/utils \
 +             $(HDF_ROOT_DIR)/framework/include/osal \
 +             $(HDF_ROOT_DIR)/framework/ability/sbuf/include \
++             $(HDF_ROOT_DIR)/inner_api/utils \
++             $(HDF_ROOT_DIR)/inner_api/osal/shared \
++             $(HDF_ROOT_DIR)/inner_api/host/shared \
++             $(HDF_ROOT_DIR)/inner_api/core \
 +             $(HDF_ROOT_DIR)/khdf/osal/include \
 +             -I../../../../../third_party/FreeBSD/sys/dev/evdev
  hid-y			:= hid-core.o hid-input.o hid-quirks.o
