@@ -5756,27 +5756,17 @@ index 2594408a1..26d59b48f 100644
  	unsigned int minor;
  	int ret;
  
-@@ -222,21 +312,19 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -221,10 +311,18 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+ 		return ERR_PTR(-EINVAL);
  	}
  
- 	/* check the name is unique */
--	mutex_lock(&heap_list_lock);
--	list_for_each_entry(h, &heap_list, list) {
--		if (!strcmp(h->name, exp_info->name)) {
--			mutex_unlock(&heap_list_lock);
--			pr_err("dma_heap: Already registered heap named %s\n",
--			       exp_info->name);
--			return ERR_PTR(-EINVAL);
--		}
 +	heap = dma_heap_find(exp_info->name);
 +	if (heap) {
 +		pr_err("dma_heap: Already registered heap named %s\n",
 +		       exp_info->name);
 +		dma_heap_put(heap);
 +		return ERR_PTR(-EINVAL);
- 	}
--	mutex_unlock(&heap_list_lock);
- 
++ 	}
  	heap = kzalloc(sizeof(*heap), GFP_KERNEL);
  	if (!heap)
  		return ERR_PTR(-ENOMEM);
@@ -5785,7 +5775,7 @@ index 2594408a1..26d59b48f 100644
  	heap->name = exp_info->name;
  	heap->ops = exp_info->ops;
  	heap->priv = exp_info->priv;
-@@ -261,16 +349,20 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -249,28 +347,20 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
  		goto err1;
  	}
  
@@ -5806,14 +5796,25 @@ index 2594408a1..26d59b48f 100644
 +		err_ret = ERR_CAST(heap->heap_dev);
  		goto err2;
  	}
-+
+ 
+-	mutex_lock(&heap_list_lock);
+-	/* check the name is unique */
+-	list_for_each_entry(h, &heap_list, list) {
+-		if (!strcmp(h->name, exp_info->name)) {
+-			mutex_unlock(&heap_list_lock);
+-			pr_err("dma_heap: Already registered heap named %s\n",
+-			       exp_info->name);
+-			err_ret = ERR_PTR(-EINVAL);
+-			goto err3;
+-		}
+-	}
 +	/* Make sure it doesn't disappear on us */
 +	heap->heap_dev = get_device(heap->heap_dev);
 +
+ 
  	/* Add heap to the list */
- 	mutex_lock(&heap_list_lock);
  	list_add(&heap->list, &heap_list);
-@@ -286,27 +378,88 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
+@@ -288,27 +378,88 @@ struct dma_heap *dma_heap_add(const struct dma_heap_export_info *exp_info)
  	kfree(heap);
  	return err_ret;
  }
@@ -5905,6 +5906,7 @@ index 2594408a1..26d59b48f 100644
 +	return ret;
  }
  subsys_initcall(dma_heap_init);
+
 diff --git a/drivers/dma-buf/heaps/Kconfig b/drivers/dma-buf/heaps/Kconfig
 index a5eef06c4..ff52efa83 100644
 --- a/drivers/dma-buf/heaps/Kconfig
@@ -7198,8 +7200,8 @@ index ca868271f..f7954773a 100644
  	select SYNC_FILE
  # gallium uses SYS_kcmp for os_same_file_description() to de-duplicate
 @@ -31,10 +31,30 @@ config DRM_MIPI_DBI
- 	tristate
  	depends on DRM
+ 	select DRM_KMS_HELPER
  
 +config DRM_EDID
 +	bool "EDID function for DRM"
@@ -13269,18 +13271,15 @@ index b10228b9e..28a3bc53f 100644
  	struct dw_hdmi *hdmi = dev_id;
 -	u8 intr_stat, phy_int_pol, phy_pol_mask, phy_stat;
 +	u8 intr_stat, phy_int_pol, phy_pol_mask, phy_stat, hdcp_stat;
+ 	enum drm_connector_status status = connector_status_unknown;
  
  	intr_stat = hdmi_readb(hdmi, HDMI_IH_PHY_STAT0);
- 	phy_int_pol = hdmi_readb(hdmi, HDMI_PHY_POL0);
-@@ -3024,25 +3854,21 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
- 		}
+@@ -3030,22 +3860,21 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
+ 		if (!(phy_stat & (HDMI_PHY_HPD | HDMI_PHY_RX_SENSE)))
+ 			status = connector_status_disconnected;
  	}
- 
--	if (intr_stat & HDMI_IH_PHY_STAT0_HPD) {
--		enum drm_connector_status status = phy_int_pol & HDMI_PHY_HPD
--						 ? connector_status_connected
--						 : connector_status_disconnected;
 -
+-	if (status != connector_status_unknown) {
 -		dev_dbg(hdmi->dev, "EVENT=%s\n",
 -			status == connector_status_connected ?
 -			"plugin" : "plugout");
@@ -13311,7 +13310,7 @@ index b10228b9e..28a3bc53f 100644
  	return IRQ_HANDLED;
  }
  
-@@ -3176,12 +4002,363 @@ static void dw_hdmi_init_hw(struct dw_hdmi *hdmi)
+@@ -3179,12 +4008,363 @@ static void dw_hdmi_init_hw(struct dw_hdmi *hdmi)
  	 * Even if we are using a separate i2c adapter doing this doesn't
  	 * hurt.
  	 */
@@ -13676,7 +13675,7 @@ index b10228b9e..28a3bc53f 100644
  /* -----------------------------------------------------------------------------
   * Probe/remove API, used from platforms based on the DRM bridge API.
   */
-@@ -3190,6 +4367,7 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3193,6 +4373,7 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  {
  	struct device *dev = &pdev->dev;
  	struct device_node *np = dev->of_node;
@@ -13684,7 +13683,7 @@ index b10228b9e..28a3bc53f 100644
  	struct platform_device_info pdevinfo;
  	struct device_node *ddc_node;
  	struct dw_hdmi_cec_data cec;
-@@ -3202,11 +4380,13 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3205,11 +4386,13 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  	u8 prod_id1;
  	u8 config0;
  	u8 config3;
@@ -13698,7 +13697,7 @@ index b10228b9e..28a3bc53f 100644
  	hdmi->plat_data = plat_data;
  	hdmi->dev = dev;
  	hdmi->sample_rate = 48000;
-@@ -3337,7 +4517,24 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3340,7 +4523,24 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  		 prod_id1 & HDMI_PRODUCT_ID1_HDCP ? "with" : "without",
  		 hdmi->phy.name);
  
@@ -13724,7 +13723,7 @@ index b10228b9e..28a3bc53f 100644
  
  	irq = platform_get_irq(pdev, 0);
  	if (irq < 0) {
-@@ -3345,6 +4542,7 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3348,6 +4548,7 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  		goto err_iahb;
  	}
  
@@ -13732,7 +13731,7 @@ index b10228b9e..28a3bc53f 100644
  	ret = devm_request_threaded_irq(dev, irq, dw_hdmi_hardirq,
  					dw_hdmi_irq, IRQF_SHARED,
  					dev_name(dev), hdmi);
-@@ -3380,8 +4578,20 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3383,8 +4584,20 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  		hdmi->ddc = dw_hdmi_i2c_adapter(hdmi);
  		if (IS_ERR(hdmi->ddc))
  			hdmi->ddc = NULL;
@@ -13753,7 +13752,7 @@ index b10228b9e..28a3bc53f 100644
  	hdmi->bridge.driver_private = hdmi;
  	hdmi->bridge.funcs = &dw_hdmi_bridge_funcs;
  	hdmi->bridge.ops = DRM_BRIDGE_OP_DETECT | DRM_BRIDGE_OP_EDID
-@@ -3390,6 +4600,30 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3393,6 +4606,30 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  	hdmi->bridge.of_node = pdev->dev.of_node;
  #endif
  
@@ -13784,7 +13783,7 @@ index b10228b9e..28a3bc53f 100644
  	memset(&pdevinfo, 0, sizeof(pdevinfo));
  	pdevinfo.parent = dev;
  	pdevinfo.id = PLATFORM_DEVID_AUTO;
-@@ -3443,8 +4677,40 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3446,8 +4683,40 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  		hdmi->cec = platform_device_register_full(&pdevinfo);
  	}
  
@@ -13825,7 +13824,7 @@ index b10228b9e..28a3bc53f 100644
  	return hdmi;
  
  err_iahb:
-@@ -3454,7 +4720,10 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -3457,7 +4726,10 @@ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
  err_isfr:
  	clk_disable_unprepare(hdmi->isfr_clk);
  err_res:
@@ -13837,7 +13836,7 @@ index b10228b9e..28a3bc53f 100644
  
  	return ERR_PTR(ret);
  }
-@@ -3462,16 +4731,35 @@ EXPORT_SYMBOL_GPL(dw_hdmi_probe);
+@@ -3465,16 +4737,35 @@ EXPORT_SYMBOL_GPL(dw_hdmi_probe);
  
  void dw_hdmi_remove(struct dw_hdmi *hdmi)
  {
@@ -13873,7 +13872,7 @@ index b10228b9e..28a3bc53f 100644
  	clk_disable_unprepare(hdmi->iahb_clk);
  	clk_disable_unprepare(hdmi->isfr_clk);
  	if (hdmi->cec_clk)
-@@ -3489,7 +4777,7 @@ EXPORT_SYMBOL_GPL(dw_hdmi_remove);
+@@ -3492,7 +4783,7 @@ EXPORT_SYMBOL_GPL(dw_hdmi_remove);
   */
  struct dw_hdmi *dw_hdmi_bind(struct platform_device *pdev,
  			     struct drm_encoder *encoder,
@@ -13882,7 +13881,7 @@ index b10228b9e..28a3bc53f 100644
  {
  	struct dw_hdmi *hdmi;
  	int ret;
-@@ -3505,6 +4793,9 @@ struct dw_hdmi *dw_hdmi_bind(struct platform_device *pdev,
+@@ -3508,6 +4799,9 @@ struct dw_hdmi *dw_hdmi_bind(struct platform_device *pdev,
  		return ERR_PTR(ret);
  	}
  
@@ -13892,7 +13891,7 @@ index b10228b9e..28a3bc53f 100644
  	return hdmi;
  }
  EXPORT_SYMBOL_GPL(dw_hdmi_bind);
-@@ -3515,9 +4806,87 @@ void dw_hdmi_unbind(struct dw_hdmi *hdmi)
+@@ -3518,9 +4812,87 @@ void dw_hdmi_unbind(struct dw_hdmi *hdmi)
  }
  EXPORT_SYMBOL_GPL(dw_hdmi_unbind);
  
@@ -18615,8 +18614,8 @@ index d0c9610ad..96e130da4 100644
  		.of_match_table = dw_mipi_dsi_rockchip_dt_ids,
 +		.pm = &dw_mipi_dsi_rockchip_pm_ops,
  		.name	= "dw-mipi-dsi-rockchip",
- 	},
- };
+ 		/*
+ 		 * For dual-DSI display, one DSI pokes at the other DSI's
 diff --git a/drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c b/drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c
 index 23de359a1..4da342c9f 100644
 --- a/drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c
@@ -55941,7 +55940,7 @@ index 007ce4af4..148a62ccd 100644
  static int _regulator_is_enabled(struct regulator_dev *rdev);
  static int _regulator_disable(struct regulator *regulator);
  static int _regulator_get_current_limit(struct regulator_dev *rdev);
-@@ -4939,11 +4945,265 @@ static void regulator_dev_release(struct device *dev)
+@@ -4940,11 +4946,265 @@ static void regulator_dev_release(struct device *dev)
  	kfree(rdev);
  }
  
@@ -56207,7 +56206,7 @@ index 007ce4af4..148a62ccd 100644
  
  	/* Avoid duplicate debugfs directory names */
  	if (parent && rname == rdev->desc->name) {
-@@ -4964,8 +5224,88 @@ static void rdev_init_debugfs(struct regulator_dev *rdev)
+@@ -4965,8 +5225,88 @@ static void rdev_init_debugfs(struct regulator_dev *rdev)
  			   &rdev->open_count);
  	debugfs_create_u32("bypass_count", 0444, rdev->debugfs,
  			   &rdev->bypass_count);
@@ -56296,16 +56295,15 @@ index 007ce4af4..148a62ccd 100644
  static int regulator_register_resolve_supply(struct device *dev, void *data)
  {
  	struct regulator_dev *rdev = dev_to_rdev(dev);
-@@ -5440,7 +5780,7 @@ void regulator_unregister(struct regulator_dev *rdev)
+@@ -5445,6 +5785,7 @@ void regulator_unregister(struct regulator_dev *rdev)
  
  	mutex_lock(&regulator_list_mutex);
  
--	debugfs_remove_recursive(rdev->debugfs);
 +	rdev_deinit_debugfs(rdev);
  	WARN_ON(rdev->open_count);
  	regulator_remove_coupling(rdev);
  	unset_regulator_supplies(rdev);
-@@ -5871,7 +6211,11 @@ static int __init regulator_init(void)
+@@ -5875,7 +6216,11 @@ static int __init regulator_init(void)
  }
  
  /* init early to allow our consumers to complete system booting */

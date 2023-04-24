@@ -261,16 +261,6 @@ index d3b9b73cd..7d9c06b0a 100644
  	if (!new) {
  		ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
  		return ERR_PTR(-ENOMEM);
-@@ -2001,8 +2001,7 @@ static long do_semtimedop(int semid, struct sembuf __user *tsops,
- 	if (nsops > ns->sc_semopm)
- 		return -E2BIG;
- 	if (nsops > SEMOPM_FAST) {
--		sops = kvmalloc_array(nsops, sizeof(*sops),
--				      GFP_KERNEL_ACCOUNT);
-+		sops = kvmalloc_array(nsops, sizeof(*sops), GFP_KERNEL);
- 		if (sops == NULL)
- 			return -ENOMEM;
- 	}
 diff --git a/ipc/shm.c b/ipc/shm.c
 index b418731d6..471ac3e74 100644
 --- a/ipc/shm.c
@@ -358,7 +348,7 @@ new file mode 100755
 index 000000000..8f4a4e4d7
 --- /dev/null
 +++ b/make-ohos.sh
-@@ -0,0 +1,138 @@
+@@ -0,0 +1,139 @@
 +#!/bin/bash
 +
 +set -e
@@ -368,6 +358,7 @@ index 000000000..8f4a4e4d7
 +export PRODUCT_PATH=vendor/isoftstone/yangfan
 +export KERNEL_SOURCE_PATH=${real_path%out*}${PRODUCT_PATH}/kernel_core
 +export PATH=${real_path%out*}prebuilts/clang/ohos/linux-x86_64/llvm/bin/:$PATH
++export KBUILD_OUTPUT=${real_path%out*}/out/kernel/OBJ/linux-5.10
 +IMAGE_SIZE=64  # 64M
 +IMAGE_BLOCKS=4096
 +
@@ -748,16 +739,16 @@ diff --git a/security/Kconfig.hardening b/security/Kconfig.hardening
 index 269967c4f..9eb73dc1b 100644
 --- a/security/Kconfig.hardening
 +++ b/security/Kconfig.hardening
-@@ -29,7 +29,7 @@ choice
- 	prompt "Initialize kernel stack variables at function entry"
+@@ -39,7 +39,7 @@ choice
  	default GCC_PLUGIN_STRUCTLEAK_BYREF_ALL if COMPILE_TEST && GCC_PLUGINS
  	default INIT_STACK_ALL_PATTERN if COMPILE_TEST && CC_HAS_AUTO_VAR_INIT_PATTERN
+ 	default INIT_STACK_ALL_ZERO if CC_HAS_AUTO_VAR_INIT_ZERO
 -	default INIT_STACK_NONE
 +	default INIT_STACK_ALL_ZERO
  	help
  	  This option enables initialization of stack variables at
  	  function entry time. This has the possibility to have the
-@@ -190,6 +190,7 @@ config STACKLEAK_RUNTIME_DISABLE
+@@ -211,6 +211,7 @@ config STACKLEAK_RUNTIME_DISABLE
  
  config INIT_ON_ALLOC_DEFAULT_ON
  	bool "Enable heap memory zeroing on allocation by default"
