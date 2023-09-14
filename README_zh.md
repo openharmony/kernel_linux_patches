@@ -28,14 +28,14 @@ kernel/linux
 │	├── linux-4.19				# linux-4.19 相关patch
 │	│   ├── common_patch
 │	│   │		└── hdf.patch		# linux-4.19 HDF patches
-│	│   └── hi3516dv300_patch
-│	│   		└── hi3516dv300.patch	# linux-4.19 Hi3516D V300 SOC patches
+│	│   └── hispark_taurus_patch
+│	│   		└── hispark_taurus.patch	# linux-4.19 Hi3516D V300 SOC patches
 │	└── linux-5.10
 │	    ├── common_patch
 │	    │		└── hdf.patch		# linux-5.10 HDF patches
-│	    └── hi3516dv300_patch
-│	    │		└── hi3516dv300.patch	# linux-5.10 Hi3516D V300 SOC patches
-│	    └── rkrk3568_patch
+│	    └── hispark_taurus_patch
+│	    │		└── hispark_taurus.patch	# linux-5.10 Hi3516D V300 SOC patches
+│	    └── rk3568_patch
 │	    		├── kernel.patch		# linux-5.10 rk3568 SOC patches
 │	    		└── hdf.patch		# linux-5.10 rk3568 定制 HDF patches
 └── config
@@ -43,16 +43,16 @@ kernel/linux
 	│   └── arch
 	│       └── arm
 	│           └── configs
-	│               ├── hi3516dv300_small_defconfig       # 厂商Hisilicon对应的开源开发板Hi3516dv300小型系统的defconfig
-	│               ├── hi3516dv300_standard_defconfig    # 厂商Hisilicon对应的开源开发板Hi3516dv300标准系统的defconfig
+	│               ├── hispark_taurus_small_defconfig       # 厂商Hisilicon对应的开源开发板Hi3516dv300小型系统的defconfig
+	│               ├── hispark_taurus_standard_defconfig    # 厂商Hisilicon对应的开源开发板Hi3516dv300标准系统的defconfig
 	│               ├── small_common_defconfig            # 小型系统的内核的common defconfig
 	│               └── standard_common_defconfig         # 标准系统的内核的common defconfig
 	└── linux-5.10
 	    └── arch
 	        └── arm
 	            └── configs
-	                ├── hi3516dv300_small_defconfig       # 厂商Hisilicon对应的开源开发板Hi3516dv300小型系统的defconfig
-	                ├── hi3516dv300_standard_defconfig    # 厂商Hisilicon对应的开源开发板Hi3516dv300标准系统的defconfig
+	                ├── hispark_taurus_small_defconfig       # 厂商Hisilicon对应的开源开发板Hi3516dv300小型系统的defconfig
+	                ├── hispark_taurus_standard_defconfig    # 厂商Hisilicon对应的开源开发板Hi3516dv300标准系统的defconfig
 	                ├── small_common_defconfig            # 小型系统的内核的common defconfig
 	                └── standard_common_defconfig         # 标准系统的内核的common defconfig
 ```
