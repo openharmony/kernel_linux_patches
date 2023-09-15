@@ -28,14 +28,14 @@ kernel/linux
 │	├── linux-4.19				# linux-4.19 patches
 │	│   ├── common_patch
 │	│   │		└── hdf.patch		# linux-4.19 HDF patches
-│	│   └── hi3516dv300_patch
-│	│   		└── hi3516dv300.patch	# linux-4.19 Hi3516D V300 SOC patches
+│	│   └── hispark_taurus_patch
+│	│   		└── hispark_taurus.patch	# linux-4.19 Hi3516D V300 SOC patches
 │	└── linux-5.10
 │	    ├── common_patch
 │	    │		└── hdf.patch		# linux-5.10 HDF patches
-│	    └── hi3516dv300_patch
-│	    │		└── hi3516dv300.patch	# linux-5.10 Hi3516D V300 SOC patches
-│	    └── rkrk3568_patch
+│	    └── hispark_taurus_patch
+│	    │		└── hispark_taurus.patch	# linux-5.10 Hi3516D V300 SOC patches
+│	    └── rk3568_patch
 │	    		├── kernel.patch		# linux-5.10 rk3568 SOC patches
 │	    		└── hdf.patch		# linux-5.10 rk3568 customized HDF patches
 └── config
@@ -43,16 +43,16 @@ kernel/linux
 	│   └── arch
 	│       └── arm
 	│           └── configs
-	│               ├── hi3516dv300_small_defconfig       # Small-system defconfig of the open-source Hi3516D V300 development board from HiSilicon
-	│               ├── hi3516dv300_standard_defconfig    # Standard-system defconfig of the open-source Hi3516D V300 development board from HiSilicon
+	│               ├── hispark_taurus_small_defconfig       # Small-system defconfig of the open-source Hi3516D V300 development board from HiSilicon
+	│               ├── hispark_taurus_standard_defconfig    # Standard-system defconfig of the open-source Hi3516D V300 development board from HiSilicon
 	│               ├── small_common_defconfig            # Common defconfig of the small-system kernel
 	│               └── standard_common_defconfig         # Common defconfig of the standard-system kernel
 	└── linux-5.10
 	    └── arch
 	        └── arm
 	            └── configs
-	                ├── hi3516dv300_small_defconfig       # Small-system defconfig of the open-source Hi3516D V300 development board from HiSilicon
-	                ├── hi3516dv300_standard_defconfig    # Standard-system defconfig of the open-source Hi3516D V300 development board from HiSilicon
+	                ├── hispark_taurus_small_defconfig       # Small-system defconfig of the open-source Hi3516D V300 development board from HiSilicon
+	                ├── hispark_taurus_standard_defconfig    # Standard-system defconfig of the open-source Hi3516D V300 development board from HiSilicon
 	                ├── small_common_defconfig            # Common defconfig of the small-system kernel
 	                └── standard_common_defconfig         # Common defconfig of the standard-system kernel
 ```
