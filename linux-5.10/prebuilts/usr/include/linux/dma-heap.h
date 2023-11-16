@@ -20,6 +20,7 @@
 #define _UAPI_LINUX_DMABUF_POOL_H
 #include <linux/ioctl.h>
 #include <linux/types.h>
+#include <stddef.h>
 #define DMA_HEAP_VALID_FD_FLAGS (O_CLOEXEC | O_ACCMODE)
 #define DMA_HEAP_VALID_HEAP_FLAGS (0)
 struct dma_heap_allocation_data {
@@ -40,7 +41,7 @@ enum dma_heap_flag_owner_id {
 #define OFFSET_BIT 56 /* 7 bytes */
 
 /* Use the first byte (56-63 bits) of heap flags as owner_id flag */
-void set_owner_id_for_heap_flags(__u64 *heap_flags, __u64 owner_id)
+static inline void set_owner_id_for_heap_flags(__u64 *heap_flags, __u64 owner_id)
 {
 	if (heap_flags == NULL)
 		return;
@@ -48,7 +49,7 @@ void set_owner_id_for_heap_flags(__u64 *heap_flags, __u64 owner_id)
 }
 
 /* To get the binary number of owner_id */
-__u64 get_owner_id_from_heap_flags(__u64 heap_flags)
+static inline __u64 get_owner_id_from_heap_flags(__u64 heap_flags)
 {
 	return heap_flags >> OFFSET_BIT;
 }
