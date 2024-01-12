@@ -1,0 +1,242 @@
+diff --git a/arch/riscv/kernel/vmlinux.lds.S b/arch/riscv/kernel/vmlinux.lds.S
+index 3ffbd6cbdb86..8bd338dfc763 100644
+--- a/arch/riscv/kernel/vmlinux.lds.S
++++ b/arch/riscv/kernel/vmlinux.lds.S
+@@ -75,6 +75,14 @@ SECTIONS
+ 	__pecoff_text_end = .;
+ #endif
+ 
++#ifdef CONFIG_DRIVERS_HDF
++       .init.hdf_table : {
++               _hdf_drivers_start = .;
++               *(.hdf.driver)
++               _hdf_drivers_end = .;
++       }
++#endif
++
+ 	INIT_DATA_SECTION(16)
+ 
+ 	/* Start of data section */
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 3584901f1252..12e0cceac5c4 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -236,6 +236,8 @@ source "drivers/interconnect/Kconfig"
+ 
+ source "drivers/counter/Kconfig"
+ 
++source "drivers/hdf/khdf/Kconfig"
++
+ source "drivers/most/Kconfig"
+ 
+ source "drivers/accesstokenid/Kconfig"
+diff --git a/drivers/Makefile b/drivers/Makefile
+index f13d70df6557..8ec75883ab51 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -191,6 +191,7 @@ obj-$(CONFIG_SIOX)		+= siox/
+ obj-$(CONFIG_GNSS)		+= gnss/
+ obj-$(CONFIG_INTERCONNECT)	+= interconnect/
+ obj-$(CONFIG_COUNTER)		+= counter/
++obj-$(CONFIG_DRIVERS_HDF)	+= hdf/
+ obj-$(CONFIG_MOST)		+= most/
+ obj-$(CONFIG_ACCESS_TOKENID)	+= accesstokenid/
+ obj-$(CONFIG_VENDOR_HOOKS)	+= hooks/
+diff --git a/drivers/hdf/Makefile b/drivers/hdf/Makefile
+new file mode 100644
+index 000000000000..5c5e1911c4f7
+--- /dev/null
++++ b/drivers/hdf/Makefile
+@@ -0,0 +1,2 @@
++export PROJECT_ROOT := ../../../../../
++obj-$(CONFIG_DRIVERS_HDF) += khdf/
+diff --git a/drivers/hid/Makefile b/drivers/hid/Makefile
+index 4acb583c92a6..ddcaf4cdcb9c 100644
+--- a/drivers/hid/Makefile
++++ b/drivers/hid/Makefile
+@@ -2,6 +2,15 @@
+ #
+ # Makefile for the HID driver
+ #
++HDF_ROOT_DIR = -I$(srctree)/drivers/hdf
++ccflags-$(CONFIG_DRIVERS_HDF_INPUT) += $(HDF_ROOT_DIR)/framework/model/input/driver \
++             $(HDF_ROOT_DIR)/framework/include/core \
++             $(HDF_ROOT_DIR)/framework/core/common/include/host \
++             $(HDF_ROOT_DIR)/framework/include/utils \
++             $(HDF_ROOT_DIR)/framework/include/osal \
++             $(HDF_ROOT_DIR)/framework/ability/sbuf/include \
++             $(HDF_ROOT_DIR)/khdf/osal/include \
++             $(HDF_ROOT_DIR)/evdev
+ hid-y			:= hid-core.o hid-input.o hid-quirks.o
+ hid-$(CONFIG_DEBUG_FS)		+= hid-debug.o
+ 
+diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
+index 2f512814a111..ad33260e776f 100644
+--- a/drivers/hid/hid-core.c
++++ b/drivers/hid/hid-core.c
+@@ -33,6 +33,9 @@
+ #include <linux/hid-debug.h>
+ #include <linux/hidraw.h>
+ 
++#if defined(CONFIG_DRIVERS_HDF_INPUT)
++#include "hdf_hid_adapter.h"
++#endif
+ #include "hid-ids.h"
+ 
+ /*
+@@ -1522,6 +1525,11 @@ static void hid_process_event(struct hid_device *hid, struct hid_field *field,
+ 		hidinput_hid_event(hid, field, usage, value);
+ 	if (hid->claimed & HID_CLAIMED_HIDDEV && interrupt && hid->hiddev_hid_event)
+ 		hid->hiddev_hid_event(hid, field, usage, value);
++#if defined(CONFIG_DRIVERS_HDF_INPUT)
++	if (hid->input_dev) {
++		HidReportEvent(hid->input_dev, usage->type, usage->code, value);
++	}
++#endif
+ }
+ 
+ /*
+@@ -1928,6 +1936,85 @@ static const struct device_attribute dev_attr_country = {
+ 	.show = show_country,
+ };
+ 
++#if defined(CONFIG_DRIVERS_HDF_INPUT)
++static bool check_mouse(char *name)
++{
++	int i;
++	static char *option[]={"Mouse", "mouse", "MOUSE", "Razer"};
++	for (i = 0; i < 4; i++) {
++		if (strstr(name, option[i]))
++			return true;
++	}
++	return false;
++}
++static bool check_kbd(char *name)
++{
++	int i;
++	static char *option[]={"Keyboard", "keyboard"};
++	for (i = 0; i < 2; i++) {
++		if (strstr(name, option[i]))
++			return true;
++	}
++	return false;
++}
++static bool check_rocker(char *name)
++{
++	int i;
++	static char *option[]={"Thrustmaster"};
++	for (i = 0; i < 1; i++) {
++		if (strstr(name, option[i]))
++			return true;
++	}
++	return false;
++}
++static bool check_encoder(char *name)
++{
++	if (strcmp(name, "Wired KeyBoard") == 0) {
++		return true;
++	}
++	return false;
++}
++static bool check_trackball(char *name)
++{
++	int i;
++	static char *option[]={"Trackball"};
++	for (i = 0; i < 1; i++) {
++		if (strstr(name, option[i]))
++			return true;
++	}
++	return false;
++}
++static void notify_connect_event(struct hid_device *hdev)
++{
++	bool check;
++	int type = -1;
++	HidInfo *dev = (HidInfo *)kmalloc(sizeof(HidInfo), GFP_KERNEL);
++	if (dev == NULL) {
++		printk("%s: malloc failed", __func__);
++		return;
++	}
++	type = check_mouse(hdev->name)?HID_TYPE_MOUSE:type;
++	type = check_kbd(hdev->name)?HID_TYPE_KEYBOARD:type;
++	type = check_rocker(hdev->name)?HID_TYPE_ROCKER:type;
++	type = check_encoder(hdev->name)?HID_TYPE_ENCODER:type;
++	type = check_trackball(hdev->name)?HID_TYPE_TRACKBALL:type;
++	if ( type < 0) {
++		kfree(dev);
++		dev = NULL;
++		return;
++	}
++
++	dev->devType = type;
++	dev->devName = hdev->name;
++	hdev->input_dev = HidRegisterHdfInputDev(dev);
++	if (hdev->input_dev == NULL) {
++		printk("%s: RegisterInputDevice failed\n", __func__);
++	}
++	kfree(dev);
++	dev = NULL;
++}
++#endif
++
+ int hid_connect(struct hid_device *hdev, unsigned int connect_mask)
+ {
+ 	static const char *types[] = { "Device", "Pointer", "Mouse", "Device",
+@@ -2020,6 +2107,9 @@ int hid_connect(struct hid_device *hdev, unsigned int connect_mask)
+ 	hid_info(hdev, "%s: %s HID v%x.%02x %s [%s] on %s\n",
+ 		 buf, bus, hdev->version >> 8, hdev->version & 0xff,
+ 		 type, hdev->name, hdev->phys);
++#if defined(CONFIG_DRIVERS_HDF_INPUT)
++	notify_connect_event(hdev);
++#endif
+ 
+ 	return 0;
+ }
+@@ -2035,6 +2125,10 @@ void hid_disconnect(struct hid_device *hdev)
+ 	if (hdev->claimed & HID_CLAIMED_HIDRAW)
+ 		hidraw_disconnect(hdev);
+ 	hdev->claimed = 0;
++#if defined(CONFIG_DRIVERS_HDF_INPUT)
++	if (hdev->input_dev)
++		HidUnregisterHdfInputDev(hdev->input_dev);
++#endif
+ }
+ EXPORT_SYMBOL_GPL(hid_disconnect);
+ 
+@@ -2119,6 +2213,11 @@ EXPORT_SYMBOL_GPL(hid_hw_open);
+  */
+ void hid_hw_close(struct hid_device *hdev)
+ {
++#if defined(CONFIG_DRIVERS_HDF_INPUT)
++	if (hdev->input_dev) {
++		return;
++	}
++#endif
+ 	mutex_lock(&hdev->ll_open_lock);
+ 	if (!--hdev->ll_open_count)
+ 		hdev->ll_driver->close(hdev);
+diff --git a/drivers/input/mousedev.c b/drivers/input/mousedev.c
+index 505c562a5daa..67d451beba08 100644
+--- a/drivers/input/mousedev.c
++++ b/drivers/input/mousedev.c
+@@ -869,7 +869,7 @@ static struct mousedev *mousedev_create(struct input_dev *dev,
+ 
+ 	if (mixdev) {
+ 		dev_set_name(&mousedev->dev, "mice");
+-
++		mousedev->open = 1;
+ 		mousedev->open_device = mixdev_open_devices;
+ 		mousedev->close_device = mixdev_close_devices;
+ 	} else {
+diff --git a/include/linux/hid.h b/include/linux/hid.h
+index 2ba33d708942..76793a036b3f 100644
+--- a/include/linux/hid.h
++++ b/include/linux/hid.h
+@@ -624,6 +624,7 @@ struct hid_device {							/* device report descriptor */
+ 	struct list_head debug_list;
+ 	spinlock_t  debug_list_lock;
+ 	wait_queue_head_t debug_wait;
++	void *input_dev;
+ };
+ 
+ #define to_hid_device(pdev) \
