@@ -38,20 +38,22 @@ enum dma_heap_flag_owner_id {
 	COUNT_DMA_HEAP_FLAG_OWNER,
 };
 
-#define OFFSET_BIT 56 /* 7 bytes */
+#define OWNER_OFFSET_BIT 27 /* 27 bit */
+#define OWNER_MASK (0xfUL << OWNER_OFFSET_BIT)
 
-/* Use the first byte (56-63 bits) of heap flags as owner_id flag */
+/* Use the 27-30 bits of heap flags as owner_id flag */
 static inline void set_owner_id_for_heap_flags(__u64 *heap_flags, __u64 owner_id)
 {
-	if (heap_flags == NULL)
-		return;
-	*heap_flags |= owner_id << OFFSET_BIT;
+    if (heap_flags == NULL || owner_id >= COUNT_DMA_HEAP_FLAG_OWNER) {
+        return;
+    }
+    *heap_flags |= owner_id << OWNER_OFFSET_BIT;
 }
 
 /* To get the binary number of owner_id */
 static inline __u64 get_owner_id_from_heap_flags(__u64 heap_flags)
 {
-	return heap_flags >> OFFSET_BIT;
+    return (heap_flags & OWNER_MASK) >> OWNER_OFFSET_BIT;
 }
 
 #define DMA_HEAP_IOCTL_ALLOC _IOWR(DMA_HEAP_IOC_MAGIC, 0x0, struct dma_heap_allocation_data)
