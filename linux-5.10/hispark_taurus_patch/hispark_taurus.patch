@@ -25241,16 +25241,7 @@ diff --git a/drivers/mmc/core/block.c b/drivers/mmc/core/block.c
 index 94caee49d..c69c59dcb 100644
 --- a/drivers/mmc/core/block.c
 +++ b/drivers/mmc/core/block.c
-@@ -448,7 +448,7 @@ static int card_busy_detect(struct mmc_card *card, unsigned int timeout_ms,
- static int __mmc_blk_ioctl_cmd(struct mmc_card *card, struct mmc_blk_data *md,
- 			       struct mmc_blk_ioc_data *idata)
- {
--	struct mmc_command cmd = {}, sbc = {};
-+	struct mmc_command cmd = {};
- 	struct mmc_data data = {};
- 	struct mmc_request mrq = {};
- 	struct scatterlist sg;
-@@ -525,15 +525,15 @@ static int __mmc_blk_ioctl_cmd(struct mmc_card *card, struct mmc_blk_data *md,
+@@ -538,17 +538,15 @@ static int __mmc_blk_ioctl_cmd(struct mmc_card *card, struct mmc_blk_data *md,
  	}
  
  	if (idata->rpmb) {
@@ -25261,6 +25252,8 @@ index 94caee49d..c69c59dcb 100644
 -		 * 'Reliable Write' bit here.
 -		 */
 -		sbc.arg = data.blocks | (idata->ic.write_flag & BIT(31));
+-		if (prev_idata)
+-			sbc.arg = prev_idata->ic.arg;
 -		sbc.flags = MMC_RSP_R1 | MMC_CMD_AC;
 -		mrq.sbc = &sbc;
 +		struct mmc_command mmc_cmd = {};
