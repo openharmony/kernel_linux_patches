@@ -25241,10 +25241,11 @@ diff --git a/drivers/mmc/core/block.c b/drivers/mmc/core/block.c
 index 94caee49d..c69c59dcb 100644
 --- a/drivers/mmc/core/block.c
 +++ b/drivers/mmc/core/block.c
-@@ -538,17 +538,15 @@ static int __mmc_blk_ioctl_cmd(struct mmc_card *card, struct mmc_blk_data *md,
+@@ -537,18 +537,16 @@ static int __mmc_blk_ioctl_cmd(struct mmc_card *card, struct mmc_blk_data *md,
+ 			return err;
  	}
  
- 	if (idata->rpmb) {
+-	if (idata->rpmb || prev_idata) {
 -		sbc.opcode = MMC_SET_BLOCK_COUNT;
 -		/*
 -		 * We don't do any blockcount validation because the max size
@@ -25256,6 +25257,7 @@ index 94caee49d..c69c59dcb 100644
 -			sbc.arg = prev_idata->ic.arg;
 -		sbc.flags = MMC_RSP_R1 | MMC_CMD_AC;
 -		mrq.sbc = &sbc;
++	if (idata->rpmb) {
 +		struct mmc_command mmc_cmd = {};
 +		mmc_cmd.opcode = MMC_SET_BLOCK_COUNT;
 +		mmc_cmd.arg = data.blocks & 0x0000FFFF;
