@@ -443,14 +443,14 @@ diff --git a/include/linux/hid.h b/include/linux/hid.h
 index 6ed2a97eb..1d1445a23 100644
 --- a/include/linux/hid.h
 +++ b/include/linux/hid.h
-@@ -622,6 +622,7 @@ struct hid_device {							/* device report descriptor */
+@@ -624,6 +624,7 @@ struct hid_device {							/* device report descriptor */
  	struct list_head debug_list;
  	spinlock_t  debug_list_lock;
  	wait_queue_head_t debug_wait;
 +	void *input_dev;
- };
+ 	struct kref			ref;
  
- #define to_hid_device(pdev) \
+ 	unsigned int id;						/* system unique id */
 diff --git a/include/linux/usb.h b/include/linux/usb.h
 index d6a41841b..de3232ee5 100644
 --- a/include/linux/usb.h
