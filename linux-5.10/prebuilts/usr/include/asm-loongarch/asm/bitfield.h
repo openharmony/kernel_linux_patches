@@ -16,11 +16,14 @@
  ***
  ****************************************************************************
  ****************************************************************************/
-#ifndef _ASM_LOONGARCH_KVM_PARA_H
-#define _ASM_LOONGARCH_KVM_PARA_H
+#ifndef __UAPI_ASM_BITFIELD_H
+#define __UAPI_ASM_BITFIELD_H
 
-/* Device Control API on vcpu fd */
-#define KVM_LARCH_VCPU_PVTIME_CTRL  2
-#define KVM_LARCH_VCPU_PVTIME_IPA   0
+/*
+ *  * Damn ...  bitfields depend from byteorder :-(
+ *   */
+#define __BITFIELD_FIELD(field, more)					\
+	more								\
+	field;
 
-#endif /* _ASM_LOONGARCH_KVM_PARA_H */
+#endif /* __UAPI_ASM_BITFIELD_H */
