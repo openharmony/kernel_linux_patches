@@ -1,0 +1,22 @@
+SPDX-License-Identifier: GPL-2.0
+OpenHarmony QEMU ARM Linux-6.6 Watchdog Compatibility Patch
+
+This patch adds the missing `watchdog_en` per-cpu variable that is
+required by the OpenHarmony modified watchdog_enable() function.
+
+Root cause: The Linux-6.6 upstream code removed the watchdog_en variable
+but OpenHarmony HDF and other components still depend on it.
+
+TODO: This should be replaced with a proper HDF adapter layer to avoid
+modifying core kernel code.
+
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 12345678..abcdef00 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -425,6 +425,7 @@ static DEFINE_PER_CPU(struct completion, softlockup_completion);
+ static DEFINE_PER_CPU(struct cpu_stop_work, softlockup_stop_work);
++static DEFINE_PER_CPU(unsigned int, watchdog_en);
+
+ /*
+  * The watchdog feed function - touches the timestamp.
