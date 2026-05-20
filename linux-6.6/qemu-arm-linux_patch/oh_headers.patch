@@ -1,0 +1,390 @@
+diff -Naur a/include/linux/memcg_policy.h b/include/linux/memcg_policy.h
+--- a/include/linux/memcg_policy.h	1970-01-01 00:00:00.000000000 +0000
++++ b/include/linux/memcg_policy.h	2026-05-19 14:27:18.895122681 +0000
+@@ -0,0 +1,47 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * include/linux/memcg_policy.h
++ *
++ * Copyright (c) 2020-2022 Huawei Technologies Co., Ltd.
++ *
++ */
++#ifndef _MEMCG_POLICY_H
++#define _MEMCG_POLICY_H
++
++struct mem_cgroup;
++struct pglist_data;
++struct scan_control;
++
++
++extern struct list_head score_head;
++extern bool score_head_inited;
++extern rwlock_t score_list_lock;
++extern struct cgroup_subsys memory_cgrp_subsys;
++#ifdef CONFIG_HYPERHOLD_FILE_LRU
++void shrink_anon_memcg(struct pglist_data *pgdat,
++		struct mem_cgroup *memcg, struct scan_control *sc,
++		unsigned long *nr);
++bool shrink_node_hyperhold(struct pglist_data *pgdat, struct scan_control *sc);
++#endif /* CONFIG_HYPERHOLD_FILE_LRU */
++
++#ifdef CONFIG_HYPERHOLD_MEMCG
++struct mem_cgroup *get_next_memcg(struct mem_cgroup *prev);
++void get_next_memcg_break(struct mem_cgroup *memcg);
++void memcg_app_score_update(struct mem_cgroup *target);
++
++struct memcg_reclaim {
++	atomic64_t app_score;
++	atomic64_t ub_ufs2zram_ratio;
++#ifdef CONFIG_HYPERHOLD_ZSWAPD
++	atomic_t ub_zram2ufs_ratio;
++	atomic_t ub_mem2zram_ratio;
++	atomic_t refault_threshold;
++	/* anon refault */
++	unsigned long long reclaimed_pagefault;
++#endif
++};
++#define MAX_APP_SCORE 1000
++#endif
++
++
++#endif /* _LINUX_MEMCG_POLICY_H */
+diff -Naur a/include/linux/mm_purgeable.h b/include/linux/mm_purgeable.h
+--- a/include/linux/mm_purgeable.h	1970-01-01 00:00:00.000000000 +0000
++++ b/include/linux/mm_purgeable.h	2026-05-19 14:27:18.896122689 +0000
+@@ -0,0 +1,77 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Copyright (c) 2022 Huawei Device Co., Ltd.
++ */
++
++#ifndef __MM_PURGEABLE_MEM_H
++#define __MM_PURGEABLE_MEM_H
++
++#ifdef CONFIG_MEM_PURGEABLE
++
++void mm_init_uxpgd(struct mm_struct *mm);
++void mm_clear_uxpgd(struct mm_struct *mm);
++bool lock_uxpte(struct vm_area_struct *vma, unsigned long addr);
++void unlock_uxpte(struct vm_area_struct *vma, unsigned long addr);
++vm_fault_t do_uxpte_page_fault(struct vm_fault *vmf, pte_t *entry);
++bool uxpte_set_present(struct vm_area_struct *vma, unsigned long addr);
++void uxpte_clear_present(struct vm_area_struct *vma, unsigned long addr);
++
++/*
++ * mm_purg_pages_info: get purgeable pages count of @mm
++ * @mm:	[in]	pointer to mm
++ * @total_purg_pages:	[out]	total purgeable pages of @mm
++ * @pined_purg_pages:	[out]	pined purgeable pages of @mm
++ * If @mm is NULL, return with doing nothing.
++ * If @total_purg_pages and @pined_purg_pages are both NULL, return with doing nothing.
++ * If one of @total_purg_pages and @pined_purg_pages is NULL, other one will be counted.
++ */
++void mm_purg_pages_info(struct mm_struct *mm, unsigned long *total_purg_pages,
++	unsigned long *pined_purg_pages);
++
++/*
++ * purg_pages_info: get global purgeable pages in system
++ * @total_purg_pages:	[out]	total purgeable pages in system
++ * @pined_purg_pages:	[out]	pined purgeable pages in system
++ * If @total_purg_pages and @pined_purg_pages are both NULL, return with doing nothing.
++ * If one of @total_purg_pages and @pined_purg_pages is NULL, other one will be counted.
++ */
++void purg_pages_info(unsigned long *total_purg_pages, unsigned long *pined_purg_pages);
++
++#else /* CONFIG_MEM_PURGEABLE */
++
++static inline void mm_init_uxpgd(struct mm_struct *mm) {}
++
++static inline void mm_clear_uxpgd(struct mm_struct *mm) {}
++
++static inline bool lock_uxpte(struct vm_area_struct *vma,
++	unsigned long addr)
++{
++	return false;
++}
++
++static inline void unlock_uxpte(struct vm_area_struct *vma,
++	unsigned long addr) {}
++
++static inline vm_fault_t do_uxpte_page_fault(struct vm_fault *vmf,
++	pte_t *entry)
++{
++	return 0;
++}
++
++static inline bool uxpte_set_present(struct vm_area_struct *vma,
++	unsigned long addr)
++{
++	return false;
++}
++
++static inline void uxpte_clear_present(struct vm_area_struct *vma,
++	unsigned long addr) {}
++
++static inline void mm_purg_pages_info(struct mm_struct *mm,
++	unsigned long *total_purg_pages, unsigned long *pined_purg_pages) {}
++
++static inline void purg_pages_info(unsigned long *total_purg_pages,
++	unsigned long *pined_purg_pages) {}
++#endif /* CONFIG_MEM_PURGEABLE */
++#endif /* __MM_PURGEABLE_MEM_H */
++
+diff -Naur a/include/linux/page-flags.h b/include/linux/page-flags.h
+--- a/include/linux/page-flags.h	2026-05-19 14:27:18.892122654 +0000
++++ b/include/linux/page-flags.h	2026-05-19 14:27:25.756183164 +0000
+@@ -516,8 +516,8 @@
+ PAGEFLAG(XPMReadonly, xpm_readonly, PF_HEAD)
+ PAGEFLAG(XPMWritetainted, xpm_writetainted, PF_HEAD)
+ #else
+-PAGEFLAG_FALSE(XPMReadonly)
+-PAGEFLAG_FALSE(XPMWritetainted)
++PAGEFLAG_FALSE(XPMReadonly, xpm_readonly)
++PAGEFLAG_FALSE(XPMWritetainted, xpm_writetainted)
+ #endif
+ 
+ /* Xen */
+@@ -657,7 +657,7 @@
+ #ifdef CONFIG_MEM_PURGEABLE
+ PAGEFLAG(Purgeable, purgeable, PF_ANY)
+ #else
+-PAGEFLAG_FALSE(Purgeable)
++PAGEFLAG_FALSE(Purgeable, purgeable)
+ #endif
+ 
+ /*
+diff -Naur a/include/linux/reclaim_acct.h b/include/linux/reclaim_acct.h
+--- a/include/linux/reclaim_acct.h	1970-01-01 00:00:00.000000000 +0000
++++ b/include/linux/reclaim_acct.h	2026-05-19 14:27:18.897122698 +0000
+@@ -0,0 +1,48 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * include/linux/reclaim_acct.h
++ *
++ * Copyright (c) 2022 Huawei Technologies Co., Ltd.
++ */
++
++#ifndef _RECLAIM_ACCT_H
++#define _RECLAIM_ACCT_H
++
++#include <linux/sched.h>
++#include <linux/shrinker.h>
++
++/* RA is the abbreviation of reclaim accouting */
++enum reclaimacct_stubs {
++	RA_RECLAIM = 0,
++	RA_DRAINALLPAGES,
++	RA_SHRINKFILE,
++	RA_SHRINKANON,
++	RA_SHRINKSLAB,
++	NR_RA_STUBS
++};
++
++enum reclaim_type {
++	DIRECT_RECLAIMS = 0,
++	KSWAPD_RECLAIM,
++	ZSWAPD_RECLAIM,
++	RECLAIM_TYPES
++};
++
++#ifdef CONFIG_RECLAIM_ACCT
++static inline bool is_system_reclaim(enum reclaim_type type)
++{
++	return (type == KSWAPD_RECLAIM || type == ZSWAPD_RECLAIM);
++}
++
++void reclaimacct_tsk_init(struct task_struct *tsk);
++void reclaimacct_init(void);
++
++void reclaimacct_start(enum reclaim_type type, struct reclaim_acct *ra);
++void reclaimacct_end(enum reclaim_type type);
++
++void reclaimacct_substage_start(enum reclaimacct_stubs stub);
++void reclaimacct_substage_end(enum reclaimacct_stubs stub, unsigned long freed,
++				const struct shrinker *shrinker);
++#endif
++
++#endif /* _RECLAIM_ACCT_H */
+diff -Naur a/include/linux/xpm.h b/include/linux/xpm.h
+--- a/include/linux/xpm.h	1970-01-01 00:00:00.000000000 +0000
++++ b/include/linux/xpm.h	2026-05-19 14:27:18.894122672 +0000
+@@ -0,0 +1,99 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * Copyright (c) 2023 Huawei Device Co., Ltd.
++ */
++
++#ifndef _XPM_H
++#define _XPM_H
++
++#include <linux/mm.h>
++#include <linux/types.h>
++#include <linux/printk.h>
++#include <linux/xpm_types.h>
++#include <linux/hck/lite_hck_xpm.h>
++
++/**
++ * when inodes are destroyed, the corresponding cache must be destroyed
++ */
++static inline void xpm_delete_cache_node_hook(struct inode *file_node)
++{
++	CALL_HCK_LITE_HOOK(xpm_delete_cache_node_lhck, file_node);
++}
++
++/**
++ * check whether input address range is out of the xpm region
++ */
++static inline bool xpm_region_outer_hook(unsigned long addr_start,
++	unsigned long addr_end, unsigned long flags)
++{
++	bool ret = true;
++
++	CALL_HCK_LITE_HOOK(xpm_region_outer_lhck, addr_start,
++		addr_end, flags, &ret);
++	return ret;
++}
++
++/**
++ * get unmapped area in xpm region
++ */
++static inline unsigned long xpm_get_unmapped_area_hook(unsigned long addr,
++	unsigned long len, unsigned long map_flags,
++	unsigned long unmapped_flags)
++{
++	unsigned long ret = 0;
++
++	CALL_HCK_LITE_HOOK(xpm_get_unmapped_area_lhck, addr, len,
++		map_flags, unmapped_flags, &ret);
++	return ret;
++}
++
++/*
++ * check the confliction of a page's xpm flags, make sure a process will
++ * not map any RO page into a writable vma or a WT page into a execuable/XPM
++ * memory region.
++ */
++static inline vm_fault_t xpm_integrity_check_hook(struct vm_area_struct *vma,
++	unsigned int vflags, unsigned long addr, struct page *page)
++{
++	vm_fault_t ret = 0;
++
++	CALL_HCK_LITE_HOOK(xpm_integrity_check_lhck, vma, vflags,
++		addr, page, &ret);
++	return ret;
++}
++
++static inline
++vm_fault_t xpm_integrity_validate_hook(struct vm_area_struct *vma,
++	unsigned int vflags, unsigned long addr, struct page *page)
++{
++	vm_fault_t ret = 0;
++
++	CALL_HCK_LITE_HOOK(xpm_integrity_validate_lhck, vma, vflags,
++		addr, page, &ret);
++	return ret;
++}
++
++static inline
++void xpm_integrity_update_hook(struct vm_area_struct *vma,
++	unsigned int vflags, struct page *page)
++{
++	CALL_HCK_LITE_HOOK(xpm_integrity_update_lhck, vma, vflags, page);
++}
++
++static inline bool xpm_integrity_check_one_page_merge(struct page *page,
++	struct page *kpage)
++{
++	bool ret = true;
++
++	CALL_HCK_LITE_HOOK(xpm_integrity_equal_lhck, page, kpage, &ret);
++	return ret;
++}
++
++#ifdef CONFIG_ARM64
++#define pte_user_mkexec(oldpte, ptent) \
++	((!pte_user_exec(oldpte) && pte_user_exec(ptent)))
++#else
++#define pte_user_mkexec(oldpte, ptent) 1
++#endif
++
++#endif /* _XPM_H */
+diff -Naur a/include/linux/xpm_types.h b/include/linux/xpm_types.h
+--- a/include/linux/xpm_types.h	1970-01-01 00:00:00.000000000 +0000
++++ b/include/linux/xpm_types.h	2026-05-19 14:27:18.893122663 +0000
+@@ -0,0 +1,21 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * Copyright (c) 2023 Huawei Device Co., Ltd.
++ */
++
++#ifndef _XPM_TYPES_H
++#define _XPM_TYPES_H
++
++#include <linux/types.h>
++
++struct xpm_region {
++	unsigned long addr_start; /* start adress of xpm region */
++	unsigned long addr_end;   /* end address of xpm region */
++};
++
++struct cs_info {
++	uint32_t id_type;
++	uint32_t ownerid;
++};
++
++#endif /* _XPM_TYPES_H */
+\ No newline at end of file
+diff -Naur a/include/linux/zswapd.h b/include/linux/zswapd.h
+--- a/include/linux/zswapd.h	1970-01-01 00:00:00.000000000 +0000
++++ b/include/linux/zswapd.h	2026-05-19 14:27:18.898122707 +0000
+@@ -0,0 +1,50 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * include/linux/zswapd.h
++ *
++ * Copyright (c) 2020-2022 Huawei Technologies Co., Ltd.
++ */
++
++#ifndef _ZSWAPD_H
++#define _ZSWAPD_H
++
++enum {
++	CACHE_SIZE,
++	SWAP_SIZE,
++	CACHE_PAGE,
++	SWAP_PAGE,
++	CACHE_FAULT,
++	SWAP_FAULT,
++	READ_SIZE,
++	WRITE_SIZE,
++};
++
++struct group_swap_ops {
++	u64 (*group_read)(u16 gid, u64 req_size, void *priv);
++	u64 (*group_write)(u16 gid, u64 req_size, void *priv);
++	u64 (*group_data_size)(u16 gid, int type, void *priv);
++};
++
++struct group_swap_device {
++	void *priv;
++	struct group_swap_ops *ops;
++	struct list_head list;
++};
++
++#ifdef CONFIG_HYPERHOLD_ZSWAPD
++extern int zswapd_run(int nid);
++extern void zswapd_stop(int nid);
++extern void zswapd_status_show(struct seq_file *m);
++extern void wake_all_zswapd(void);
++extern void set_snapshotd_init_flag(unsigned int val);
++extern pid_t get_zswapd_pid(void);
++extern unsigned long long get_free_swap_threshold(void);
++extern struct group_swap_device *register_group_swap(struct group_swap_ops *ops, void *priv);
++extern void unregister_group_swap(struct group_swap_device *gsdev);
++
++#ifdef CONFIG_HYPERHOLD_DEBUG
++extern void memcg_eswap_info_show(struct seq_file *m);
++#endif
++#endif
++
++#endif /* _LINUX_ZSWAPD_H */
