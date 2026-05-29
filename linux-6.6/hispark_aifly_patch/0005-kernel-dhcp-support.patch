@@ -1,0 +1,26 @@
+diff --git a/arch/arm64/boot/dts/vendor/ss928v100-demb.dts b/arch/arm64/boot/dts/vendor/ss928v100-demb.dts
+index d90c5d5cf..a39158451 100644
+--- a/arch/arm64/boot/dts/vendor/ss928v100-demb.dts
++++ b/arch/arm64/boot/dts/vendor/ss928v100-demb.dts
+@@ -334,7 +334,7 @@ &gmac {
+ 
+ &gmac1 {
+     phy-handle = <&ethphy1>;
+-    phy-mode = "rgmii-id";
++    phy-mode = "rgmii";
+ };
+ 
+ &pcie0 {
+diff --git a/drivers/net/ethernet/vendor/gmac/gmac.c b/drivers/net/ethernet/vendor/gmac/gmac.c
+index 30247bd46..40bfe2386 100644
+--- a/drivers/net/ethernet/vendor/gmac/gmac.c
++++ b/drivers/net/ethernet/vendor/gmac/gmac.c
+@@ -1655,7 +1655,7 @@ static int gmac_netdev_preinit(struct gmac_netdev_local *priv)
+ 	priv->msg_enable = netif_msg_init(debug, DEFAULT_MSG_ENABLE);
+ 
+ #if defined(CONFIG_GMAC_DDR_64BIT)
+-	ret = dma_set_mask_and_coherent(priv->dev, DMA_BIT_MASK(64)); /* 64: mask length */
++	ret = dma_set_mask_and_coherent(priv->dev, DMA_BIT_MASK(32)); /* 32: mask length */
+ 	if (ret) {
+ 		pr_err("dma set mask bit 64 failed! ret=%d", ret);
+ 		gmac_destroy_napi(priv);
