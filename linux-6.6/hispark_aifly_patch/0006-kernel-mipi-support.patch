@@ -1,0 +1,13 @@
+diff --git a/arch/arm64/boot/dts/vendor/ss928v100.dtsi b/arch/arm64/boot/dts/vendor/ss928v100.dtsi
+index 80f4dcfb2..d285dd0a8 100644
+--- a/arch/arm64/boot/dts/vendor/ss928v100.dtsi
++++ b/arch/arm64/boot/dts/vendor/ss928v100.dtsi
+@@ -518,6 +518,8 @@ gpio_chip13: gpio_chip@1109D000 {
+ 				clocks = <&clock SS928V100_FIXED_50M>;
+ 				clock-names = "apb_pclk";
+ 				status = "disabled";
++				interrupt-controller;
++				#interrupt-cells = <2>;
+ 			};
+ 
+ 			gpio_chip14: gpio_chip@1109E000 {
