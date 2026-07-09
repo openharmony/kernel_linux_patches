@@ -36098,7 +36098,7 @@ new file mode 100644
 index 000000000..52a472311
 --- /dev/null
 +++ b/drivers/net/ethernet/vendor/gmac/gmac.h
-@@ -0,0 +1,996 @@
+@@ -0,0 +1,997 @@
 +/*
 + * Copyright (c) 2025 HiSilicon (Shanghai) Technologies Co., Ltd.
 + *
@@ -36414,8 +36414,9 @@ index 000000000..52a472311
 +#define DEFAULT_PHY_MASK                0xfffffff0
 +#define REALTEK_PHY_ID_8211E            0x001cc915
 +#define REALTEK_PHY_MASK                0x001fffff
-+#define PHY_ID_RTL8211F                 0x001cc916
-+#define PHY_ID_MASK_RTL8211F            0x001fffff
++#define PHY_ID_RTL8211FS                0x001cc916
++#define PHY_ID_MASK_RTL8211FS           0x001fffff
++#define RTL8211FS_TX_DELAY              BIT(8)
 +
 +#define REG_BASE_CRG		0x00A00000
 +#ifdef CONFIG_ARCH_SHAOLINSPEAR
@@ -39410,10 +39411,10 @@ index 000000000..c07f9a2f6
 +#endif
 diff --git a/drivers/net/ethernet/vendor/gmac/gmac_phy_fixup.c b/drivers/net/ethernet/vendor/gmac/gmac_phy_fixup.c
 new file mode 100644
-index 000000000..595bc9fdd
+index 000000000..a24e4b928
 --- /dev/null
 +++ b/drivers/net/ethernet/vendor/gmac/gmac_phy_fixup.c
-@@ -0,0 +1,410 @@
+@@ -0,0 +1,428 @@
 +/*
 + * Copyright (c) 2025 HiSilicon (Shanghai) Technologies Co., Ltd.
 + *
@@ -39704,22 +39705,40 @@ index 000000000..595bc9fdd
 +	return 0;
 +}
 +
-+#define RTL8211F_PAGE_SELECT	0x1f
-+#define RTL8211F_TX_DELAY	BIT(8)
-+static int rtl8211f_phy_fix(struct phy_device *phy_dev)
++static int rtl8211fs_phy_fix(struct phy_device *phy_dev)
 +{
-+	u16 reg;
-+
-+	if (phy_dev->interface != PHY_INTERFACE_MODE_RGMII)
-+		return 0;
-+
-+	/* enable TXDLY */
-+	phy_write(phy_dev, RTL8211F_PAGE_SELECT, 0xd08);
-+	reg = (u16)phy_read(phy_dev, 0x11);
-+	reg |= RTL8211F_TX_DELAY;
-+	phy_write(phy_dev, 0x11, reg);
-+	/* restore to default page 0 */
-+	phy_write(phy_dev, RTL8211F_PAGE_SELECT, 0x0);
++	u32 v;
++	/* RX or TX delay */
++	if (phy_dev->interface == PHY_INTERFACE_MODE_RGMII ||
++	    phy_dev->interface == PHY_INTERFACE_MODE_RGMII_RXID) {
++		phy_write(phy_dev, 0x1F, 0xd08);
++		v = phy_read(phy_dev, 17);
++		v |= RTL8211FS_TX_DELAY;
++		phy_write(phy_dev, 17, v);
++	}
++	phydev_info(phy_dev, "enter phy_id=0x%x\n", phy_dev->phy_id);
++	/*
++	 * LED1 = 100M/1000M Link only (0x0A) — solid on, no ACT blink
++	 * LED2 = 1000M Link+ACT (0x18) — on/blink
++	 * LED0 = 10M Link+ACT (0x11)
++	 * LCR = 0x6151
++	 */
++	phy_write(phy_dev, 0x1F, 0xd04);
++	v = 0x6151;
++	phy_write(phy_dev, 0x10, v);
++	phy_write(phy_dev, 0x11, 0x0);
++	phydev_info(phy_dev, "LCR write 0x6151, readback=0x%x\n",
++		    phy_read(phy_dev, 0x10));
++	v = 0x03e9;
++	phy_write(phy_dev, 0x12, v);
++	/* Disable PHY EEE. */
++	phy_write(phy_dev, 0x1F, 0xa43);
++	/* Bit 5: PHY EEE, 1: enable, 0: disable. */
++	v = phy_read(phy_dev, 0x19);
++	v &= ~BIT(5);
++	phy_write(phy_dev, 0x19, v);
++	/* Change back to page 0. */
++	phy_write(phy_dev, 0x1F, 0);
 +
 +	return 0;
 +}
@@ -39764,7 +39783,7 @@ index 000000000..595bc9fdd
 +	phy_register_fixup_for_uid(PHY_ID_KSZ9031RNX, DEFAULT_PHY_MASK, ksz9031rnx_phy_fix);
 +	phy_register_fixup_for_uid(ATH8035_PHY_ID, ATH_PHY_ID_MASK, at803x_phy_fix);
 +	phy_register_fixup_for_uid(REALTEK_PHY_ID_8211E, REALTEK_PHY_MASK, rtl8211e_phy_fix);
-+	phy_register_fixup_for_uid(PHY_ID_RTL8211F, PHY_ID_MASK_RTL8211F, rtl8211f_phy_fix);
++	phy_register_fixup_for_uid(PHY_ID_RTL8211FS, PHY_ID_MASK_RTL8211FS, rtl8211fs_phy_fix);
 +
 +	ret = of_property_count_u32_elems(np, PHY_FIXUP_ID_STR);
 +	if (ret < 0) {
@@ -39816,7 +39835,7 @@ index 000000000..595bc9fdd
 +	phy_unregister_fixup_for_uid(PHY_ID_KSZ9031RNX, DEFAULT_PHY_MASK);
 +	phy_unregister_fixup_for_uid(ATH8035_PHY_ID, ATH_PHY_ID_MASK);
 +	phy_unregister_fixup_for_uid(REALTEK_PHY_ID_8211E, REALTEK_PHY_MASK);
-+	phy_unregister_fixup_for_uid(PHY_ID_RTL8211F, PHY_ID_MASK_RTL8211F);
++	phy_unregister_fixup_for_uid(PHY_ID_RTL8211FS, PHY_ID_MASK_RTL8211FS);
 +
 +	for (i = 0; i < priv->phy_fixup_phycnt; i++) {
 +		if (priv->phy_fixup_id[i] != 0) {
