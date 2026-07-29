@@ -1,0 +1,8 @@
+diff --git a/drivers/Makefile b/drivers/Makefile
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -205,3 +205,4 @@
+
+ obj-$(CONFIG_ACCESS_TOKENID)	+= accesstokenid/
+ obj-$(CONFIG_HCK_VENDOR_HOOKS)	+= hck/
++obj-$(CONFIG_ARCH_SS928V100) += hdf/soc_driver/
