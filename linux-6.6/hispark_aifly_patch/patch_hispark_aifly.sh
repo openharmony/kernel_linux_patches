@@ -62,5 +62,6 @@ apply_patch "${patch_dir}/0006-kernel-mipi-support.patch"
 apply_patch "${patch_dir}/0007-kernel-nca9555.patch"
 apply_patch "${patch_dir}/0008-power-key-dts.patch"
 apply_patch "${patch_dir}/0009-hdf-soc-path.patch"
+apply_patch "${patch_dir}/0010-kernel-quectel-4g.patch"
 sync_dt_bindings
 echo "patching aifly finished..."

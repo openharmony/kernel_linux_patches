@@ -1,0 +1,412 @@
+diff --git a/arch/arm64/boot/dts/vendor/ss928v100-demb.dts b/arch/arm64/boot/dts/vendor/ss928v100-demb.dts
+index c202cdb08..de6f1d0d0 100644
+--- a/arch/arm64/boot/dts/vendor/ss928v100-demb.dts
++++ b/arch/arm64/boot/dts/vendor/ss928v100-demb.dts
+@@ -135,6 +135,16 @@ backlight-key {
+ 			debounce-interval = <50>;
+ 		};
+ 	};
++
++	/*
++	 * Quectel EC20 board PERST: idle/run level is low (legacy gpio-hog
++	 * used output-low). Driver pulses high >= 150ms then returns low.
++	 */
++	ec20_4g {
++		compatible = "quectel,ec20-4g";
++		reset-gpios = <&gpio_chip1 5 GPIO_ACTIVE_HIGH>;
++		status = "okay";
++	};
+ };
+ 
+ &ipcm {
+diff --git a/drivers/usb/serial/Kconfig b/drivers/usb/serial/Kconfig
+index ef8d1c73c..615dd8726 100644
+--- a/drivers/usb/serial/Kconfig
++++ b/drivers/usb/serial/Kconfig
+@@ -561,6 +561,16 @@ config USB_SERIAL_OPTION
+ 	  If this driver doesn't recognize your device,
+ 	  it might be accessible via the FTDI_SIO driver.
+ 
++config USB_SERIAL_QUECTEL_SUPPORT
++	bool "Quectel USB serial modem extensions"
++	depends on USB_SERIAL_OPTION
++	help
++	  Enable Quectel-specific extensions for option, usb_wwan and
++	  qcserial: extra device IDs, zero-length packet, probe quirks,
++	  termios init, and EC20 PERST reset sequence.
++
++	  Say Y if your board uses a Quectel modem such as EC20.
++
+ config USB_SERIAL_OMNINET
+ 	tristate "USB ZyXEL omni.net LCD Plus Driver"
+ 	help
+diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
+index 6c6387d39..410f82e91 100644
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -639,6 +639,46 @@ static void option_instat_callback(struct urb *urb);
+ 
+ 
+ static const struct usb_device_id option_ids[] = {
++#ifdef CONFIG_USB_SERIAL_QUECTEL_SUPPORT
++	{ USB_DEVICE(0x05C6, 0x9090) }, /* Quectel UC15 */
++	{ USB_DEVICE(0x05C6, 0x9003) }, /* Quectel UC20 */
++	{ USB_DEVICE(0x05C6, 0x9215) }, /* Quectel EC20(MDM9215) */
++	{ USB_DEVICE(0x05C6, 0x9091) }, /* Quectel QCM6125 */
++	{ USB_DEVICE(0x05C6, 0x90DB) }, /* Quectel QCM6490 */
++	{ USB_DEVICE(0x2C7C, 0x0125) }, /* Quectel EC20(MDM9x07)/EC25/EG25 */
++	{ USB_DEVICE(0x2C7C, 0x0121) }, /* Quectel EC21 */
++	{ USB_DEVICE(0x2C7C, 0x0122) }, /* Quectel RG650V / RG650 SDX7X */
++	{ USB_DEVICE(0x2C7C, 0x030E) }, /* Quectel EM05G */
++	{ USB_DEVICE(0x2C7C, 0x0191) }, /* Quectel EG91 */
++	{ USB_DEVICE(0x2C7C, 0x0195) }, /* Quectel EG95 */
++	{ USB_DEVICE(0x2C7C, 0x0306) }, /* Quectel EG06/EP06/EM06 */
++	{ USB_DEVICE(0x2C7C, 0x030B) }, /* Quectel EG065K/EG060K */
++	{ USB_DEVICE(0x2C7C, 0x0514) }, /* Quectel BL EG060K RNDIS Only */
++	{ USB_DEVICE(0x2C7C, 0x0512) }, /* Quectel EG12/EP12/EM12/EG16/EG18 */
++	{ USB_DEVICE(0x2C7C, 0x0296) }, /* Quectel BG96 */
++	{ USB_DEVICE(0x2C7C, 0x0700) }, /* Quectel BG95/BG77/BG600L-M3/BC69 */
++	{ USB_DEVICE(0x2C7C, 0x0435) }, /* Quectel AG35 */
++	{ USB_DEVICE(0x2C7C, 0x0415) }, /* Quectel AG15 */
++	{ USB_DEVICE(0x2C7C, 0x0452) }, /* Quectel AG520/AG529 */
++	{ USB_DEVICE(0x2C7C, 0x0455) }, /* Quectel AG550 */
++	{ USB_DEVICE(0x2C7C, 0x0620) }, /* Quectel EG20 */
++	{ USB_DEVICE(0x2C7C, 0x0800) }, /* Quectel RG500/RM500/RG510/RM510 */
++	{ USB_DEVICE(0x2C7C, 0x0801) }, /* Quectel RG520/RM520/SG520 */
++	{ USB_DEVICE(0x2C7C, 0x0133) }, /* Quectel RG650 SDX7X RNDIS / RM551E */
++	{ USB_DEVICE(0x2C7C, 0x0134) }, /* Quectel SDX35 AG531C */
++	{ USB_DEVICE(0x2C7C, 0x0316) }, /* Quectel RG255 SDX35 */
++	{ USB_DEVICE(0x2C7C, 0x6026) }, /* Quectel EC200 */
++	{ USB_DEVICE(0x2C7C, 0x6120) }, /* Quectel UC200 */
++	{ USB_DEVICE(0x2C7C, 0x600B) }, /* Quectel ASR1903S */
++	{ USB_DEVICE(0x2C7C, 0x600C) }, /* Quectel RG255A ASR1903L */
++	{ USB_DEVICE(0x2C7C, 0x6000) }, /* Quectel EC200/UC200 */
++	{ USB_DEVICE(0x2C7C, 0x7003) }, /* Quectel T750(META) */
++	{ USB_DEVICE(0x2C7C, 0x7008) }, /* Quectel T750 */
++	{ USB_DEVICE(0x2C7C, 0x7005) }, /* Quectel T830(META) */
++	{ USB_DEVICE(0x2C7C, 0x7006) }, /* Quectel T830 */
++	{ USB_DEVICE(0x3763, 0x3C93) }, /* Quectel GW */
++	{ USB_DEVICE(0x3C93, 0xFFFF) }, /* Quectel GW */
++#endif
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA_LIGHT) },
+@@ -2504,6 +2544,56 @@ static int option_probe(struct usb_serial *serial,
+ 				&serial->interface->cur_altsetting->desc;
+ 	unsigned long device_flags = id->driver_info;
+ 
++#ifdef CONFIG_USB_SERIAL_QUECTEL_SUPPORT
++	/* Quectel UC20: interface 4 is USB network */
++	if (serial->dev->descriptor.idVendor == cpu_to_le16(0x05C6) &&
++	    serial->dev->descriptor.idProduct == cpu_to_le16(0x9003) &&
++	    serial->interface->cur_altsetting->desc.bInterfaceNumber >= 4)
++		return -ENODEV;
++
++	/* Quectel EC20(MDM9215): interface 4 is USB network */
++	if (serial->dev->descriptor.idVendor == cpu_to_le16(0x05C6) &&
++	    serial->dev->descriptor.idProduct == cpu_to_le16(0x9215) &&
++	    serial->interface->cur_altsetting->desc.bInterfaceNumber >= 4)
++		return -ENODEV;
++
++	/* Quectel QCM6125/QCM6490: interface 2+ is USB network */
++	if (serial->dev->descriptor.idVendor == cpu_to_le16(0x05C6) &&
++	    (serial->dev->descriptor.idProduct == cpu_to_le16(0x9091) ||
++	     serial->dev->descriptor.idProduct == cpu_to_le16(0x90DB)) &&
++	    serial->interface->cur_altsetting->desc.bInterfaceNumber >= 2)
++		return -ENODEV;
++
++	/* Netprisma PCUL11-LD(MDM9205): interface 3+ is USB network */
++	if (serial->dev->descriptor.idVendor == cpu_to_le16(0x3731) &&
++	    serial->dev->descriptor.idProduct == cpu_to_le16(0x0102) &&
++	    serial->interface->cur_altsetting->desc.bInterfaceNumber >= 3)
++		return -ENODEV;
++
++	if (serial->dev->descriptor.idVendor == cpu_to_le16(0x2C7C)) {
++		__u16 idProduct = le16_to_cpu(serial->dev->descriptor.idProduct);
++		struct usb_interface_descriptor *intf =
++			&serial->interface->cur_altsetting->desc;
++
++		if (intf->bInterfaceClass != 0xFF || intf->bInterfaceSubClass == 0x42)
++			return -ENODEV;
++
++		if ((idProduct & 0xF000) == 0x0000) {
++			/* MDM interface 4 is QMI; SDX35 uses interface 3 */
++			if (idProduct == 0x0316 && intf->bInterfaceNumber == 3)
++				return -ENODEV;
++
++			if (idProduct == 0x0121 && intf->bInterfaceNumber == 4)
++				return -ENODEV;
++
++			if (intf->bInterfaceNumber == 4 && intf->bNumEndpoints == 3 &&
++			    intf->bInterfaceSubClass == 0xFF &&
++			    intf->bInterfaceProtocol == 0xFF)
++				return -ENODEV;
++		}
++	}
++#endif
++
+ 	/* Never bind to the CD-Rom emulation interface	*/
+ 	if (iface_desc->bInterfaceClass == USB_CLASS_MASS_STORAGE)
+ 		return -ENODEV;
+@@ -2523,6 +2613,12 @@ static int option_probe(struct usb_serial *serial,
+ 	if (device_flags & NUMEP2 && iface_desc->bNumEndpoints != 2)
+ 		return -ENODEV;
+ 
++#ifdef CONFIG_USB_SERIAL_QUECTEL_SUPPORT
++	/* Fold Quectel ZLP quirk into the generic use_zlp path. */
++	if (usb_wwan_quectel_use_zlp(serial->dev))
++		device_flags |= ZLP;
++#endif
++
+ 	/* Store the device flags so we can use them during attach. */
+ 	usb_set_serial_data(serial, (void *)device_flags);
+ 
+diff --git a/drivers/usb/serial/qcserial.c b/drivers/usb/serial/qcserial.c
+index 061ff754b..d90e93291 100644
+--- a/drivers/usb/serial/qcserial.c
++++ b/drivers/usb/serial/qcserial.c
+@@ -63,7 +63,9 @@ static const struct usb_device_id id_table[] = {
+ 	{DEVICE_G1K(0x05c6, 0x9202)},	/* Generic Gobi Modem device */
+ 	{DEVICE_G1K(0x05c6, 0x9203)},	/* Generic Gobi Modem device */
+ 	{DEVICE_G1K(0x05c6, 0x9222)},	/* Generic Gobi Modem device */
++#ifndef CONFIG_USB_SERIAL_QUECTEL_SUPPORT
+ 	{DEVICE_G1K(0x05c6, 0x9008)},	/* Generic Gobi QDL device */
++#endif
+ 	{DEVICE_G1K(0x05c6, 0x9009)},	/* Generic Gobi Modem device */
+ 	{DEVICE_G1K(0x05c6, 0x9201)},	/* Generic Gobi QDL device */
+ 	{DEVICE_G1K(0x05c6, 0x9221)},	/* Generic Gobi QDL device */
+@@ -439,6 +441,11 @@ static int qc_attach(struct usb_serial *serial)
+ 	if (sendsetup)
+ 		data->use_send_setup = 1;
+ 
++#ifdef CONFIG_USB_SERIAL_QUECTEL_SUPPORT
++	if (usb_wwan_quectel_use_zlp(serial->dev))
++		data->use_zlp = 1;
++#endif
++
+ 	spin_lock_init(&data->susp_lock);
+ 
+ 	usb_set_serial_data(serial, data);
+diff --git a/drivers/usb/serial/usb-wwan.h b/drivers/usb/serial/usb-wwan.h
+index 519101945..91dff5a51 100644
+--- a/drivers/usb/serial/usb-wwan.h
++++ b/drivers/usb/serial/usb-wwan.h
+@@ -6,6 +6,8 @@
+ #ifndef __LINUX_USB_USB_WWAN
+ #define __LINUX_USB_USB_WWAN
+ 
++/* Quectel extensions are gated by CONFIG_USB_SERIAL_QUECTEL_SUPPORT. */
++
+ extern void usb_wwan_dtr_rts(struct usb_serial_port *port, int on);
+ extern int usb_wwan_open(struct tty_struct *tty, struct usb_serial_port *port);
+ extern void usb_wwan_close(struct usb_serial_port *port);
+@@ -22,6 +24,9 @@ extern unsigned int usb_wwan_chars_in_buffer(struct tty_struct *tty);
+ extern int usb_wwan_suspend(struct usb_serial *serial, pm_message_t message);
+ extern int usb_wwan_resume(struct usb_serial *serial);
+ #endif
++#ifdef CONFIG_USB_SERIAL_QUECTEL_SUPPORT
++extern bool usb_wwan_quectel_use_zlp(struct usb_device *udev);
++#endif
+ 
+ /* per port private data */
+ 
+diff --git a/drivers/usb/serial/usb_wwan.c b/drivers/usb/serial/usb_wwan.c
+index fc87c4307..679a7c73d 100644
+--- a/drivers/usb/serial/usb_wwan.c
++++ b/drivers/usb/serial/usb_wwan.c
+@@ -228,11 +228,7 @@ static void usb_wwan_indat_callback(struct urb *urb)
+ 			__func__, status, endpoint);
+ 
+ 		/* don't resubmit on fatal errors */
+-#ifdef CONFIG_ARCH_HISILICON
+-		if (status == -ESHUTDOWN || status == -ENOENT || status == -EPROTO)
+-#else
+ 		if (status == -ESHUTDOWN || status == -ENOENT)
+-#endif
+ 			return;
+ 	} else {
+ 		if (urb->actual_length) {
+@@ -657,6 +653,32 @@ int usb_wwan_resume(struct usb_serial *serial)
+ EXPORT_SYMBOL(usb_wwan_resume);
+ #endif
+ 
++#ifdef CONFIG_USB_SERIAL_QUECTEL_SUPPORT
++/*
++ * Quectel (and related) modems need URB_ZERO_PACKET on bulk OUT.
++ * Callers set intfdata->use_zlp so usb_wwan_setup_urb applies it once.
++ */
++bool usb_wwan_quectel_use_zlp(struct usb_device *udev)
++{
++	u16 vid = le16_to_cpu(udev->descriptor.idVendor);
++	u16 pid = le16_to_cpu(udev->descriptor.idProduct);
++
++	if (vid == 0x2c7c)
++		return true;
++
++	if (vid == 0x05c6 &&
++	    (pid == 0x9090 || pid == 0x9003 || pid == 0x9215 ||
++	     pid == 0x9091 || pid == 0x90db))
++		return true;
++
++	if (vid == 0x3731 && (pid == 0x0102 || pid == 0x0103))
++		return true;
++
++	return false;
++}
++EXPORT_SYMBOL_GPL(usb_wwan_quectel_use_zlp);
++#endif
++
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(DRIVER_DESC);
+ MODULE_LICENSE("GPL v2");
+diff --git a/drivers/vendor/basedrv_clk/ss928v100/clk_ups.c b/drivers/vendor/basedrv_clk/ss928v100/clk_ups.c
+index 45052a687..0f1186cc4 100644
+--- a/drivers/vendor/basedrv_clk/ss928v100/clk_ups.c
++++ b/drivers/vendor/basedrv_clk/ss928v100/clk_ups.c
+@@ -19,6 +19,9 @@
+ #include <dt-bindings/clock/basedrv-clock.h>
+ #include <asm/io.h>
+ #include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
+ 
+ #include "../basedrv_clk.h"
+ 
+@@ -66,6 +69,19 @@
+ #define PITOUT_CTRL1_PWREN_OFFSET 0X3C
+ #define PITOUT_CTRL1_VBUS_OFFSET  0x38
+ #define PINOUT_USB_VAL            0x1201
++#ifdef CONFIG_USB_SERIAL_QUECTEL_SUPPORT
++#define IO_CFG_REG13_OFFSET       0x34
++#define IO_CFG_REG13_MUX_MASK     0xf
++#define IO_CFG_REG13_GPIO1_5_MUX  0x2
++/*
++ * Board "4g-perst" idle/run level is low (see former gpio-hog output-low).
++ * Assert reset by driving high for >= 150ms, then return low to run.
++ */
++#define EC20_PERST_HOLD_MS        150
++#define GPIO1_REG_BASE            0x11091000
++#define PL061_GPIODIR             0x400
++#define EC20_PERST_PIN            5
++#endif
+ 
+ static unsigned int basedrv_clk_readl(const void __iomem *addr)
+ {
+@@ -88,6 +104,106 @@ typedef enum mode {
+ 	UNKOWN_MODE
+ } combphy_mode;
+ 
++#ifdef CONFIG_USB_SERIAL_QUECTEL_SUPPORT
++/*
++ * Step 1 of PERST bring-up: mux GPIO1_5 to GPIO mode only.
++ * Direction and level are set in ec20_4g_perst_reset_seq() / _mmio_seq().
++ */
++static void ec20_4g_perst_pinmux_cfg(void __iomem *pinout_base)
++{
++	u32 val;
++
++	val = basedrv_clk_readl(pinout_base + IO_CFG_REG13_OFFSET);
++	val = (val & ~IO_CFG_REG13_MUX_MASK) | IO_CFG_REG13_GPIO1_5_MUX;
++	basedrv_clk_writel(val, pinout_base + IO_CFG_REG13_OFFSET);
++}
++
++/*
++ * Step 2 (MMIO fallback): set GPIO1_5 as output and pulse PERST.
++ *
++ * Note: Quectel RESET_N datasheet is active-low (high = run). This board's
++ * "4g-perst" line matches the former gpio-hog idle level: low = run,
++ * high = reset. Verified with EC20F USB enumeration.
++ */
++static void ec20_4g_perst_mmio_seq(void)
++{
++	void __iomem *gpio;
++	u32 dir;
++
++	gpio = ioremap(GPIO1_REG_BASE, 0x1000);
++	if (!gpio) {
++		basedrv_clk_info("map GPIO1 for EC20 PERST failed\n");
++		return;
++	}
++
++	/* Output direction for GPIO1_5 */
++	dir = basedrv_clk_readl(gpio + PL061_GPIODIR);
++	basedrv_clk_writel(dir | BIT(EC20_PERST_PIN), gpio + PL061_GPIODIR);
++
++	/* Assert reset (high), hold, then release to run (low). */
++	basedrv_clk_writel(BIT(EC20_PERST_PIN), gpio + (BIT(EC20_PERST_PIN) << 2));
++	msleep(EC20_PERST_HOLD_MS);
++	basedrv_clk_writel(0, gpio + (BIT(EC20_PERST_PIN) << 2));
++
++	iounmap(gpio);
++	basedrv_clk_info("EC20 PERST reset done via MMIO (high %u ms then low)\n",
++			 EC20_PERST_HOLD_MS);
++}
++
++/*
++ * Full EC20 PERST after VBUS is enabled:
++ *   1) pinmux GPIO1_5
++ *   2) request GPIO (or MMIO), set output
++ *   3) pulse high >= 150ms, hold low to run
++ */
++static void ec20_4g_perst_reset_seq(void __iomem *pinout_base)
++{
++	static bool done;
++	struct device_node *np;
++	int gpio;
++	int ret;
++
++	if (done)
++		return;
++
++	ec20_4g_perst_pinmux_cfg(pinout_base);
++
++	np = of_find_compatible_node(NULL, NULL, "quectel,ec20-4g");
++	if (!np) {
++		basedrv_clk_info("EC20 DT node missing, use MMIO PERST\n");
++		ec20_4g_perst_mmio_seq();
++		done = true;
++		return;
++	}
++
++	gpio = of_get_named_gpio(np, "reset-gpios", 0);
++	of_node_put(np);
++	if (!gpio_is_valid(gpio)) {
++		basedrv_clk_info("EC20 PERST gpio invalid, use MMIO\n");
++		ec20_4g_perst_mmio_seq();
++		done = true;
++		return;
++	}
++
++	ret = gpio_request(gpio, "ec20-perst");
++	if (ret) {
++		basedrv_clk_info("EC20 PERST gpio_request %d, use MMIO\n", ret);
++		ec20_4g_perst_mmio_seq();
++		done = true;
++		return;
++	}
++
++	/* Output + reset pulse: high (assert) then low (run). */
++	gpio_direction_output(gpio, 1);
++	msleep(EC20_PERST_HOLD_MS);
++	gpio_set_value(gpio, 0);
++	/* Keep ownership so line stays driven low (run). */
++	done = true;
++	basedrv_clk_info("EC20 PERST reset done (high %u ms then low)\n",
++			 EC20_PERST_HOLD_MS);
++}
++#endif
++
+ static void usb_pinout_cfg(void)
+ {
+ 	void __iomem *addr = NULL;
+@@ -102,6 +218,9 @@ static void usb_pinout_cfg(void)
+ 	basedrv_clk_writel(PINOUT_USB_VAL, addr + PITOUT_CTRL1_PWREN_OFFSET);
+ 	basedrv_clk_writel(PINOUT_USB_VAL, addr + PITOUT_CTRL1_VBUS_OFFSET);
+ 	udelay(200); /* delay 200 us to wait vbus stable */
++#ifdef CONFIG_USB_SERIAL_QUECTEL_SUPPORT
++	ec20_4g_perst_reset_seq(addr);
++#endif
+ 
+ 	iounmap(addr);
+ 	addr = NULL;
